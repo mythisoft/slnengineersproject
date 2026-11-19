@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, YoutubeIcon } from './SocialIcons';
 import { fetchApi } from '../../utils/api';
-import { DEFAULT_PILLAR_CARDS, LOCAL_STORAGE_PILLAR_CARDS_KEY } from '../../utils/pillarCardData';
+import { DEFAULT_PILLAR_CARDS } from '../../utils/pillarCardData';
 
 export const DEFAULT_DEVELOPER_CREDIT = {
   isEnabled: true,
@@ -31,19 +31,9 @@ export const DEFAULT_DEVELOPER_CREDIT = {
 
 export default function Footer() {
   const [settings, setSettings] = useState(null);
-  const [pillarCards, setPillarCards] = useState(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_PILLAR_CARDS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const active = parsed.filter((c) => c && c.isActive !== false);
-          if (active.length > 0) return active;
-        }
-      }
-    } catch {}
-    return DEFAULT_PILLAR_CARDS;
-  });
+  const [pillarCards, setPillarCards] = useState(() =>
+    DEFAULT_PILLAR_CARDS.filter((c) => c && c.isActive !== false)
+  );
   const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
 
   const logoUrl = settings?.logoUrl || '/sln-logo.png';
@@ -73,45 +63,30 @@ export default function Footer() {
       })
       .catch((err) => console.error('Failed to load settings:', err));
 
-    fetchApi('/pillar-cards')
-      .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-          const active = res.data.filter((c) => c && c.isActive !== false);
-          if (active.length > 0) {
-            setPillarCards(active);
-            try {
-              localStorage.setItem(LOCAL_STORAGE_PILLAR_CARDS_KEY, JSON.stringify(res.data));
-            } catch {}
+    const loadPillars = () => {
+      fetchApi('/pillar-cards')
+        .then((res) => {
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+            const active = res.data.filter((c) => c && c.isActive !== false);
+            if (active.length > 0) {
+              setPillarCards(active);
+            }
           }
-        }
-      })
-      .catch((err) => console.error('Failed to load pillar cards in footer:', err));
-
-    const syncPillars = () => {
-      try {
-        const stored = localStorage.getItem(LOCAL_STORAGE_PILLAR_CARDS_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const active = parsed.filter((c) => c && c.isActive !== false);
-            if (active.length > 0) setPillarCards(active);
-          }
-        }
-      } catch {}
+        })
+        .catch((err) => console.error('Failed to load pillar cards in footer:', err));
     };
+
+    loadPillars();
 
     const syncSettings = (e) => {
       if (e.detail) setSettings(e.detail);
     };
 
-    window.addEventListener('sln_pillar_cards_updated', syncPillars);
+    window.addEventListener('sln_pillar_cards_updated', loadPillars);
     window.addEventListener('sln_settings_updated', syncSettings);
-    window.addEventListener('storage', syncPillars);
-
     return () => {
-      window.removeEventListener('sln_pillar_cards_updated', syncPillars);
+      window.removeEventListener('sln_pillar_cards_updated', loadPillars);
       window.removeEventListener('sln_settings_updated', syncSettings);
-      window.removeEventListener('storage', syncPillars);
     };
   }, []);
 

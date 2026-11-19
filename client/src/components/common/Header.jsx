@@ -5,22 +5,13 @@ import { fetchApi } from '../../utils/api';
 import {
   DEFAULT_NAVBAR_CONFIG,
   DEFAULT_NAV_LINKS,
-  LOCAL_STORAGE_NAVBAR_KEY,
 } from '../../utils/navbarData';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
   const [settings, setSettings] = useState(null);
-  const [navbarConfig, setNavbarConfig] = useState(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_NAVBAR_KEY);
-      if (stored) {
-        return { ...DEFAULT_NAVBAR_CONFIG, ...JSON.parse(stored) };
-      }
-    } catch {}
-    return DEFAULT_NAVBAR_CONFIG;
-  });
+  const [navbarConfig, setNavbarConfig] = useState(DEFAULT_NAVBAR_CONFIG);
   const [scrolled, setScrolled] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef(null);
@@ -39,9 +30,6 @@ export default function Header() {
           if (res.data.navbarConfig && Object.keys(res.data.navbarConfig).length > 0) {
             const merged = { ...DEFAULT_NAVBAR_CONFIG, ...res.data.navbarConfig };
             setNavbarConfig(merged);
-            try {
-              localStorage.setItem(LOCAL_STORAGE_NAVBAR_KEY, JSON.stringify(merged));
-            } catch {}
           }
         }
       })
@@ -51,15 +39,16 @@ export default function Header() {
   // Real-time synchronization when admin modifies navbar
   useEffect(() => {
     const handleNavbarSync = () => {
-      try {
-        const stored = localStorage.getItem(LOCAL_STORAGE_NAVBAR_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && typeof parsed === 'object') {
-            setNavbarConfig((prev) => ({ ...DEFAULT_NAVBAR_CONFIG, ...prev, ...parsed }));
+      fetchApi('/settings')
+        .then((res) => {
+          if (res.success && res.data) {
+            setSettings(res.data);
+            if (res.data.navbarConfig && Object.keys(res.data.navbarConfig).length > 0) {
+              setNavbarConfig({ ...DEFAULT_NAVBAR_CONFIG, ...res.data.navbarConfig });
+            }
           }
-        }
-      } catch {}
+        })
+        .catch(() => {});
     };
 
     const handleSettingsSync = (e) => {
@@ -68,11 +57,9 @@ export default function Header() {
 
     window.addEventListener('sln_navbar_updated', handleNavbarSync);
     window.addEventListener('sln_settings_updated', handleSettingsSync);
-    window.addEventListener('storage', handleNavbarSync);
     return () => {
       window.removeEventListener('sln_navbar_updated', handleNavbarSync);
       window.removeEventListener('sln_settings_updated', handleSettingsSync);
-      window.removeEventListener('storage', handleNavbarSync);
     };
   }, []);
 

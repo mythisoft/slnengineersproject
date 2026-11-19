@@ -29,7 +29,6 @@ import {
 import { fetchApi } from '../../utils/api';
 import {
   DEFAULT_HOME_CONTENT,
-  LOCAL_STORAGE_HOME_CONTENT_KEY,
   TRUST_CARD_ICONS,
   renderTrustCardIcon,
 } from '../../utils/homeData';
@@ -41,15 +40,7 @@ export default function HomePageManager() {
   const [resetting, setResetting] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  const [homeData, setHomeData] = useState(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_HOME_CONTENT_KEY);
-      if (stored) {
-        return { ...DEFAULT_HOME_CONTENT, ...JSON.parse(stored) };
-      }
-    } catch {}
-    return DEFAULT_HOME_CONTENT;
-  });
+  const [homeData, setHomeData] = useState(DEFAULT_HOME_CONTENT);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -64,18 +55,6 @@ export default function HomePageManager() {
       if (res.success && res.data?.homePageContent && Object.keys(res.data.homePageContent).length > 0) {
         const merged = { ...DEFAULT_HOME_CONTENT, ...res.data.homePageContent };
         setHomeData(merged);
-        try {
-          localStorage.setItem(LOCAL_STORAGE_HOME_CONTENT_KEY, JSON.stringify(merged));
-        } catch {}
-      } else {
-        const stored = localStorage.getItem(LOCAL_STORAGE_HOME_CONTENT_KEY);
-        if (stored) {
-          try {
-            setHomeData({ ...DEFAULT_HOME_CONTENT, ...JSON.parse(stored) });
-          } catch {
-            setHomeData(DEFAULT_HOME_CONTENT);
-          }
-        }
       }
     } catch (e) {
       console.warn('Could not load home content from settings:', e);
@@ -88,35 +67,25 @@ export default function HomePageManager() {
     loadData();
   }, []);
 
-  // Save changes to localStorage and MongoDB CompanySettings
+  // Save changes to MongoDB CompanySettings
   const handleSave = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setSaving(true);
     try {
-      // 1. Instant local persistence & reactive events
-      localStorage.setItem(LOCAL_STORAGE_HOME_CONTENT_KEY, JSON.stringify(homeData));
-      window.dispatchEvent(new Event('sln_home_content_updated'));
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: LOCAL_STORAGE_HOME_CONTENT_KEY,
-          newValue: JSON.stringify(homeData),
-        })
-      );
-
-      // 2. Persist to MongoDB CompanySettings
       const res = await fetchApi('/admin/settings', {
         method: 'PUT',
         body: JSON.stringify({ homePageContent: homeData }),
       });
 
       if (res.success) {
-        showToast('Home page content saved and published successfully!');
+        window.dispatchEvent(new Event('sln_home_content_updated'));
+        showToast('Home page content saved and published to database successfully!');
       } else {
-        showToast('Saved locally in browser.');
+        showToast(res.message || 'Failed to save to database.');
       }
     } catch (err) {
       console.error('Error saving home page content:', err);
-      showToast('Saved locally in browser.');
+      showToast('Error saving home page content to database.');
     } finally {
       setSaving(false);
     }
@@ -128,23 +97,19 @@ export default function HomePageManager() {
     setResetting(true);
     try {
       setHomeData(DEFAULT_HOME_CONTENT);
-      localStorage.setItem(LOCAL_STORAGE_HOME_CONTENT_KEY, JSON.stringify(DEFAULT_HOME_CONTENT));
-      window.dispatchEvent(new Event('sln_home_content_updated'));
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: LOCAL_STORAGE_HOME_CONTENT_KEY,
-          newValue: JSON.stringify(DEFAULT_HOME_CONTENT),
-        })
-      );
-
-      await fetchApi('/admin/settings', {
+      const res = await fetchApi('/admin/settings', {
         method: 'PUT',
         body: JSON.stringify({ homePageContent: DEFAULT_HOME_CONTENT }),
       });
 
-      showToast('Home page content reset to defaults!');
+      if (res.success) {
+        window.dispatchEvent(new Event('sln_home_content_updated'));
+        showToast('Home page content reset to defaults in database!');
+      } else {
+        showToast(res.message || 'Failed to reset in database.');
+      }
     } catch (err) {
-      showToast('Reset locally.');
+      showToast('Error resetting in database.');
     } finally {
       setResetting(false);
     }

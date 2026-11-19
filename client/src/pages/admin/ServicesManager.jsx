@@ -57,10 +57,6 @@ import {
   matchesDiscipline,
 } from '../../utils/servicesData';
 
-const LOCAL_STORAGE_SERVICES_KEY = 'sln_custom_services';
-const LOCAL_STORAGE_DISCIPLINES_KEY = 'sln_custom_disciplines';
-const LOCAL_STORAGE_SERVICES_HERO_KEY = 'sln_custom_services_hero';
-
 // Curated stock photos for fast selection
 const CURATED_IMAGES = [
   { label: 'Terrace Roof', url: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=800&q=80' },
@@ -114,14 +110,7 @@ export default function ServicesManager() {
   const [notification, setNotification] = useState(null);
 
   // Hero Content State (for public Services page header & catalog headings)
-  const [heroFormData, setHeroFormData] = useState(() => {
-    try {
-      const cached = localStorage.getItem(LOCAL_STORAGE_SERVICES_HERO_KEY);
-      return cached ? { ...DEFAULT_SERVICES_HERO, ...JSON.parse(cached) } : DEFAULT_SERVICES_HERO;
-    } catch {
-      return DEFAULT_SERVICES_HERO;
-    }
-  });
+  const [heroFormData, setHeroFormData] = useState(DEFAULT_SERVICES_HERO);
   const [savingHero, setSavingHero] = useState(false);
 
   // Filters for services
@@ -285,31 +274,21 @@ export default function ServicesManager() {
     setTimeout(() => setNotification(null), 4000);
   };
 
-  // Synchronize Services Cache
+  // Synchronize Services State
   const commitServicesState = (newList) => {
     const normalized = newList.map((s, idx) => normalizeService(s, idx));
     setServices(normalized);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_SERVICES_KEY, JSON.stringify(normalized));
-      window.dispatchEvent(new Event('sln_services_updated'));
-    } catch (e) {
-      console.warn('Failed to cache services:', e);
-    }
+    window.dispatchEvent(new Event('sln_services_updated'));
   };
 
-  // Synchronize Disciplines Cache
+  // Synchronize Disciplines State
   const commitDisciplinesState = (newList) => {
     const normalized = newList.map((d, idx) => normalizeDiscipline(d, idx));
     setDisciplines(normalized);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_DISCIPLINES_KEY, JSON.stringify(normalized));
-      window.dispatchEvent(new Event('sln_disciplines_updated'));
-    } catch (e) {
-      console.warn('Failed to cache disciplines:', e);
-    }
+    window.dispatchEvent(new Event('sln_disciplines_updated'));
   };
 
-  // Load both Services and Disciplines
+  // Load both Services and Disciplines from database
   const loadAllData = async () => {
     setLoading(true);
 
@@ -319,88 +298,22 @@ export default function ServicesManager() {
       if (discRes.success && Array.isArray(discRes.data) && discRes.data.length > 0) {
         commitDisciplinesState(discRes.data);
       } else {
-        const storedDisc = localStorage.getItem(LOCAL_STORAGE_DISCIPLINES_KEY);
-        if (storedDisc) {
-          try {
-            commitDisciplinesState(JSON.parse(storedDisc));
-          } catch {
-            commitDisciplinesState(DEFAULT_DISCIPLINES);
-          }
-        } else {
-          commitDisciplinesState(DEFAULT_DISCIPLINES);
-        }
-      }
-    } catch (err) {
-      const storedDisc = localStorage.getItem(LOCAL_STORAGE_DISCIPLINES_KEY);
-      if (storedDisc) {
-        try {
-          commitDisciplinesState(JSON.parse(storedDisc));
-        } catch {
-          commitDisciplinesState(DEFAULT_DISCIPLINES);
-        }
-      } else {
         commitDisciplinesState(DEFAULT_DISCIPLINES);
       }
+    } catch (err) {
+      commitDisciplinesState(DEFAULT_DISCIPLINES);
     }
 
     // 2. Load Services
     try {
       const srvRes = await fetchApi('/admin/services');
       if (srvRes.success && Array.isArray(srvRes.data) && srvRes.data.length > 0) {
-        const storedSrv = localStorage.getItem(LOCAL_STORAGE_SERVICES_KEY);
-        if (storedSrv) {
-          try {
-            const localList = JSON.parse(storedSrv);
-            if (Array.isArray(localList) && localList.length > 0) {
-              // Blend local customizations (authoritative for edits in admin)
-              const merged = localList.map((local, idx) => {
-                const apiMatch = srvRes.data.find(
-                  (a) =>
-                    (a._id && (a._id === local._id || a.id === local._id)) ||
-                    (a.id && (a.id === local.id || a._id === local.id)) ||
-                    (a.slug && a.slug === local.slug)
-                );
-                return normalizeService({ ...(apiMatch || {}), ...local }, idx);
-              });
-              srvRes.data.forEach((apiItem) => {
-                const exists = merged.some(
-                  (m) =>
-                    (m._id && (m._id === apiItem._id || m.id === apiItem._id)) ||
-                    (m.id && (m.id === apiItem.id || m._id === apiItem.id)) ||
-                    (m.slug && m.slug === apiItem.slug)
-                );
-                if (!exists) merged.push(normalizeService(apiItem, merged.length));
-              });
-              commitServicesState(merged);
-              setLoading(false);
-              return;
-            }
-          } catch {}
-        }
         commitServicesState(srvRes.data);
-      } else {
-        const storedSrv = localStorage.getItem(LOCAL_STORAGE_SERVICES_KEY);
-        if (storedSrv) {
-          try {
-            commitServicesState(JSON.parse(storedSrv));
-          } catch {
-            commitServicesState(DEFAULT_SERVICES);
-          }
-        } else {
-          commitServicesState(DEFAULT_SERVICES);
-        }
-      }
-    } catch (err) {
-      const storedSrv = localStorage.getItem(LOCAL_STORAGE_SERVICES_KEY);
-      if (storedSrv) {
-        try {
-          commitServicesState(JSON.parse(storedSrv));
-        } catch {
-          commitServicesState(DEFAULT_SERVICES);
-        }
       } else {
         commitServicesState(DEFAULT_SERVICES);
       }
+    } catch (err) {
+      commitServicesState(DEFAULT_SERVICES);
     }
 
     // 3. Load Services Page Header Content (from backend settings)
@@ -408,7 +321,6 @@ export default function ServicesManager() {
       const settingsRes = await fetchApi('/settings');
       if (settingsRes.success && settingsRes.data?.servicesPageContent && Object.keys(settingsRes.data.servicesPageContent).length > 0) {
         setHeroFormData((prev) => ({ ...DEFAULT_SERVICES_HERO, ...prev, ...settingsRes.data.servicesPageContent }));
-        localStorage.setItem(LOCAL_STORAGE_SERVICES_HERO_KEY, JSON.stringify(settingsRes.data.servicesPageContent));
       }
     } catch (e) {
       console.warn('Could not load servicesPageContent from settings:', e);
@@ -935,30 +847,22 @@ export default function ServicesManager() {
     if (e && e.preventDefault) e.preventDefault();
     setSavingHero(true);
     try {
-      // 1. Instant client-side persistence and reactivity
-      localStorage.setItem(LOCAL_STORAGE_SERVICES_HERO_KEY, JSON.stringify(heroFormData));
       window.dispatchEvent(new Event('sln_services_hero_updated'));
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: LOCAL_STORAGE_SERVICES_HERO_KEY,
-          newValue: JSON.stringify(heroFormData),
-        })
-      );
 
-      // 2. Persist to MongoDB CompanySettings
+      // Persist to MongoDB CompanySettings
       const res = await fetchApi('/admin/settings', {
         method: 'PUT',
         body: JSON.stringify({ servicesPageContent: heroFormData }),
       });
 
       if (res.success) {
-        showToast('Services page header & copy saved and published successfully!');
+        showToast('Services page header & copy saved and published successfully to database!');
       } else {
-        showToast('Saved locally in browser. Settings synced.', 'warning');
+        showToast(res.message || 'Failed to save to database.', 'error');
       }
     } catch (err) {
       console.error('Error saving services page content:', err);
-      showToast('Saved to browser storage.', 'info');
+      showToast(err.message || 'Failed to save to database.', 'error');
     } finally {
       setSavingHero(false);
     }
@@ -969,21 +873,15 @@ export default function ServicesManager() {
     setSavingHero(true);
     try {
       setHeroFormData(DEFAULT_SERVICES_HERO);
-      localStorage.setItem(LOCAL_STORAGE_SERVICES_HERO_KEY, JSON.stringify(DEFAULT_SERVICES_HERO));
       window.dispatchEvent(new Event('sln_services_hero_updated'));
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: LOCAL_STORAGE_SERVICES_HERO_KEY,
-          newValue: JSON.stringify(DEFAULT_SERVICES_HERO),
-        })
-      );
+
       await fetchApi('/admin/settings', {
         method: 'PUT',
         body: JSON.stringify({ servicesPageContent: DEFAULT_SERVICES_HERO }),
       });
-      showToast('Services page header reset to defaults');
+      showToast('Services page header reset to defaults in database.');
     } catch (err) {
-      showToast('Reset to defaults locally');
+      showToast('Reset failed.', 'error');
     } finally {
       setSavingHero(false);
     }

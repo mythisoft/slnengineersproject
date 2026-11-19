@@ -1,6 +1,3 @@
-export const LOCAL_STORAGE_PILLAR_CARDS_KEY = 'sln_pillar_cards';
-export const LOCAL_STORAGE_GLIMPSE_VIDEO_KEY = 'sln_glimpse_video_settings';
-
 export const DEFAULT_GLIMPSE_SETTINGS = {
   videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-hands-of-a-mason-working-with-mortar-and-trowel-41885-large.mp4',
   durationSeconds: 3,

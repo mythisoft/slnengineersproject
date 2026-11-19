@@ -40,9 +40,6 @@ import {
 
 export { CORE_DISCIPLINES, DEFAULT_DISCIPLINES };
 export const SERVICES_DATA = DEFAULT_SERVICES;
-const LOCAL_STORAGE_SERVICES_KEY = 'sln_custom_services';
-const LOCAL_STORAGE_DISCIPLINES_KEY = 'sln_custom_disciplines';
-const LOCAL_STORAGE_SERVICES_HERO_KEY = 'sln_custom_services_hero';
 
 // Helper to resolve query parameter (category or discipline) to the correct service
 function findMatchingService(categoryParam, idParam, list = DEFAULT_SERVICES) {
@@ -100,195 +97,58 @@ function findMatchingService(categoryParam, idParam, list = DEFAULT_SERVICES) {
 
 export default function Services() {
   const [settings, setSettings] = useState(null);
-
-  // Dynamic Disciplines State (Loads from API / localStorage / Defaults)
-  const [disciplines, setDisciplines] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem(LOCAL_STORAGE_DISCIPLINES_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed.map((d, idx) => normalizeDiscipline(d, idx));
-          }
-        }
-      } catch (e) {}
-    }
-    return DEFAULT_DISCIPLINES;
-  });
-
-  // Dynamic Services State (Loads from API / localStorage / Defaults)
-  const [services, setServices] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem(LOCAL_STORAGE_SERVICES_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed.map((s, idx) => normalizeService(s, idx));
-          }
-        }
-      } catch (e) {}
-    }
-    return DEFAULT_SERVICES;
-  });
-
+  const [disciplines, setDisciplines] = useState(DEFAULT_DISCIPLINES);
+  const [services, setServices] = useState(DEFAULT_SERVICES);
   const [activeDiscipline, setActiveDiscipline] = useState('all');
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [heroContent, setHeroContent] = useState(() => {
-    try {
-      const cached = localStorage.getItem(LOCAL_STORAGE_SERVICES_HERO_KEY);
-      return cached ? { ...DEFAULT_SERVICES_HERO, ...JSON.parse(cached) } : DEFAULT_SERVICES_HERO;
-    } catch {
-      return DEFAULT_SERVICES_HERO;
-    }
-  });
+  const [heroContent, setHeroContent] = useState(DEFAULT_SERVICES_HERO);
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const prevSearchRef = useRef('');
 
   useEffect(() => {
-    fetchApi('/settings')
-      .then((res) => {
-        if (res.success && res.data) {
-          setSettings(res.data);
-          if (res.data.servicesPageContent && Object.keys(res.data.servicesPageContent).length > 0) {
-            setHeroContent((prev) => ({ ...prev, ...res.data.servicesPageContent }));
-            try {
-              localStorage.setItem(LOCAL_STORAGE_SERVICES_HERO_KEY, JSON.stringify(res.data.servicesPageContent));
-            } catch (e) {}
-          }
-        }
-      })
-      .catch((e) => console.error('Failed to load settings:', e));
-
-    // Dynamic Disciplines Load
-    fetchApi('/disciplines')
-      .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-          const normalized = res.data.map((d, idx) => normalizeDiscipline(d, idx));
-          setDisciplines(normalized);
-          try {
-            localStorage.setItem(LOCAL_STORAGE_DISCIPLINES_KEY, JSON.stringify(normalized));
-          } catch (e) {}
-        }
-      })
-      .catch((e) => console.warn('Could not load public disciplines, using defaults:', e));
-
-    // Dynamic Services Load
-    fetchApi('/services')
-      .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-          const apiServices = res.data.map((s, idx) => normalizeService(s, idx));
-          let finalServices = apiServices;
-
-          try {
-            const localRaw = localStorage.getItem(LOCAL_STORAGE_SERVICES_KEY);
-            if (localRaw) {
-              const localServices = JSON.parse(localRaw);
-              if (Array.isArray(localServices) && localServices.length > 0) {
-                // Keep Admin's local customizations (disciplineId, title, publicationStatus, etc.) authoritative
-                const merged = localServices.map((local, idx) => {
-                  const apiMatch = apiServices.find(
-                    (a) =>
-                      (a._id && (a._id === local._id || a.id === local._id)) ||
-                      (a.id && (a.id === local.id || a._id === local.id)) ||
-                      (a.slug && a.slug === local.slug)
-                  );
-                  return normalizeService({ ...(apiMatch || {}), ...local }, idx);
-                });
-
-                // Include any backend services that don't exist locally yet
-                apiServices.forEach((apiItem) => {
-                  const exists = merged.some(
-                    (m) =>
-                      (m._id && (m._id === apiItem._id || m.id === apiItem._id)) ||
-                      (m.id && (m.id === apiItem.id || m._id === apiItem.id)) ||
-                      (m.slug && m.slug === apiItem.slug)
-                  );
-                  if (!exists) {
-                    merged.push(normalizeService(apiItem, merged.length));
-                  }
-                });
-
-                finalServices = merged;
-              }
+    const loadAllServicesData = () => {
+      fetchApi('/settings')
+        .then((res) => {
+          if (res.success && res.data) {
+            setSettings(res.data);
+            if (res.data.servicesPageContent && Object.keys(res.data.servicesPageContent).length > 0) {
+              setHeroContent((prev) => ({ ...prev, ...res.data.servicesPageContent }));
             }
-          } catch (e) {
-            console.warn('Error syncing services with local cache:', e);
           }
+        })
+        .catch((e) => console.error('Failed to load settings:', e));
 
-          setServices(finalServices);
-          try {
-            localStorage.setItem(LOCAL_STORAGE_SERVICES_KEY, JSON.stringify(finalServices));
-          } catch (e) {}
-        } else {
-          handleCustomServicesUpdate();
-        }
-      })
-      .catch((e) => {
-        console.warn('Public services fetch error, using cache/defaults:', e);
-        handleCustomServicesUpdate();
-      });
+      // Dynamic Disciplines Load
+      fetchApi('/disciplines')
+        .then((res) => {
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+            setDisciplines(res.data.map((d, idx) => normalizeDiscipline(d, idx)));
+          }
+        })
+        .catch((e) => console.warn('Could not load public disciplines, using defaults:', e));
 
-    // Real-time synchronization when admin saves/edits services or discipline pillars
-    const handleStorage = (e) => {
-      if (e.key === LOCAL_STORAGE_SERVICES_KEY && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          setServices(parsed.map((s, idx) => normalizeService(s, idx)));
-        } catch (err) {}
-      }
-      if (e.key === LOCAL_STORAGE_DISCIPLINES_KEY && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          setDisciplines(parsed.map((d, idx) => normalizeDiscipline(d, idx)));
-        } catch (err) {}
-      }
-      if (e.key === LOCAL_STORAGE_SERVICES_HERO_KEY && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          setHeroContent((prev) => ({ ...prev, ...parsed }));
-        } catch (err) {}
-      }
+      // Dynamic Services Load
+      fetchApi('/services')
+        .then((res) => {
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+            setServices(res.data.map((s, idx) => normalizeService(s, idx)));
+          }
+        })
+        .catch((e) => console.warn('Public services fetch error, using defaults:', e));
     };
 
-    const handleCustomServicesUpdate = () => {
-      try {
-        const stored = localStorage.getItem(LOCAL_STORAGE_SERVICES_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          setServices(parsed.map((s, idx) => normalizeService(s, idx)));
-        }
-      } catch (err) {}
-    };
+    loadAllServicesData();
 
-    const handleCustomDisciplinesUpdate = () => {
-      try {
-        const stored = localStorage.getItem(LOCAL_STORAGE_DISCIPLINES_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          setDisciplines(parsed.map((d, idx) => normalizeDiscipline(d, idx)));
-        }
-      } catch (err) {}
-    };
-
-    const handleWindowFocus = () => {
-      handleCustomServicesUpdate();
-      handleCustomDisciplinesUpdate();
-    };
-
-    window.addEventListener('storage', handleStorage);
-    window.addEventListener('sln_services_updated', handleCustomServicesUpdate);
-    window.addEventListener('sln_disciplines_updated', handleCustomDisciplinesUpdate);
-    window.addEventListener('focus', handleWindowFocus);
+    window.addEventListener('sln_services_updated', loadAllServicesData);
+    window.addEventListener('sln_disciplines_updated', loadAllServicesData);
+    window.addEventListener('sln_services_hero_updated', loadAllServicesData);
 
     return () => {
-      window.removeEventListener('storage', handleStorage);
-      window.removeEventListener('sln_services_updated', handleCustomServicesUpdate);
-      window.removeEventListener('sln_disciplines_updated', handleCustomDisciplinesUpdate);
-      window.removeEventListener('focus', handleWindowFocus);
+      window.removeEventListener('sln_services_updated', loadAllServicesData);
+      window.removeEventListener('sln_disciplines_updated', loadAllServicesData);
+      window.removeEventListener('sln_services_hero_updated', loadAllServicesData);
     };
   }, []);
 

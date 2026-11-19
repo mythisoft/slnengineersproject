@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import BeforeAfterSlider from '../../components/common/BeforeAfterSlider';
 import { fetchApi } from '../../utils/api';
-import { DEFAULT_PROJECTS, LOCAL_STORAGE_PROJECTS_KEY } from '../../utils/projectsData';
+import { DEFAULT_PROJECTS } from '../../utils/projectsData';
 
 export default function ProjectDetail() {
   const { slug } = useParams();
@@ -32,13 +32,7 @@ export default function ProjectDetail() {
   const [activeMediaTab, setActiveMediaTab] = useState('all');
 
   useEffect(() => {
-    const resolveLocalProject = (targetSlug) => {
-      try {
-        const stored = localStorage.getItem(LOCAL_STORAGE_PROJECTS_KEY);
-        const list = stored ? JSON.parse(stored) : DEFAULT_PROJECTS;
-        const match = list.find((p) => p.slug === targetSlug || p._id === targetSlug || p.id === targetSlug);
-        if (match) return match;
-      } catch {}
+    const resolveFallbackProject = (targetSlug) => {
       return DEFAULT_PROJECTS.find((p) => p.slug === targetSlug || p._id === targetSlug || p.id === targetSlug) || null;
     };
 
@@ -51,7 +45,7 @@ export default function ProjectDetail() {
           setProject(projectRes.data);
           setError('');
         } else {
-          const fallback = resolveLocalProject(slug);
+          const fallback = resolveFallbackProject(slug);
           if (fallback) {
             setProject(fallback);
             setError('');
@@ -62,7 +56,7 @@ export default function ProjectDetail() {
         if (settingsRes?.success) setSettings(settingsRes.data);
       })
       .catch((err) => {
-        const fallback = resolveLocalProject(slug);
+        const fallback = resolveFallbackProject(slug);
         if (fallback) {
           setProject(fallback);
           setError('');

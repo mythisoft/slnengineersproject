@@ -24,8 +24,6 @@ import {
   resolveTrustIcon,
 } from '../../utils/trustMetricsData';
 
-const LOCAL_STORAGE_KEY = 'sln_custom_trust_metrics';
-
 export default function TrustMetricsManager() {
   const [metrics, setMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,32 +57,12 @@ export default function TrustMetricsManager() {
       const res = await fetchApi('/admin/trust-metrics');
       if (res.success && Array.isArray(res.data) && res.data.length > 0) {
         setMetrics(res.data);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(res.data));
-      } else {
-        // Fallback to local storage or defaults
-        const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (stored) {
-          try {
-            setMetrics(JSON.parse(stored));
-          } catch {
-            setMetrics(DEFAULT_TRUST_METRICS);
-          }
-        } else {
-          setMetrics(DEFAULT_TRUST_METRICS);
-        }
-      }
-    } catch (err) {
-      console.warn('API error loading trust metrics, checking local storage fallback:', err.message);
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (stored) {
-        try {
-          setMetrics(JSON.parse(stored));
-        } catch {
-          setMetrics(DEFAULT_TRUST_METRICS);
-        }
       } else {
         setMetrics(DEFAULT_TRUST_METRICS);
       }
+    } catch (err) {
+      console.warn('API error loading trust metrics:', err.message);
+      setMetrics(DEFAULT_TRUST_METRICS);
     } finally {
       setLoading(false);
     }
@@ -139,12 +117,11 @@ export default function TrustMetricsManager() {
             updatedItem = res.data;
           }
         } catch (apiErr) {
-          console.warn('Server update skipped, updating locally:', apiErr.message);
+          console.warn('Server update error:', apiErr.message);
         }
 
         const nextMetrics = metrics.map((m) => (m._id === targetId ? updatedItem : m));
         setMetrics(nextMetrics);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(nextMetrics));
         showToast(`Updated metric "${formData.value}" successfully!`);
       } else {
         // Create
@@ -163,12 +140,11 @@ export default function TrustMetricsManager() {
             finalItem = res.data;
           }
         } catch (apiErr) {
-          console.warn('Server create skipped, saving locally:', apiErr.message);
+          console.warn('Server create error:', apiErr.message);
         }
 
         const nextMetrics = [...metrics, finalItem].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
         setMetrics(nextMetrics);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(nextMetrics));
         showToast(`Created new metric "${formData.value}" successfully!`);
       }
 
@@ -187,12 +163,11 @@ export default function TrustMetricsManager() {
       try {
         await fetchApi(`/admin/trust-metrics/${id}`, { method: 'DELETE' });
       } catch (apiErr) {
-        console.warn('Server delete skipped, deleting locally:', apiErr.message);
+        console.warn('Server delete error:', apiErr.message);
       }
 
       const nextMetrics = metrics.filter((m) => m._id !== id);
       setMetrics(nextMetrics);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(nextMetrics));
       showToast(`Metric "${value}" deleted successfully.`);
     } catch (err) {
       alert(err.message || 'Failed to delete trust metric.');
@@ -210,12 +185,11 @@ export default function TrustMetricsManager() {
           body: JSON.stringify({ isActive: updatedStatus }),
         });
       } catch (apiErr) {
-        console.warn('Server status toggle skipped, updating locally:', apiErr.message);
+        console.warn('Server status toggle error:', apiErr.message);
       }
 
       const nextMetrics = metrics.map((m) => (m._id === metric._id ? nextItem : m));
       setMetrics(nextMetrics);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(nextMetrics));
       showToast(`Metric "${metric.value}" is now ${updatedStatus ? 'Visible' : 'Hidden'}.`);
     } catch (err) {
       alert(err.message || 'Failed to toggle status.');
@@ -234,7 +208,6 @@ export default function TrustMetricsManager() {
     // Recalculate order indices
     const reordered = copy.map((item, idx) => ({ ...item, order: idx + 1 }));
     setMetrics(reordered);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(reordered));
 
     // Async persist to server
     try {
@@ -248,7 +221,7 @@ export default function TrustMetricsManager() {
       );
       showToast('Order updated successfully!');
     } catch (e) {
-      // Local copy was already updated
+      // Local state was already updated
     }
   };
 
@@ -264,16 +237,14 @@ export default function TrustMetricsManager() {
         const res = await fetchApi('/admin/trust-metrics/init-defaults', { method: 'POST' });
         if (res.success && res.data) {
           setMetrics(res.data);
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(res.data));
-          showToast('Reset to 8 standard defaults successfully!');
+          showToast('Reset to 8 standard defaults in database successfully!');
           return;
         }
       } catch (apiErr) {
-        console.warn('Server reset skipped, resetting locally:', apiErr.message);
+        console.warn('Server reset error:', apiErr.message);
       }
 
       setMetrics(DEFAULT_TRUST_METRICS);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_TRUST_METRICS));
       showToast('Reset to 8 standard defaults successfully!');
     } catch (err) {
       alert(err.message || 'Failed to reset trust metrics.');

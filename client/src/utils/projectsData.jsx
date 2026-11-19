@@ -1,7 +1,5 @@
 import { matchesDiscipline } from './servicesData';
 
-export const LOCAL_STORAGE_PROJECTS_KEY = 'sln_custom_projects';
-
 // Standard 12 Verified Engineering Projects across all 4 Core Disciplines
 export const DEFAULT_PROJECTS = [
   // -------------------------------------------------------------------------

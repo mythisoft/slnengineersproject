@@ -31,35 +31,14 @@ import {
 import { fetchApi } from '../../utils/api';
 import {
   DEFAULT_PILLAR_CARDS,
-  LOCAL_STORAGE_PILLAR_CARDS_KEY,
   DEFAULT_GLIMPSE_SETTINGS,
-  LOCAL_STORAGE_GLIMPSE_VIDEO_KEY,
   normalizePillarCard,
 } from '../../utils/pillarCardData';
 import { DEFAULT_DISCIPLINES } from '../../utils/servicesData';
 
 export default function PillarCardsManager() {
-  const [cards, setCards] = useState(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_PILLAR_CARDS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {}
-    return DEFAULT_PILLAR_CARDS;
-  });
-
-  const [disciplines, setDisciplines] = useState(() => {
-    try {
-      const stored = localStorage.getItem('sln_custom_disciplines');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {}
-    return DEFAULT_DISCIPLINES;
-  });
+  const [cards, setCards] = useState(DEFAULT_PILLAR_CARDS);
+  const [disciplines, setDisciplines] = useState(DEFAULT_DISCIPLINES);
 
   const [isLoading, setIsLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -85,16 +64,7 @@ export default function PillarCardsManager() {
   const [newPillarColor, setNewPillarColor] = useState('#029746');
 
   // Glimpse Video Settings State
-  const [glimpseSettings, setGlimpseSettings] = useState(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_GLIMPSE_VIDEO_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === 'object') return { ...DEFAULT_GLIMPSE_SETTINGS, ...parsed };
-      }
-    } catch {}
-    return DEFAULT_GLIMPSE_SETTINGS;
-  });
+  const [glimpseSettings, setGlimpseSettings] = useState(DEFAULT_GLIMPSE_SETTINGS);
   const [isVideoUploading, setIsVideoUploading] = useState(false);
   const [videoUploadError, setVideoUploadError] = useState('');
   const [isSavingVideoSettings, setIsSavingVideoSettings] = useState(false);
@@ -114,20 +84,17 @@ export default function PillarCardsManager() {
 
       if (cardsRes && cardsRes.success && Array.isArray(cardsRes.data)) {
         setCards(cardsRes.data);
-        localStorage.setItem(LOCAL_STORAGE_PILLAR_CARDS_KEY, JSON.stringify(cardsRes.data));
       }
 
       if (discRes && discRes.success && Array.isArray(discRes.data)) {
         setDisciplines(discRes.data);
-        localStorage.setItem('sln_custom_disciplines', JSON.stringify(discRes.data));
       }
 
       if (glimpseRes && glimpseRes.success && glimpseRes.data) {
         setGlimpseSettings((prev) => ({ ...prev, ...glimpseRes.data }));
-        localStorage.setItem(LOCAL_STORAGE_GLIMPSE_VIDEO_KEY, JSON.stringify(glimpseRes.data));
       }
     } catch (err) {
-      console.warn('Using local fallback for pillar cards:', err);
+      console.warn('Error loading pillar cards:', err);
     } finally {
       setIsLoading(false);
     }
@@ -282,10 +249,9 @@ export default function PillarCardsManager() {
 
       const updatedDisciplines = [...disciplines, newDiscObj];
       setDisciplines(updatedDisciplines);
-      localStorage.setItem('sln_custom_disciplines', JSON.stringify(updatedDisciplines));
       window.dispatchEvent(new Event('sln_disciplines_updated'));
 
-      // Try persisting to API
+      // Persist to API
       try {
         await fetchApi('/admin/disciplines', {
           method: 'POST',
@@ -347,24 +313,11 @@ export default function PillarCardsManager() {
       updatedCards.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
 
       setCards(updatedCards);
-      localStorage.setItem(LOCAL_STORAGE_PILLAR_CARDS_KEY, JSON.stringify(updatedCards));
       window.dispatchEvent(new Event('sln_pillar_cards_updated'));
       setModalOpen(false);
     } catch (err) {
       console.error('Save error:', err);
-      // Local fallback
-      let updatedCards = [];
-      if (editingCard) {
-        updatedCards = cards.map((c) => (c._id === editingCard._id ? { ...c, ...payload } : c));
-      } else {
-        updatedCards = [...cards, { _id: `card-${Date.now()}`, ...payload }];
-      }
-      updatedCards.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
-      setCards(updatedCards);
-      localStorage.setItem(LOCAL_STORAGE_PILLAR_CARDS_KEY, JSON.stringify(updatedCards));
-      window.dispatchEvent(new Event('sln_pillar_cards_updated'));
-      setModalOpen(false);
-      showToast('Saved card successfully (local sync).');
+      showToast('Error saving pillar card.');
     }
   };
 
@@ -373,7 +326,6 @@ export default function PillarCardsManager() {
     const updatedStatus = !card.isActive;
     const updatedList = cards.map((c) => (c._id === card._id ? { ...c, isActive: updatedStatus } : c));
     setCards(updatedList);
-    localStorage.setItem(LOCAL_STORAGE_PILLAR_CARDS_KEY, JSON.stringify(updatedList));
     window.dispatchEvent(new Event('sln_pillar_cards_updated'));
 
     try {
@@ -393,7 +345,6 @@ export default function PillarCardsManager() {
 
     const updatedList = cards.filter((c) => c._id !== card._id);
     setCards(updatedList);
-    localStorage.setItem(LOCAL_STORAGE_PILLAR_CARDS_KEY, JSON.stringify(updatedList));
     window.dispatchEvent(new Event('sln_pillar_cards_updated'));
 
     try {
@@ -413,11 +364,7 @@ export default function PillarCardsManager() {
     }));
 
     setCards(normalized);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_PILLAR_CARDS_KEY, JSON.stringify(normalized));
-      window.dispatchEvent(new Event('sln_pillar_cards_updated'));
-    } catch {}
-
+    window.dispatchEvent(new Event('sln_pillar_cards_updated'));
     showToast(notifyText);
 
     try {
@@ -574,10 +521,6 @@ export default function PillarCardsManager() {
           isEnabled: true,
         };
         setGlimpseSettings(updatedSettings);
-        try {
-          localStorage.setItem(LOCAL_STORAGE_GLIMPSE_VIDEO_KEY, JSON.stringify(updatedSettings));
-          window.dispatchEvent(new Event('sln_glimpse_video_updated'));
-        } catch {}
 
         // Auto-save to backend settings
         await fetchApi('/admin/pillar-cards/glimpse-settings', {
@@ -585,57 +528,14 @@ export default function PillarCardsManager() {
           body: JSON.stringify(updatedSettings),
         }).catch(() => {});
 
-        showToast('Glimpse video uploaded and saved successfully! It will now play on the homepage.');
+        window.dispatchEvent(new Event('sln_glimpse_video_updated'));
+        showToast('Glimpse video uploaded and saved successfully to database!');
       } else {
-        // Fallback: Read as Base64 data URL so it permanently survives refresh in browser
-        const reader = new FileReader();
-        reader.onload = async () => {
-          const base64Url = reader.result;
-          const updatedSettings = {
-            ...glimpseSettings,
-            videoUrl: base64Url,
-            isEnabled: true,
-          };
-          setGlimpseSettings(updatedSettings);
-          try {
-            localStorage.setItem(LOCAL_STORAGE_GLIMPSE_VIDEO_KEY, JSON.stringify(updatedSettings));
-            window.dispatchEvent(new Event('sln_glimpse_video_updated'));
-          } catch (storageErr) {
-            console.warn('Storage full for base64 video:', storageErr);
-          }
-
-          // Try saving to backend
-          await fetchApi('/admin/pillar-cards/glimpse-settings', {
-            method: 'PUT',
-            body: JSON.stringify(updatedSettings),
-          }).catch(() => {});
-
-          showToast('Video saved successfully (persists on refresh)!');
-        };
-        reader.readAsDataURL(file);
+        setVideoUploadError(res.message || 'Failed to upload video to server.');
       }
     } catch (err) {
-      console.warn('Server upload failed, converting to persistent Base64 data URL:', err);
-      // Fallback: Convert to Base64 data URL so it survives refresh!
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64Url = reader.result;
-        const updatedSettings = {
-          ...glimpseSettings,
-          videoUrl: base64Url,
-          isEnabled: true,
-        };
-        setGlimpseSettings(updatedSettings);
-        try {
-          localStorage.setItem(LOCAL_STORAGE_GLIMPSE_VIDEO_KEY, JSON.stringify(updatedSettings));
-          window.dispatchEvent(new Event('sln_glimpse_video_updated'));
-        } catch (storageErr) {
-          console.warn('Storage full for base64 video:', storageErr);
-        }
-
-        showToast('Video saved locally (persists on refresh)!');
-      };
-      reader.readAsDataURL(file);
+      console.error('Server upload failed:', err);
+      setVideoUploadError(err.message || 'Video upload failed.');
     } finally {
       setIsVideoUploading(false);
       if (videoInputRef.current) videoInputRef.current.value = '';
@@ -648,20 +548,20 @@ export default function PillarCardsManager() {
     setIsSavingVideoSettings(true);
 
     try {
-      localStorage.setItem(LOCAL_STORAGE_GLIMPSE_VIDEO_KEY, JSON.stringify(glimpseSettings));
-      window.dispatchEvent(new Event('sln_glimpse_video_updated'));
-
-      await fetchApi('/admin/pillar-cards/glimpse-settings', {
+      const res = await fetchApi('/admin/pillar-cards/glimpse-settings', {
         method: 'PUT',
         body: JSON.stringify(glimpseSettings),
       });
 
-      showToast('Glimpse intro video settings saved successfully!');
+      if (res.success) {
+        window.dispatchEvent(new Event('sln_glimpse_video_updated'));
+        showToast('Glimpse intro video settings saved to database successfully!');
+      } else {
+        showToast(res.message || 'Failed to save glimpse settings.');
+      }
     } catch (err) {
-      console.warn('Saved glimpse settings locally:', err);
-      localStorage.setItem(LOCAL_STORAGE_GLIMPSE_VIDEO_KEY, JSON.stringify(glimpseSettings));
-      window.dispatchEvent(new Event('sln_glimpse_video_updated'));
-      showToast('Saved glimpse settings locally.');
+      console.error('Error saving glimpse settings:', err);
+      showToast('Error saving glimpse settings to database.');
     } finally {
       setIsSavingVideoSettings(false);
     }

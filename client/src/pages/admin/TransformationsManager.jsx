@@ -149,8 +149,6 @@ const emptyForm = {
   isActive: true,
 };
 
-const STORAGE_KEY = 'sln_admin_transformations_v3';
-
 export default function TransformationsManager() {
   const [presets, setPresets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -171,18 +169,13 @@ export default function TransformationsManager() {
       .then((res) => {
         if (res.success && Array.isArray(res.data) && res.data.length > 0) {
           setPresets(res.data);
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(res.data));
-          } catch (e) {}
         } else {
-          const cached = localStorage.getItem(STORAGE_KEY);
-          setPresets(cached ? JSON.parse(cached) : FALLBACK_PRESETS);
+          setPresets(FALLBACK_PRESETS);
         }
       })
       .catch((err) => {
-        console.warn('Backend API unavailable, using cached/fallback presets:', err);
-        const cached = localStorage.getItem(STORAGE_KEY);
-        setPresets(cached ? JSON.parse(cached) : FALLBACK_PRESETS);
+        console.warn('Backend API unavailable, using fallback presets:', err);
+        setPresets(FALLBACK_PRESETS);
       })
       .finally(() => setLoading(false));
   };
@@ -362,10 +355,7 @@ export default function TransformationsManager() {
             }
             return p;
           });
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-            window.dispatchEvent(new Event('sln_transformations_updated'));
-          } catch (e) {}
+          window.dispatchEvent(new Event('sln_transformations_updated'));
           return updated;
         });
       } else {
@@ -396,10 +386,7 @@ export default function TransformationsManager() {
               p._id !== newPresetData._id ? { ...p, isFeatured: false } : p
             );
           }
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-            window.dispatchEvent(new Event('sln_transformations_updated'));
-          } catch (e) {}
+          window.dispatchEvent(new Event('sln_transformations_updated'));
           return updated;
         });
       }
@@ -436,10 +423,7 @@ export default function TransformationsManager() {
     });
 
     setPresets(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      window.dispatchEvent(new Event('sln_transformations_updated'));
-    } catch (e) {}
+    window.dispatchEvent(new Event('sln_transformations_updated'));
 
     try {
       await fetchApi(`/admin/transformations/${preset._id}`, {
@@ -475,10 +459,7 @@ export default function TransformationsManager() {
     });
 
     setPresets(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      window.dispatchEvent(new Event('sln_transformations_updated'));
-    } catch (e) {}
+    window.dispatchEvent(new Event('sln_transformations_updated'));
 
     try {
       await fetchApi(`/admin/transformations/${preset._id}`, {
@@ -515,10 +496,7 @@ export default function TransformationsManager() {
     // Optimistic update
     setPresets((prev) => {
       const next = prev.map((p) => (p._id === preset._id ? { ...p, ...finalUpdates } : p));
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-        window.dispatchEvent(new Event('sln_transformations_updated'));
-      } catch (e) {}
+      window.dispatchEvent(new Event('sln_transformations_updated'));
       return next;
     });
 
@@ -550,9 +528,6 @@ export default function TransformationsManager() {
     // Reassign order
     const reordered = next.map((item, idx) => ({ ...item, order: idx }));
     setPresets(reordered);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(reordered));
-    } catch (e) {}
 
     try {
       await Promise.all(
@@ -574,9 +549,7 @@ export default function TransformationsManager() {
 
     setPresets((prev) => {
       const remaining = prev.filter((p) => p._id !== preset._id);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(remaining));
-      } catch (e) {}
+      window.dispatchEvent(new Event('sln_transformations_updated'));
       return remaining;
     });
 

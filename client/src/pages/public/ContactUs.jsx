@@ -34,8 +34,6 @@ import {
 import { fetchApi } from '../../utils/api';
 import { DEFAULT_CONTACT_CONTENT } from '../../utils/contactData';
 
-const LOCAL_STORAGE_KEY = 'sln_custom_contact_content';
-
 export default function ContactUs() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -63,32 +61,21 @@ export default function ContactUs() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Load public contact content + real-time synchronization
+  // Load public contact content from database
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === 'object') {
-          setContent((prev) => ({ ...DEFAULT_CONTACT_CONTENT, ...parsed }));
-        }
-      }
-    } catch (e) {
-      // ignore
-    }
+    const loadContactData = () => {
+      fetchApi('/contact')
+        .then((res) => {
+          if (res.success && res.data) {
+            setContent(res.data);
+          }
+        })
+        .catch((err) => {
+          console.warn('API error fetching contact content:', err.message);
+        });
+    };
 
-    fetchApi('/contact')
-      .then((res) => {
-        if (res.success && res.data) {
-          setContent(res.data);
-          try {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(res.data));
-          } catch {}
-        }
-      })
-      .catch((err) => {
-        console.warn('API error fetching contact content:', err.message);
-      });
+    loadContactData();
 
     fetchApi('/settings')
       .then((res) => {
@@ -98,23 +85,9 @@ export default function ContactUs() {
       })
       .catch(() => {});
 
-    const handleSync = () => {
-      try {
-        const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed && typeof parsed === 'object') {
-            setContent((prev) => ({ ...DEFAULT_CONTACT_CONTENT, ...parsed }));
-          }
-        }
-      } catch {}
-    };
-
-    window.addEventListener('sln_contact_updated', handleSync);
-    window.addEventListener('storage', handleSync);
+    window.addEventListener('sln_contact_updated', loadContactData);
     return () => {
-      window.removeEventListener('sln_contact_updated', handleSync);
-      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('sln_contact_updated', loadContactData);
     };
   }, []);
 

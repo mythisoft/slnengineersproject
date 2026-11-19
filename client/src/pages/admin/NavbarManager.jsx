@@ -27,7 +27,6 @@ import { fetchApi } from '../../utils/api';
 import {
   DEFAULT_NAVBAR_CONFIG,
   DEFAULT_NAV_LINKS,
-  LOCAL_STORAGE_NAVBAR_KEY,
   NAV_PATH_PRESETS,
 } from '../../utils/navbarData';
 
@@ -38,15 +37,7 @@ export default function NavbarManager() {
   const [resetting, setResetting] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  const [navbarConfig, setNavbarConfig] = useState(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_NAVBAR_KEY);
-      if (stored) {
-        return { ...DEFAULT_NAVBAR_CONFIG, ...JSON.parse(stored) };
-      }
-    } catch {}
-    return DEFAULT_NAVBAR_CONFIG;
-  });
+  const [navbarConfig, setNavbarConfig] = useState(DEFAULT_NAVBAR_CONFIG);
 
   // Modal for adding a new link
   const [showAddModal, setShowAddModal] = useState(false);
@@ -71,18 +62,6 @@ export default function NavbarManager() {
       if (res.success && res.data?.navbarConfig && Object.keys(res.data.navbarConfig).length > 0) {
         const merged = { ...DEFAULT_NAVBAR_CONFIG, ...res.data.navbarConfig };
         setNavbarConfig(merged);
-        try {
-          localStorage.setItem(LOCAL_STORAGE_NAVBAR_KEY, JSON.stringify(merged));
-        } catch {}
-      } else {
-        const stored = localStorage.getItem(LOCAL_STORAGE_NAVBAR_KEY);
-        if (stored) {
-          try {
-            setNavbarConfig({ ...DEFAULT_NAVBAR_CONFIG, ...JSON.parse(stored) });
-          } catch {
-            setNavbarConfig(DEFAULT_NAVBAR_CONFIG);
-          }
-        }
       }
     } catch (e) {
       console.warn('Could not load navbarConfig from settings:', e);
@@ -95,35 +74,25 @@ export default function NavbarManager() {
     loadData();
   }, []);
 
-  // Save changes to localStorage and MongoDB CompanySettings
+  // Save changes to MongoDB CompanySettings
   const handleSave = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setSaving(true);
     try {
-      // 1. Instant local persistence and reactive event dispatch
-      localStorage.setItem(LOCAL_STORAGE_NAVBAR_KEY, JSON.stringify(navbarConfig));
-      window.dispatchEvent(new Event('sln_navbar_updated'));
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: LOCAL_STORAGE_NAVBAR_KEY,
-          newValue: JSON.stringify(navbarConfig),
-        })
-      );
-
-      // 2. Persist to MongoDB CompanySettings
       const res = await fetchApi('/admin/settings', {
         method: 'PUT',
         body: JSON.stringify({ navbarConfig }),
       });
 
       if (res.success) {
-        showToast('Navbar link names & settings saved and published successfully!');
+        window.dispatchEvent(new Event('sln_navbar_updated'));
+        showToast('Navbar link names & settings saved and published to database successfully!');
       } else {
-        showToast('Saved locally in browser.');
+        showToast(res.message || 'Failed to save to database.');
       }
     } catch (err) {
       console.error('Error saving navbar config:', err);
-      showToast('Saved locally in browser.');
+      showToast('Error saving navbar config to database.');
     } finally {
       setSaving(false);
     }
@@ -135,23 +104,19 @@ export default function NavbarManager() {
     setResetting(true);
     try {
       setNavbarConfig(DEFAULT_NAVBAR_CONFIG);
-      localStorage.setItem(LOCAL_STORAGE_NAVBAR_KEY, JSON.stringify(DEFAULT_NAVBAR_CONFIG));
-      window.dispatchEvent(new Event('sln_navbar_updated'));
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: LOCAL_STORAGE_NAVBAR_KEY,
-          newValue: JSON.stringify(DEFAULT_NAVBAR_CONFIG),
-        })
-      );
-
-      await fetchApi('/admin/settings', {
+      const res = await fetchApi('/admin/settings', {
         method: 'PUT',
         body: JSON.stringify({ navbarConfig: DEFAULT_NAVBAR_CONFIG }),
       });
 
-      showToast('Navbar reset to defaults!');
+      if (res.success) {
+        window.dispatchEvent(new Event('sln_navbar_updated'));
+        showToast('Navbar reset to defaults in database!');
+      } else {
+        showToast(res.message || 'Failed to reset in database.');
+      }
     } catch (err) {
-      showToast('Reset locally.');
+      showToast('Error resetting navbar in database.');
     } finally {
       setResetting(false);
     }

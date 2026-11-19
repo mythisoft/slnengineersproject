@@ -39,44 +39,23 @@ import {
 } from '../../utils/servicesData';
 import {
   DEFAULT_PROJECTS,
-  LOCAL_STORAGE_PROJECTS_KEY,
   normalizeProject,
   matchesProjectDiscipline,
   matchesProjectService,
 } from '../../utils/projectsData';
 import BeforeAfterSlider from '../../components/common/BeforeAfterSlider';
 
-const LOCAL_STORAGE_PROJECTS_HERO_KEY = 'sln_custom_projects_hero';
-
 export default function Portfolio() {
   const [settings, setSettings] = useState(null);
   const [disciplines, setDisciplines] = useState(DEFAULT_DISCIPLINES);
   const [services, setServices] = useState(DEFAULT_SERVICES);
 
-  const [heroContent, setHeroContent] = useState(() => {
-    try {
-      const cached = localStorage.getItem(LOCAL_STORAGE_PROJECTS_HERO_KEY);
-      return cached ? { ...DEFAULT_PROJECTS_HERO, ...JSON.parse(cached) } : DEFAULT_PROJECTS_HERO;
-    } catch {
-      return DEFAULT_PROJECTS_HERO;
-    }
-  });
+  const [heroContent, setHeroContent] = useState(DEFAULT_PROJECTS_HERO);
 
-  // Projects State with LocalStorage Caching & Dynamic Sync
-  const [projects, setProjects] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem(LOCAL_STORAGE_PROJECTS_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed.map((p, idx) => normalizeProject(p, idx));
-          }
-        }
-      } catch (e) {}
-    }
-    return DEFAULT_PROJECTS.map((p, idx) => normalizeProject(p, idx));
-  });
+  // Projects State from MongoDB API
+  const [projects, setProjects] = useState(() =>
+    DEFAULT_PROJECTS.map((p, idx) => normalizeProject(p, idx))
+  );
 
   // Filters State
   const [selectedDiscipline, setSelectedDiscipline] = useState('all');
@@ -110,165 +89,61 @@ export default function Portfolio() {
           setSettings(res.data);
           if (res.data.projectsPageContent && Object.keys(res.data.projectsPageContent).length > 0) {
             setHeroContent((prev) => ({ ...DEFAULT_PROJECTS_HERO, ...prev, ...res.data.projectsPageContent }));
-            try {
-              localStorage.setItem(LOCAL_STORAGE_PROJECTS_HERO_KEY, JSON.stringify(res.data.projectsPageContent));
-            } catch (e) {}
           }
         }
       })
       .catch((e) => console.error('Failed to load settings:', e));
 
     // 2. Disciplines
-    try {
-      const storedDisc = localStorage.getItem('sln_custom_disciplines');
-      if (storedDisc) {
-        setDisciplines(JSON.parse(storedDisc));
-      } else {
-        fetchApi('/disciplines')
-          .then((res) => {
-            if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-              setDisciplines(res.data);
-            }
-          })
-          .catch(() => {});
-      }
-    } catch (e) {}
-
-    // 3. Services
-    try {
-      const storedServices = localStorage.getItem('sln_custom_services');
-      if (storedServices) {
-        setServices(JSON.parse(storedServices));
-      } else {
-        fetchApi('/services')
-          .then((res) => {
-            if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-              setServices(res.data);
-            }
-          })
-          .catch(() => {});
-      }
-    } catch (e) {}
-
-    // 4. Projects Dynamic Load
-    fetchApi('/projects?limit=100')
+    fetchApi('/disciplines')
       .then((res) => {
         if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-          const apiProjects = res.data.map((p, idx) => normalizeProject(p, idx));
-          let finalProjects = apiProjects;
-
-          try {
-            const localRaw = localStorage.getItem(LOCAL_STORAGE_PROJECTS_KEY);
-            if (localRaw) {
-              const localProjects = JSON.parse(localRaw);
-              if (Array.isArray(localProjects) && localProjects.length > 0) {
-                // Keep local admin edits authoritative
-                const merged = localProjects.map((local, idx) => {
-                  const apiMatch = apiProjects.find(
-                    (a) =>
-                      (a._id && (a._id === local._id || a.id === local._id)) ||
-                      (a.id && (a.id === local.id || a._id === local.id)) ||
-                      (a.slug && a.slug === local.slug)
-                  );
-                  return normalizeProject({ ...(apiMatch || {}), ...local }, idx);
-                });
-
-                apiProjects.forEach((apiItem) => {
-                  const exists = merged.some(
-                    (m) =>
-                      (m._id && (m._id === apiItem._id || m.id === apiItem._id)) ||
-                      (m.id && (m.id === apiItem.id || m._id === apiItem.id)) ||
-                      (m.slug && m.slug === apiItem.slug)
-                  );
-                  if (!exists) merged.push(normalizeProject(apiItem, merged.length));
-                });
-
-                finalProjects = merged;
-              }
-            }
-          } catch (e) {}
-
-          // Ensure default verified projects across all disciplines are present
-          DEFAULT_PROJECTS.forEach((def) => {
-            const exists = finalProjects.some(
-              (p) => p.slug === def.slug || (p.title && p.title.toLowerCase() === def.title.toLowerCase())
-            );
-            if (!exists) {
-              finalProjects.push(normalizeProject(def, finalProjects.length));
-            }
-          });
-
-          setProjects(finalProjects);
-          try {
-            localStorage.setItem(LOCAL_STORAGE_PROJECTS_KEY, JSON.stringify(finalProjects));
-          } catch (e) {}
-        } else {
-          handleLocalProjectsUpdate();
+          setDisciplines(res.data);
         }
       })
-      .catch((e) => {
-        console.warn('Projects fetch notice, using local cache:', e);
-        handleLocalProjectsUpdate();
-      });
+      .catch(() => {});
 
-    // Real-time listener for Admin changes
-    const handleStorage = (e) => {
-      if (e.key === LOCAL_STORAGE_PROJECTS_KEY && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          setProjects(parsed.map((p, idx) => normalizeProject(p, idx)));
-        } catch (err) {}
-      }
-      if (e.key === LOCAL_STORAGE_PROJECTS_HERO_KEY && e.newValue) {
-        try {
-          setHeroContent({ ...DEFAULT_PROJECTS_HERO, ...JSON.parse(e.newValue) });
-        } catch (err) {}
-      }
-    };
-
-    const handleLocalProjectsHeroUpdate = () => {
-      try {
-        const stored = localStorage.getItem(LOCAL_STORAGE_PROJECTS_HERO_KEY);
-        if (stored) {
-          setHeroContent({ ...DEFAULT_PROJECTS_HERO, ...JSON.parse(stored) });
+    // 3. Services
+    fetchApi('/services')
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setServices(res.data);
         }
-      } catch (err) {}
-    };
+      })
+      .catch(() => {});
 
-    const handleLocalProjectsUpdate = () => {
-      try {
-        const stored = localStorage.getItem(LOCAL_STORAGE_PROJECTS_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            // Ensure default verified projects are present if cache was partial
-            const fullList = [...parsed];
+    // 4. Projects Dynamic Load from MongoDB
+    const loadProjects = () => {
+      fetchApi('/projects?limit=100')
+        .then((res) => {
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+            const apiProjects = res.data.map((p, idx) => normalizeProject(p, idx));
+            const finalProjects = [...apiProjects];
+
+            // Ensure default verified projects across all disciplines are present
             DEFAULT_PROJECTS.forEach((def) => {
-              const exists = fullList.some(
+              const exists = finalProjects.some(
                 (p) => p.slug === def.slug || (p.title && p.title.toLowerCase() === def.title.toLowerCase())
               );
               if (!exists) {
-                fullList.push(normalizeProject(def, fullList.length));
+                finalProjects.push(normalizeProject(def, finalProjects.length));
               }
             });
-            setProjects(fullList.map((p, idx) => normalizeProject(p, idx)));
-            return;
+
+            setProjects(finalProjects);
           }
-        }
-      } catch (err) {}
-      setProjects(DEFAULT_PROJECTS.map((p, idx) => normalizeProject(p, idx)));
+        })
+        .catch((e) => console.error('Projects fetch error:', e));
     };
 
-    window.addEventListener('storage', handleStorage);
-    window.addEventListener('sln_projects_updated', handleLocalProjectsUpdate);
-    window.addEventListener('sln_projects_hero_updated', handleLocalProjectsHeroUpdate);
-    window.addEventListener('focus', handleLocalProjectsUpdate);
+    loadProjects();
+
+    window.addEventListener('sln_projects_updated', loadProjects);
+    window.addEventListener('focus', loadProjects);
 
     return () => {
-      window.removeEventListener('storage', handleStorage);
-      window.removeEventListener('sln_projects_updated', handleLocalProjectsUpdate);
-      window.removeEventListener('sln_projects_hero_updated', handleLocalProjectsHeroUpdate);
-      window.removeEventListener('focus', handleLocalProjectsUpdate);
+      window.removeEventListener('sln_projects_updated', loadProjects);
+      window.removeEventListener('focus', loadProjects);
     };
   }, []);
 

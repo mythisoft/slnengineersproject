@@ -27,8 +27,6 @@ import {
 import { fetchApi } from '../../utils/api';
 import { DEFAULT_ABOUT_CONTENT } from '../../utils/aboutData';
 
-const LOCAL_STORAGE_KEY = 'sln_custom_about_content';
-
 export default function AboutUsManager() {
   const [activeTab, setActiveTab] = useState('hero');
   const [loading, setLoading] = useState(true);
@@ -50,32 +48,12 @@ export default function AboutUsManager() {
       const res = await fetchApi('/admin/about');
       if (res.success && res.data) {
         setData(res.data);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(res.data));
-      } else {
-        // Fallback to local storage or defaults
-        const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (stored) {
-          try {
-            setData(JSON.parse(stored));
-          } catch {
-            setData(DEFAULT_ABOUT_CONTENT);
-          }
-        } else {
-          setData(DEFAULT_ABOUT_CONTENT);
-        }
-      }
-    } catch (err) {
-      console.warn('API error loading about content, using local fallback:', err.message);
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (stored) {
-        try {
-          setData(JSON.parse(stored));
-        } catch {
-          setData(DEFAULT_ABOUT_CONTENT);
-        }
       } else {
         setData(DEFAULT_ABOUT_CONTENT);
       }
+    } catch (err) {
+      console.warn('API error loading about content, using default fallback:', err.message);
+      setData(DEFAULT_ABOUT_CONTENT);
     } finally {
       setLoading(false);
     }
@@ -89,8 +67,6 @@ export default function AboutUsManager() {
     if (!data) return;
     setSaving(true);
     setError('');
-    // Always persist to local storage as resilient cache
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
 
     try {
       const res = await fetchApi('/admin/about', {
@@ -99,14 +75,13 @@ export default function AboutUsManager() {
       });
       if (res.success && res.data) {
         setData(res.data);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(res.data));
-        showToast('About page content saved successfully!');
+        showToast('About page content saved successfully to database!');
       } else {
-        showToast('Changes saved locally.', 'success');
+        showToast(res.message || 'Failed to save to database.', 'error');
       }
     } catch (err) {
-      console.warn('API save error, cached locally:', err);
-      showToast('Changes saved locally.', 'success');
+      console.error('API save error:', err);
+      showToast(err.message || 'Failed to save to database.', 'error');
     } finally {
       setSaving(false);
     }
@@ -118,8 +93,6 @@ export default function AboutUsManager() {
     }
     setResetting(true);
     setError('');
-    setData(DEFAULT_ABOUT_CONTENT);
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
 
     try {
       const res = await fetchApi('/admin/about/reset', {
@@ -127,10 +100,13 @@ export default function AboutUsManager() {
       });
       if (res.success && res.data) {
         setData(res.data);
+      } else {
+        setData(DEFAULT_ABOUT_CONTENT);
       }
       showToast('About page successfully restored to factory defaults!');
     } catch (err) {
       console.warn('API reset warning, using default:', err);
+      setData(DEFAULT_ABOUT_CONTENT);
       showToast('About page restored to factory defaults!');
     } finally {
       setResetting(false);

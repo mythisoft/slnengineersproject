@@ -52,13 +52,10 @@ import {
 } from '../../utils/servicesData';
 import {
   DEFAULT_PROJECTS,
-  LOCAL_STORAGE_PROJECTS_KEY,
   normalizeProject,
   matchesProjectDiscipline,
   matchesProjectService,
 } from '../../utils/projectsData';
-
-const LOCAL_STORAGE_PROJECTS_HERO_KEY = 'sln_custom_projects_hero';
 
 // High-visibility Custom Radio and Checkbox indicators for unmistakable visual clarity
 const RadioCircle = ({ checked }) => (
@@ -188,14 +185,7 @@ export default function ProjectsManager() {
 
   // Tab State: 'projects' = Case Studies Catalog | 'page-content' = Page Header & Copy CRUD
   const [activeTab, setActiveTab] = useState('projects');
-  const [heroFormData, setHeroFormData] = useState(() => {
-    try {
-      const cached = localStorage.getItem(LOCAL_STORAGE_PROJECTS_HERO_KEY);
-      return cached ? { ...DEFAULT_PROJECTS_HERO, ...JSON.parse(cached) } : DEFAULT_PROJECTS_HERO;
-    } catch {
-      return DEFAULT_PROJECTS_HERO;
-    }
-  });
+  const [heroFormData, setHeroFormData] = useState(DEFAULT_PROJECTS_HERO);
   const [savingHero, setSavingHero] = useState(false);
 
   // Filters & Search State
@@ -347,34 +337,24 @@ export default function ProjectsManager() {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  // Commit projects to state and localStorage
+  // Commit projects to state
   const commitProjectsState = (newList) => {
     const normalized = newList.map((p, idx) => normalizeProject(p, idx));
     setProjects(normalized);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_PROJECTS_KEY, JSON.stringify(normalized));
-      window.dispatchEvent(new Event('sln_projects_updated'));
-    } catch (e) {
-      console.warn('Failed to cache projects:', e);
-    }
+    window.dispatchEvent(new Event('sln_projects_updated'));
   };
 
-  // Load Projects, Services, and Disciplines
+  // Load Projects, Services, and Disciplines from database
   const loadData = async () => {
     setLoading(true);
 
     // 1. Load Services
     try {
-      const storedServices = localStorage.getItem('sln_custom_services');
-      if (storedServices) {
-        setServices(JSON.parse(storedServices));
+      const servRes = await fetchApi('/admin/services');
+      if (servRes.success && Array.isArray(servRes.data) && servRes.data.length > 0) {
+        setServices(servRes.data);
       } else {
-        const servRes = await fetchApi('/admin/services');
-        if (servRes.success && Array.isArray(servRes.data) && servRes.data.length > 0) {
-          setServices(servRes.data);
-        } else {
-          setServices(DEFAULT_SERVICES);
-        }
+        setServices(DEFAULT_SERVICES);
       }
     } catch (e) {
       setServices(DEFAULT_SERVICES);
@@ -382,16 +362,11 @@ export default function ProjectsManager() {
 
     // 2. Load Disciplines
     try {
-      const storedDisc = localStorage.getItem('sln_custom_disciplines');
-      if (storedDisc) {
-        setDisciplines(JSON.parse(storedDisc));
+      const discRes = await fetchApi('/admin/disciplines');
+      if (discRes.success && Array.isArray(discRes.data) && discRes.data.length > 0) {
+        setDisciplines(discRes.data);
       } else {
-        const discRes = await fetchApi('/admin/disciplines');
-        if (discRes.success && Array.isArray(discRes.data) && discRes.data.length > 0) {
-          setDisciplines(discRes.data);
-        } else {
-          setDisciplines(DEFAULT_DISCIPLINES);
-        }
+        setDisciplines(DEFAULT_DISCIPLINES);
       }
     } catch (e) {
       setDisciplines(DEFAULT_DISCIPLINES);
@@ -401,77 +376,12 @@ export default function ProjectsManager() {
     try {
       const projRes = await fetchApi('/admin/projects?limit=100');
       if (projRes.success && Array.isArray(projRes.data) && projRes.data.length > 0) {
-        const storedProjects = localStorage.getItem(LOCAL_STORAGE_PROJECTS_KEY);
-        if (storedProjects) {
-          try {
-            const localList = JSON.parse(storedProjects);
-            if (Array.isArray(localList) && localList.length > 0) {
-              // Smart merge local edits over backend records
-              const merged = localList.map((loc, idx) => {
-                const apiMatch = projRes.data.find(
-                  (a) =>
-                    (a._id && (a._id === loc._id || a.id === loc._id)) ||
-                    (a.id && (a.id === loc.id || a._id === loc.id)) ||
-                    (a.slug && a.slug === loc.slug)
-                );
-                return normalizeProject({ ...(apiMatch || {}), ...loc }, idx);
-              });
-
-              projRes.data.forEach((apiItem) => {
-                const exists = merged.some(
-                  (m) =>
-                    (m._id && (m._id === apiItem._id || m.id === apiItem._id)) ||
-                    (m.id && (m.id === apiItem.id || m._id === apiItem.id)) ||
-                    (m.slug && m.slug === apiItem.slug)
-                );
-                if (!exists) merged.push(normalizeProject(apiItem, merged.length));
-              });
-
-              DEFAULT_PROJECTS.forEach((def) => {
-                const exists = merged.some(
-                  (m) => m.slug === def.slug || (m.title && m.title.toLowerCase() === def.title.toLowerCase())
-                );
-                if (!exists) merged.push(normalizeProject(def, merged.length));
-              });
-
-              commitProjectsState(merged);
-              setLoading(false);
-              return;
-            }
-          } catch {}
-        }
-
-        const baseList = [...projRes.data];
-        DEFAULT_PROJECTS.forEach((def) => {
-          const exists = baseList.some(
-            (m) => m.slug === def.slug || (m.title && m.title.toLowerCase() === def.title.toLowerCase())
-          );
-          if (!exists) baseList.push(normalizeProject(def, baseList.length));
-        });
-        commitProjectsState(baseList);
-      } else {
-        const stored = localStorage.getItem(LOCAL_STORAGE_PROJECTS_KEY);
-        if (stored) {
-          try {
-            commitProjectsState(JSON.parse(stored));
-          } catch {
-            commitProjectsState(DEFAULT_PROJECTS);
-          }
-        } else {
-          commitProjectsState(DEFAULT_PROJECTS);
-        }
-      }
-    } catch (err) {
-      const stored = localStorage.getItem(LOCAL_STORAGE_PROJECTS_KEY);
-      if (stored) {
-        try {
-          commitProjectsState(JSON.parse(stored));
-        } catch {
-          commitProjectsState(DEFAULT_PROJECTS);
-        }
+        commitProjectsState(projRes.data);
       } else {
         commitProjectsState(DEFAULT_PROJECTS);
       }
+    } catch (err) {
+      commitProjectsState(DEFAULT_PROJECTS);
     }
 
     // 4. Load Projects Page Hero Content from Settings
@@ -487,12 +397,6 @@ export default function ProjectsManager() {
           ...prev,
           ...settingsRes.data.projectsPageContent,
         }));
-        try {
-          localStorage.setItem(
-            LOCAL_STORAGE_PROJECTS_HERO_KEY,
-            JSON.stringify(settingsRes.data.projectsPageContent)
-          );
-        } catch (e) {}
       }
     } catch (e) {
       console.warn('Could not load projectsPageContent from settings:', e);
@@ -905,30 +809,22 @@ export default function ProjectsManager() {
     if (e && e.preventDefault) e.preventDefault();
     setSavingHero(true);
     try {
-      // 1. Instant client-side persistence and reactivity
-      localStorage.setItem(LOCAL_STORAGE_PROJECTS_HERO_KEY, JSON.stringify(heroFormData));
       window.dispatchEvent(new Event('sln_projects_hero_updated'));
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: LOCAL_STORAGE_PROJECTS_HERO_KEY,
-          newValue: JSON.stringify(heroFormData),
-        })
-      );
 
-      // 2. Persist to MongoDB CompanySettings
+      // Persist to MongoDB CompanySettings
       const res = await fetchApi('/admin/settings', {
         method: 'PUT',
         body: JSON.stringify({ projectsPageContent: heroFormData }),
       });
 
       if (res.success) {
-        showToast('Projects page header & copy saved and published successfully!');
+        showToast('Projects page header & copy saved and published successfully to database!');
       } else {
-        showToast('Saved locally in browser. Settings synced.');
+        showToast(res.message || 'Failed to save to database.', 'error');
       }
     } catch (err) {
       console.error('Error saving projects page content:', err);
-      showToast('Saved to browser storage.');
+      showToast(err.message || 'Failed to save to database.', 'error');
     } finally {
       setSavingHero(false);
     }
@@ -939,21 +835,15 @@ export default function ProjectsManager() {
     setSavingHero(true);
     try {
       setHeroFormData(DEFAULT_PROJECTS_HERO);
-      localStorage.setItem(LOCAL_STORAGE_PROJECTS_HERO_KEY, JSON.stringify(DEFAULT_PROJECTS_HERO));
       window.dispatchEvent(new Event('sln_projects_hero_updated'));
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: LOCAL_STORAGE_PROJECTS_HERO_KEY,
-          newValue: JSON.stringify(DEFAULT_PROJECTS_HERO),
-        })
-      );
+
       await fetchApi('/admin/settings', {
         method: 'PUT',
         body: JSON.stringify({ projectsPageContent: DEFAULT_PROJECTS_HERO }),
       });
-      showToast('Projects page header reset to defaults');
+      showToast('Projects page header reset to defaults in database.');
     } catch (err) {
-      showToast('Reset to defaults locally');
+      showToast('Reset failed.', 'error');
     } finally {
       setSavingHero(false);
     }

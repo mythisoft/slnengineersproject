@@ -19,8 +19,6 @@ import {
   Users,
 } from 'lucide-react';
 
-export const LOCAL_STORAGE_HOME_CONTENT_KEY = 'sln_custom_home_content';
-
 export const TRUST_CARD_ICONS = [
   { id: 'Search', label: 'Search (Diagnosis & Inspection)', icon: Search },
   { id: 'FlaskConical', label: 'FlaskConical (Chemical Formulations)', icon: FlaskConical },

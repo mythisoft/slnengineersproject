@@ -43,14 +43,7 @@ const resolvePrincipleIcon = (name) => {
 
 export default function AboutUs() {
   const [settings, setSettings] = useState(null);
-  const [aboutData, setAboutData] = useState(() => {
-    try {
-      const cached = localStorage.getItem('sln_custom_about_content');
-      return cached ? { ...DEFAULT_ABOUT_CONTENT, ...JSON.parse(cached) } : DEFAULT_ABOUT_CONTENT;
-    } catch {
-      return DEFAULT_ABOUT_CONTENT;
-    }
-  });
+  const [aboutData, setAboutData] = useState(DEFAULT_ABOUT_CONTENT);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
@@ -80,16 +73,10 @@ export default function AboutUs() {
     fetchApi('/about')
       .then((res) => {
         if (res.success && res.data) {
-          const merged = { ...DEFAULT_ABOUT_CONTENT, ...res.data };
-          setAboutData(merged);
-          try {
-            localStorage.setItem('sln_custom_about_content', JSON.stringify(merged));
-          } catch {
-            // ignore
-          }
+          setAboutData({ ...DEFAULT_ABOUT_CONTENT, ...res.data });
         }
       })
-      .catch((e) => console.warn('Using cached/default about content:', e.message));
+      .catch((e) => console.warn('Using default about content:', e.message));
   }, []);
 
   // High-performance IntersectionObserver for scroll animations

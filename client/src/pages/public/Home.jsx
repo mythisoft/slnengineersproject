@@ -44,17 +44,14 @@ import { openInspectionModal } from '../../components/common/InspectionModal';
 import { fetchApi } from '../../utils/api';
 import { basementBannerCopy, getBannerCopy, isLogoBanner } from '../../utils/bannerCopy';
 import { DEFAULT_TRUST_METRICS, resolveTrustIcon } from '../../utils/trustMetricsData';
-import { DEFAULT_PROJECTS, LOCAL_STORAGE_PROJECTS_KEY, matchesProjectService } from '../../utils/projectsData';
+import { DEFAULT_PROJECTS, matchesProjectService } from '../../utils/projectsData';
 import { DEFAULT_SERVICES, renderServiceIcon, matchesDiscipline } from '../../utils/servicesData';
 import {
   DEFAULT_PILLAR_CARDS,
-  LOCAL_STORAGE_PILLAR_CARDS_KEY,
   DEFAULT_GLIMPSE_SETTINGS,
-  LOCAL_STORAGE_GLIMPSE_VIDEO_KEY,
 } from '../../utils/pillarCardData';
 import {
   DEFAULT_HOME_CONTENT,
-  LOCAL_STORAGE_HOME_CONTENT_KEY,
   renderTrustCardIcon,
 } from '../../utils/homeData';
 
@@ -248,37 +245,11 @@ const DEFAULT_HOME_REVIEWS = [
 export default function Home() {
   const location = useLocation();
   const [settings, setSettings] = useState(null);
-  const [homeContent, setHomeContent] = useState(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_HOME_CONTENT_KEY);
-      if (stored) {
-        return { ...DEFAULT_HOME_CONTENT, ...JSON.parse(stored) };
-      }
-    } catch {}
-    return DEFAULT_HOME_CONTENT;
-  });
-  const [services, setServices] = useState(() => {
-    try {
-      const stored = localStorage.getItem('sln_custom_services');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {}
-    return DEFAULT_SERVICES;
-  });
+  const [homeContent, setHomeContent] = useState(DEFAULT_HOME_CONTENT);
+  const [services, setServices] = useState(DEFAULT_SERVICES);
   const [featuredProjects, setFeaturedProjects] = useState([]);
   const [reviews, setReviews] = useState([]);
-  const [allProjects, setAllProjects] = useState(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_PROJECTS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {}
-    return DEFAULT_PROJECTS;
-  });
+  const [allProjects, setAllProjects] = useState(DEFAULT_PROJECTS);
   const [banners, setBanners] = useState([]);
   const [trustMetrics, setTrustMetrics] = useState(DEFAULT_TRUST_METRICS);
   const [adminTransformations, setAdminTransformations] = useState([]);
@@ -290,16 +261,7 @@ export default function Home() {
   const [activeModalProject, setActiveModalProject] = useState(null);
 
   // Dynamic Horizontal Discipline Pillar Cards (Managed via Admin > Pillar Cards)
-  const [pillarCards, setPillarCards] = useState(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_PILLAR_CARDS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {}
-    return DEFAULT_PILLAR_CARDS;
-  });
+  const [pillarCards, setPillarCards] = useState(DEFAULT_PILLAR_CARDS);
 
   const activePillarCards = useMemo(() => {
     const list = Array.isArray(pillarCards) ? [...pillarCards] : [];
@@ -309,16 +271,7 @@ export default function Home() {
   }, [pillarCards]);
 
   // 3-Second Glimpse Intro Video State for Core Discipline Pillars
-  const [glimpseSettings, setGlimpseSettings] = useState(() => {
-    try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_GLIMPSE_VIDEO_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === 'object') return { ...DEFAULT_GLIMPSE_SETTINGS, ...parsed };
-      }
-    } catch {}
-    return DEFAULT_GLIMPSE_SETTINGS;
-  });
+  const [glimpseSettings, setGlimpseSettings] = useState(DEFAULT_GLIMPSE_SETTINGS);
 
   const [glimpseStartedOnScroll, setGlimpseStartedOnScroll] = useState(false);
   const [isGlimpseActive, setIsGlimpseActive] = useState(() => {
@@ -530,57 +483,14 @@ export default function Home() {
           if (settingsRes.data.homePageContent && Object.keys(settingsRes.data.homePageContent).length > 0) {
             const merged = { ...DEFAULT_HOME_CONTENT, ...settingsRes.data.homePageContent };
             setHomeContent(merged);
-            try {
-              localStorage.setItem(LOCAL_STORAGE_HOME_CONTENT_KEY, JSON.stringify(merged));
-            } catch {}
           }
         }
         if (servicesRes.success && Array.isArray(servicesRes.data)) {
-          try {
-            const stored = localStorage.getItem('sln_custom_services');
-            if (stored) {
-              const localList = JSON.parse(stored);
-              if (Array.isArray(localList) && localList.length > 0) {
-                const merged = localList.map((loc) => {
-                  const apiMatch = servicesRes.data.find(
-                    (a) => (a._id && (a._id === loc._id || a.id === loc._id)) || (a.id && (a.id === loc.id || a._id === loc.id)) || (a.slug && a.slug === loc.slug)
-                  );
-                  return { ...(apiMatch || {}), ...loc };
-                });
-                setServices(merged);
-              } else {
-                setServices(servicesRes.data);
-              }
-            } else {
-              setServices(servicesRes.data);
-            }
-          } catch {
-            setServices(servicesRes.data);
-          }
+          setServices(servicesRes.data);
         }
         if (projectsRes.success && Array.isArray(projectsRes.data)) {
           setFeaturedProjects(projectsRes.data);
-          try {
-            const storedProj = localStorage.getItem(LOCAL_STORAGE_PROJECTS_KEY);
-            if (storedProj) {
-              const localList = JSON.parse(storedProj);
-              if (Array.isArray(localList) && localList.length > 0) {
-                const merged = localList.map((loc) => {
-                  const apiMatch = projectsRes.data.find(
-                    (a) => (a._id && (a._id === loc._id || a.id === loc._id)) || (a.id && (a.id === loc.id || a._id === loc.id)) || (a.slug && a.slug === loc.slug)
-                  );
-                  return { ...(apiMatch || {}), ...loc };
-                });
-                setAllProjects(merged);
-              } else {
-                setAllProjects(projectsRes.data);
-              }
-            } else {
-              setAllProjects(projectsRes.data);
-            }
-          } catch {
-            setAllProjects(projectsRes.data);
-          }
+          setAllProjects(projectsRes.data);
         }
         if (reviewsRes.success && reviewsRes.data?.reviews) {
           setReviews(reviewsRes.data.reviews.slice(0, 3));
@@ -594,28 +504,15 @@ export default function Home() {
       .then((res) => {
         if (res.success && Array.isArray(res.data)) {
           setAdminTransformations(res.data.filter((t) => t.isActive !== false));
-        } else {
-          const cached = localStorage.getItem('sln_admin_transformations_v3');
-          if (cached) {
-            try { setAdminTransformations(JSON.parse(cached).filter((t) => t.isActive !== false)); } catch (e) {}
-          }
         }
       })
-      .catch(() => {
-        const cached = localStorage.getItem('sln_admin_transformations_v3');
-        if (cached) {
-          try { setAdminTransformations(JSON.parse(cached).filter((t) => t.isActive !== false)); } catch (e) {}
-        }
-      });
+      .catch(() => {});
 
     // Fetch dynamic pillar cards configured in Admin
     fetchApi('/pillar-cards')
       .then((res) => {
         if (res.success && Array.isArray(res.data) && res.data.length > 0) {
           setPillarCards(res.data);
-          try {
-            localStorage.setItem(LOCAL_STORAGE_PILLAR_CARDS_KEY, JSON.stringify(res.data));
-          } catch {}
         }
       })
       .catch(() => {});
@@ -626,11 +523,7 @@ export default function Home() {
         if (res.success && res.data) {
           setGlimpseSettings((prev) => {
             const effectiveVideoUrl = res.data.videoUrl?.trim() ? res.data.videoUrl : prev.videoUrl;
-            const merged = { ...prev, ...res.data, videoUrl: effectiveVideoUrl };
-            try {
-              localStorage.setItem(LOCAL_STORAGE_GLIMPSE_VIDEO_KEY, JSON.stringify(merged));
-            } catch {}
-            return merged;
+            return { ...prev, ...res.data, videoUrl: effectiveVideoUrl };
           });
         }
       })
@@ -645,83 +538,77 @@ export default function Home() {
       .catch((err) => console.error('Error loading homepage banners:', err));
   }, []);
 
-  // Real-time synchronization for projects, services, and transformations from Admin
+  // Real-time synchronization for projects, services, and transformations from Admin API
   useEffect(() => {
     const syncData = () => {
-      // 1. Projects: read localStorage first
-      try {
-        const storedProj = localStorage.getItem(LOCAL_STORAGE_PROJECTS_KEY);
-        if (storedProj) {
-          const parsed = JSON.parse(storedProj);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setAllProjects(parsed);
+      // 1. Projects
+      fetchApi('/projects?limit=50')
+        .then((res) => {
+          if (res.success && Array.isArray(res.data)) {
+            setFeaturedProjects(res.data);
+            setAllProjects(res.data);
           }
-        }
-      } catch {}
+        })
+        .catch(() => {});
 
-      // 2. Services: read localStorage first
-      try {
-        const storedServ = localStorage.getItem('sln_custom_services');
-        if (storedServ) {
-          const parsed = JSON.parse(storedServ);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setServices(parsed);
+      // 2. Services
+      fetchApi('/services')
+        .then((res) => {
+          if (res.success && Array.isArray(res.data)) {
+            setServices(res.data);
           }
-        }
-      } catch {}
+        })
+        .catch(() => {});
 
-      // 3. Admin Transformations: read localStorage first
-      try {
-        const storedTrans = localStorage.getItem('sln_admin_transformations_v3');
-        if (storedTrans) {
-          const parsed = JSON.parse(storedTrans);
-          if (Array.isArray(parsed)) {
-            setAdminTransformations(parsed.filter((t) => t.isActive !== false));
+      // 3. Admin Transformations
+      fetchApi('/transformations')
+        .then((res) => {
+          if (res.success && Array.isArray(res.data)) {
+            setAdminTransformations(res.data.filter((t) => t.isActive !== false));
           }
-        }
-      } catch {}
+        })
+        .catch(() => {});
 
-      // 4. Pillar Cards: read localStorage
-      try {
-        const storedCards = localStorage.getItem(LOCAL_STORAGE_PILLAR_CARDS_KEY);
-        if (storedCards) {
-          const parsed = JSON.parse(storedCards);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setPillarCards(parsed);
+      // 4. Pillar Cards
+      fetchApi('/pillar-cards')
+        .then((res) => {
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+            setPillarCards(res.data);
           }
-        }
-      } catch {}
+        })
+        .catch(() => {});
 
-      // 5. Glimpse Video Settings: read localStorage
-      try {
-        const storedGlimpse = localStorage.getItem(LOCAL_STORAGE_GLIMPSE_VIDEO_KEY);
-        if (storedGlimpse) {
-          const parsed = JSON.parse(storedGlimpse);
-          if (parsed && typeof parsed === 'object') {
-            setGlimpseSettings((prev) => ({ ...prev, ...parsed }));
-            if (parsed.isEnabled !== false && parsed.videoUrl) {
+      // 5. Glimpse Video Settings
+      fetchApi('/pillar-cards/glimpse-settings')
+        .then((res) => {
+          if (res.success && res.data) {
+            setGlimpseSettings((prev) => ({ ...prev, ...res.data }));
+            if (res.data.isEnabled !== false && res.data.videoUrl) {
               setIsGlimpseActive(true);
-              setGlimpseCountdown(Math.ceil(parsed.durationSeconds || 3));
+              setGlimpseCountdown(Math.ceil(res.data.durationSeconds || 3));
             }
           }
-        }
-      } catch {}
+        })
+        .catch(() => {});
 
-      // 5. Home Content: read localStorage first
-      try {
-        const storedHome = localStorage.getItem(LOCAL_STORAGE_HOME_CONTENT_KEY);
-        if (storedHome) {
-          const parsed = JSON.parse(storedHome);
-          if (parsed && typeof parsed === 'object') {
-            setHomeContent((prev) => ({ ...DEFAULT_HOME_CONTENT, ...prev, ...parsed }));
-          }
-        }
-      } catch {}
-
-      // 6. Refresh Company Settings
+      // 6. Refresh Company Settings & Home Content
       fetchApi('/settings')
         .then((res) => {
-          if (res.success && res.data) setSettings(res.data);
+          if (res.success && res.data) {
+            setSettings(res.data);
+            if (res.data.homePageContent) {
+              setHomeContent((prev) => ({ ...DEFAULT_HOME_CONTENT, ...prev, ...res.data.homePageContent }));
+            }
+          }
+        })
+        .catch(() => {});
+
+      // 7. Trust Metrics
+      fetchApi('/trust-metrics')
+        .then((res) => {
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+            setTrustMetrics(res.data);
+          }
         })
         .catch(() => {});
     };
@@ -730,8 +617,6 @@ export default function Home() {
       if (e.detail) setSettings(e.detail);
     };
 
-    syncData();
-
     window.addEventListener('sln_projects_updated', syncData);
     window.addEventListener('sln_services_updated', syncData);
     window.addEventListener('sln_transformations_updated', syncData);
@@ -739,7 +624,6 @@ export default function Home() {
     window.addEventListener('sln_glimpse_video_updated', syncData);
     window.addEventListener('sln_home_content_updated', syncData);
     window.addEventListener('sln_settings_updated', handleSettingsUpdate);
-    window.addEventListener('storage', syncData);
     window.addEventListener('focus', syncData);
 
     return () => {
@@ -750,7 +634,6 @@ export default function Home() {
       window.removeEventListener('sln_glimpse_video_updated', syncData);
       window.removeEventListener('sln_home_content_updated', syncData);
       window.removeEventListener('sln_settings_updated', handleSettingsUpdate);
-      window.removeEventListener('storage', syncData);
       window.removeEventListener('focus', syncData);
     };
   }, []);
@@ -760,23 +643,9 @@ export default function Home() {
       .then((res) => {
         if (res.success && Array.isArray(res.data) && res.data.length > 0) {
           setTrustMetrics(res.data);
-        } else {
-          const stored = localStorage.getItem('sln_custom_trust_metrics');
-          if (stored) {
-            try {
-              setTrustMetrics(JSON.parse(stored));
-            } catch {}
-          }
         }
       })
-      .catch(() => {
-        const stored = localStorage.getItem('sln_custom_trust_metrics');
-        if (stored) {
-          try {
-            setTrustMetrics(JSON.parse(stored));
-          } catch {}
-        }
-      });
+      .catch(() => {});
   }, []);
 
   const activeBannersList = Array.isArray(banners) ? banners.filter((b) => b.isActive !== false) : [];

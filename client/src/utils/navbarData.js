@@ -1,5 +1,3 @@
-export const LOCAL_STORAGE_NAVBAR_KEY = 'sln_custom_navbar_config';
-
 export const DEFAULT_NAV_LINKS = [
   { id: 'home', name: 'Overview', path: '/', isActive: true, order: 1 },
   { id: 'about', name: 'Our Heritage', path: '/about', isActive: true, order: 2 },

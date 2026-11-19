@@ -39,8 +39,6 @@ import {
 import { fetchApi } from '../../utils/api';
 import { DEFAULT_CONTACT_CONTENT } from '../../utils/contactData';
 
-const LOCAL_STORAGE_KEY = 'sln_custom_contact_content';
-
 export default function ContactPageManager() {
   const [activeTab, setActiveTab] = useState('hero');
   const [loading, setLoading] = useState(true);
@@ -151,15 +149,7 @@ export default function ContactPageManager() {
         loadedSettings = settingsRes.value.data;
       }
 
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      let localFallback = DEFAULT_CONTACT_CONTENT;
-      if (stored) {
-        try {
-          localFallback = JSON.parse(stored);
-        } catch {}
-      }
-
-      const base = loadedContact || localFallback;
+      const base = loadedContact || DEFAULT_CONTACT_CONTENT;
       // Merge in any coordinates from settings if not set, and preserve hero banner image
       const merged = {
         ...base,
@@ -193,19 +183,9 @@ export default function ContactPageManager() {
       };
 
       setData(merged);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
     } catch (err) {
-      console.warn('API error loading contact content, using local fallback:', err.message);
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (stored) {
-        try {
-          setData(JSON.parse(stored));
-        } catch {
-          setData(DEFAULT_CONTACT_CONTENT);
-        }
-      } else {
-        setData(DEFAULT_CONTACT_CONTENT);
-      }
+      console.warn('API error loading contact content, using defaults:', err.message);
+      setData(DEFAULT_CONTACT_CONTENT);
     } finally {
       setLoading(false);
     }
@@ -219,7 +199,6 @@ export default function ContactPageManager() {
     setSaving(true);
     setError('');
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
       window.dispatchEvent(new Event('sln_contact_updated'));
 
       // Dispatch real-time settings event so Header, Footer, and other components re-render immediately
@@ -239,16 +218,12 @@ export default function ContactPageManager() {
       };
       window.dispatchEvent(new CustomEvent('sln_settings_updated', { detail: syncedSettings }));
 
-      try {
-        await fetchApi('/admin/contact', {
-          method: 'PUT',
-          body: JSON.stringify(data),
-        });
-      } catch (apiErr) {
-        console.warn('Server save failed, local storage persisted:', apiErr.message);
-      }
+      await fetchApi('/admin/contact', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
 
-      showToast('Contact Page content & operational coordinates saved successfully!');
+      showToast('Contact Page content & operational coordinates saved successfully to database!');
     } catch (err) {
       setError(err.message || 'Failed to save contact content.');
       showToast(err.message || 'Save failed.', 'error');
@@ -264,7 +239,6 @@ export default function ContactPageManager() {
     setResetting(true);
     try {
       setData(DEFAULT_CONTACT_CONTENT);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_CONTACT_CONTENT));
       window.dispatchEvent(new Event('sln_contact_updated'));
 
       try {
