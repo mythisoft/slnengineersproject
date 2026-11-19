@@ -22,6 +22,7 @@ import {
   Info,
   Home,
   PhoneCall,
+  KeyRound,
 } from 'lucide-react';
 import { fetchApi } from '../utils/api';
 
@@ -77,6 +78,7 @@ export default function AdminLayout() {
     { name: 'Customer Reviews', path: '/admin/reviews', icon: Star, superOnly: false },
     { name: 'Social Media & Share', path: '/admin/social', icon: Share2, superOnly: true },
     { name: 'Customer Directory', path: '/admin/customers', icon: Users, superOnly: true },
+    { name: 'Admin Users & Passwords', path: '/admin/users', icon: KeyRound, superOnly: true },
     { name: 'Company Settings', path: '/admin/settings', icon: Settings, superOnly: true },
     { name: 'System Audit Logs', path: '/admin/audit-logs', icon: History, superOnly: true },
   ];

@@ -10,7 +10,7 @@ const generateToken = (id) => {
   );
 };
 
-// Auto-seed default Super Admin and Admin accounts
+// Auto-seed default Super Admin and Admin accounts if they do not exist
 export const ensureDefaultUsers = async () => {
   try {
     const defaultPasswordHash = await User.hashPassword('Admin@12345');
@@ -22,7 +22,7 @@ export const ensureDefaultUsers = async () => {
       if (emailTaken) {
         emailTaken.username = 'superadmin';
         emailTaken.role = 'superadmin';
-        emailTaken.passwordHash = defaultPasswordHash;
+        if (!emailTaken.passwordHash) emailTaken.passwordHash = defaultPasswordHash;
         emailTaken.isActive = true;
         await emailTaken.save();
       } else {
@@ -35,11 +35,6 @@ export const ensureDefaultUsers = async () => {
         });
       }
       console.log('✅ [Auth] Super Admin user created (superadmin / Admin@12345)');
-    } else {
-      superAdmin.role = 'superadmin';
-      superAdmin.passwordHash = defaultPasswordHash;
-      superAdmin.isActive = true;
-      await superAdmin.save();
     }
 
     // 2. Also ensure slnsuperadmin exists as superadmin
@@ -52,11 +47,6 @@ export const ensureDefaultUsers = async () => {
         role: 'superadmin',
         isActive: true,
       }).catch(() => null);
-    } else {
-      slnSuperAdmin.role = 'superadmin';
-      slnSuperAdmin.passwordHash = defaultPasswordHash;
-      slnSuperAdmin.isActive = true;
-      await slnSuperAdmin.save();
     }
 
     // 3. Admin (Dashboard and Enquiry pipeline ONLY)
@@ -64,10 +54,9 @@ export const ensureDefaultUsers = async () => {
     if (!adminUser) {
       const emailTaken = await User.findOne({ email: 'admin@slnengineers.com' });
       if (emailTaken) {
-        // If email was associated with slnadmin or other, set this to admin
         emailTaken.username = 'admin';
         emailTaken.role = 'admin';
-        emailTaken.passwordHash = defaultPasswordHash;
+        if (!emailTaken.passwordHash) emailTaken.passwordHash = defaultPasswordHash;
         emailTaken.isActive = true;
         await emailTaken.save();
       } else {
@@ -80,14 +69,9 @@ export const ensureDefaultUsers = async () => {
         });
       }
       console.log('✅ [Auth] Admin user created (admin / Admin@12345) — Dashboard & Enquiries only');
-    } else {
-      adminUser.role = 'admin';
-      adminUser.passwordHash = defaultPasswordHash;
-      adminUser.isActive = true;
-      await adminUser.save();
     }
 
-    // 4. Also ensure slnadmin has role: 'admin' (Dashboard & Enquiries only)
+    // 4. Also ensure slnadmin has role: 'admin'
     let slnAdmin = await User.findOne({ username: 'slnadmin' });
     if (!slnAdmin) {
       await User.create({
@@ -97,11 +81,6 @@ export const ensureDefaultUsers = async () => {
         role: 'admin',
         isActive: true,
       }).catch(() => null);
-    } else {
-      slnAdmin.role = 'admin';
-      slnAdmin.passwordHash = defaultPasswordHash;
-      slnAdmin.isActive = true;
-      await slnAdmin.save();
     }
   } catch (err) {
     console.warn('[Auth] ensureDefaultUsers error:', err.message);
@@ -154,14 +133,7 @@ export const adminLogin = async (req, res, next) => {
       });
     }
 
-    let isMatch = await user.comparePassword(password);
-
-    // Guaranteed fallback: sync and accept valid default Admin@12345 credentials
-    if (!isMatch && (password === 'Admin@12345' || password === 'admin@12345')) {
-      user.passwordHash = await User.hashPassword('Admin@12345');
-      await user.save();
-      isMatch = true;
-    }
+    const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
       return res.status(401).json({

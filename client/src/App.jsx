@@ -36,6 +36,7 @@ import AboutUsManager from './pages/admin/AboutUsManager';
 import HomePageManager from './pages/admin/HomePageManager';
 import NavbarManager from './pages/admin/NavbarManager';
 import ContactPageManager from './pages/admin/ContactPageManager';
+import AdminUsersManager from './pages/admin/AdminUsersManager';
 
 export default function App() {
   return (
@@ -80,6 +81,7 @@ export default function App() {
         <Route path="reviews" element={<ReviewsModeration />} />
         <Route path="social" element={<SocialManager />} />
         <Route path="customers" element={<CustomerDirectory />} />
+        <Route path="users" element={<AdminUsersManager />} />
         <Route path="settings" element={<CompanySettingsPage />} />
         <Route path="audit-logs" element={<AuditLogsPage />} />
       </Route>

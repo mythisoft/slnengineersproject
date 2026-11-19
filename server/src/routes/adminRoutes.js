@@ -92,6 +92,14 @@ import {
   updateContactContent,
   resetContactContent,
 } from '../controllers/contactController.js';
+import {
+  getAllUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  changeUserPassword,
+  deleteUser,
+} from '../controllers/userController.js';
 
 const router = express.Router();
 
@@ -289,5 +297,13 @@ router.post('/media/upload', protect, authorize('superadmin'), upload.single('fi
     },
   });
 });
+
+// ==================== ADMIN USER MANAGEMENT & PASSWORDS (Super Admin only) ====================
+router.get('/users', protect, authorize('superadmin'), getAllUsers);
+router.get('/users/:id', protect, authorize('superadmin'), getUserById);
+router.post('/users', protect, authorize('superadmin'), createUser);
+router.put('/users/:id', protect, authorize('superadmin'), updateUser);
+router.put('/users/:id/password', protect, authorize('superadmin'), changeUserPassword);
+router.delete('/users/:id', protect, authorize('superadmin'), deleteUser);
 
 export default router;
