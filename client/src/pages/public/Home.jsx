@@ -42,7 +42,7 @@ import {
 import BeforeAfterSlider from '../../components/common/BeforeAfterSlider';
 import { openInspectionModal } from '../../components/common/InspectionModal';
 import { fetchApi } from '../../utils/api';
-import { basementBannerCopy, getBannerCopy } from '../../utils/bannerCopy';
+import { basementBannerCopy, getBannerCopy, isLogoBanner } from '../../utils/bannerCopy';
 import { DEFAULT_TRUST_METRICS, resolveTrustIcon } from '../../utils/trustMetricsData';
 import { DEFAULT_PROJECTS, LOCAL_STORAGE_PROJECTS_KEY, matchesProjectService } from '../../utils/projectsData';
 import { DEFAULT_SERVICES, renderServiceIcon, matchesDiscipline } from '../../utils/servicesData';
@@ -780,7 +780,7 @@ export default function Home() {
   }, []);
 
   const activeBannersList = Array.isArray(banners) ? banners.filter((b) => b.isActive !== false) : [];
-  const hasLogoBanner = activeBannersList.some((b) => Boolean(b.isCompanyLogoBanner || b.imageUrl?.toLowerCase().includes('logo') || b.imageUrl?.toLowerCase().includes('sln')));
+  const hasLogoBanner = activeBannersList.some((b) => isLogoBanner(b));
   const displayBanners = activeBannersList.length >= 2 && hasLogoBanner ? activeBannersList : DEFAULT_BANNERS;
 
   // Centralized Banner Switcher with Outgoing/Incoming State Tracking for Left-to-Right Paper Animation
@@ -802,12 +802,7 @@ export default function Home() {
     if (displayBanners.length < 2 || isPaused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
 
     const currentBanner = displayBanners[activeBannerIndex % displayBanners.length];
-    const isLogo = Boolean(
-      currentBanner?.isCompanyLogoBanner ||
-      currentBanner?.imageUrl?.toLowerCase().includes('logo') ||
-      currentBanner?.imageUrl?.toLowerCase().includes('sln') ||
-      currentBanner?._id === 'default-banner-company-overview'
-    );
+    const isLogo = isLogoBanner(currentBanner);
     const duration = currentBanner?.durationSeconds
       ? currentBanner.durationSeconds * 1000
       : isLogo
@@ -884,12 +879,7 @@ export default function Home() {
   const brandNameLine2 = settings?.brandNameLine2 || 'PROJECTS PVT. LTD.';
   const logoNameColor = settings?.logoNameColor || '#029746';
   const activeBanner = displayBanners[activeBannerIndex % displayBanners.length];
-  const activeBannerIsLogo = Boolean(
-    activeBanner?.isCompanyLogoBanner ||
-    activeBanner?.imageUrl?.toLowerCase().includes('logo') ||
-    activeBanner?.imageUrl?.toLowerCase().includes('sln') ||
-    activeBanner?._id === 'default-banner-company-overview'
-  );
+  const activeBannerIsLogo = isLogoBanner(activeBanner);
 
   // Active Discipline Pillar selected by user for Proven Transformation (Section 3)
   // Options: 'waterproofing', 'painting', 'repairs', 'false-ceiling'
@@ -1316,13 +1306,7 @@ export default function Home() {
   }, [reviews]);
   const heroCopy = activeBanner ? getBannerCopy(activeBanner) : basementBannerCopy;
 
-  const companyLogoBanner = displayBanners.find(
-    (b) =>
-      b.isCompanyLogoBanner ||
-      b.imageUrl?.toLowerCase().includes('logo') ||
-      b.imageUrl?.toLowerCase().includes('sln') ||
-      b._id === 'default-banner-company-overview'
-  ) || displayBanners[0];
+  const companyLogoBanner = displayBanners.find((b) => isLogoBanner(b)) || displayBanners[0];
 
   const companyServices = (companyLogoBanner?.bannerServices && companyLogoBanner.bannerServices.length > 0)
     ? companyLogoBanner.bannerServices
@@ -1368,12 +1352,7 @@ export default function Home() {
         {displayBanners.map((banner, index) => {
           const isActive = index === (activeBannerIndex % displayBanners.length);
           const isPrev = !isActive && prevBannerIndex !== null && index === (prevBannerIndex % displayBanners.length);
-          const isLogo = Boolean(
-            banner.isCompanyLogoBanner ||
-            banner.imageUrl?.toLowerCase().includes('logo') ||
-            banner.imageUrl?.toLowerCase().includes('sln') ||
-            banner._id === 'default-banner-company-overview'
-          );
+          const isLogo = isLogoBanner(banner);
 
           if (isLogo) {
             const watermarkLogoSrc = banner.imageUrl || logoUrl;

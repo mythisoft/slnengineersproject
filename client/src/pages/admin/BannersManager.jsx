@@ -33,6 +33,7 @@ import {
   PHOTO_BANNER_PRESETS,
   DEFAULT_COMPANY_BANNER_SERVICES,
   getBannerCopy,
+  isLogoBanner,
 } from '../../utils/bannerCopy';
 
 // Available Icons for Banner Services
@@ -187,12 +188,7 @@ export default function BannersManager() {
   const openEdit = (banner) => {
     setEditingBanner(banner);
     const bannerCopy = getBannerCopy(banner);
-    const isLogo = Boolean(
-      banner.isCompanyLogoBanner ||
-      banner.imageUrl?.toLowerCase().includes('logo') ||
-      banner.imageUrl?.toLowerCase().includes('sln') ||
-      banner._id === 'default-banner-company-overview'
-    );
+    const isLogo = isLogoBanner(banner);
     setForm({
       title: banner.title || '',
       altText: banner.altText || '',
@@ -220,7 +216,7 @@ export default function BannersManager() {
     if (isLogo) {
       setForm((prev) => {
         const isCurrentlyPhotoDefault = PHOTO_BANNER_PRESETS.some((p) => p.title === prev.title);
-        const hadLogoImg = prev.imageUrl && (prev.imageUrl.toLowerCase().includes('logo') || prev.imageUrl.toLowerCase().includes('sln'));
+        const hadLogoImg = prev.imageUrl === '/sln-logo.png' || prev.imageUrl?.endsWith('/sln-logo.png');
         return {
           ...prev,
           isCompanyLogoBanner: true,
@@ -242,7 +238,7 @@ export default function BannersManager() {
       setForm((prev) => {
         const isCurrentlyLogoDefault = prev.title === COMPANY_LOGO_PRESET.title;
         const photoPreset = PHOTO_BANNER_PRESETS[0];
-        const isPhotoImg = prev.imageUrl && !prev.imageUrl.toLowerCase().includes('logo') && !prev.imageUrl.toLowerCase().includes('sln');
+        const isPhotoImg = prev.imageUrl && prev.imageUrl !== '/sln-logo.png' && !prev.imageUrl.endsWith('/sln-logo.png');
         return {
           ...prev,
           isCompanyLogoBanner: false,
@@ -251,7 +247,7 @@ export default function BannersManager() {
           title: isCurrentlyLogoDefault || !prev.title ? photoPreset.title : prev.title,
           eyebrow: isCurrentlyLogoDefault || !prev.eyebrow ? photoPreset.eyebrow : prev.eyebrow,
           headline: isCurrentlyLogoDefault || !prev.headline ? photoPreset.headline : prev.headline,
-          highlightedHeadline: isCurrentlyLogoDefault || !prev.highlightedHeadline ? photoPreset.highlightedHeadline : prev.highlightedHeadline,
+          highlightedHeadline: isCurrentlyLogoDefault || !prev.highlightedHeadline ? photoPreset.headline : prev.highlightedHeadline,
           description: isCurrentlyLogoDefault || !prev.description ? photoPreset.description : prev.description,
           altText: isCurrentlyLogoDefault || !prev.altText ? photoPreset.altText : prev.altText,
         };
@@ -526,12 +522,12 @@ export default function BannersManager() {
 
   const activePreviewImage = previewUrl || (
     form.isCompanyLogoBanner
-      ? (form.imageUrl && (form.imageUrl.toLowerCase().includes('logo') || form.imageUrl.toLowerCase().includes('sln')) ? form.imageUrl : '/sln-logo.png')
-      : (form.imageUrl && !form.imageUrl.toLowerCase().includes('logo') && !form.imageUrl.toLowerCase().includes('sln') ? form.imageUrl : PHOTO_BANNER_PRESETS[0].imageUrl)
+      ? (form.imageUrl || '/sln-logo.png')
+      : (form.imageUrl || PHOTO_BANNER_PRESETS[0].imageUrl)
   );
 
   const companyBannerFromList = banners.find(
-    (b) => b.isCompanyLogoBanner || b._id === 'default-banner-company-overview'
+    (b) => isLogoBanner(b)
   );
   const previewServices = (form.isCompanyLogoBanner && form.bannerServices?.length > 0)
     ? form.bannerServices
@@ -638,11 +634,7 @@ export default function BannersManager() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
           {banners.map((banner, index) => {
             const copy = getBannerCopy(banner);
-            const bannerIsLogo = Boolean(
-              banner.isCompanyLogoBanner ||
-              banner.imageUrl?.includes('sln-logo') ||
-              banner._id === 'default-banner-company-overview'
-            );
+            const bannerIsLogo = isLogoBanner(banner);
             const slideDuration = banner.durationSeconds || (bannerIsLogo ? 3 : 6);
             return (
               <article

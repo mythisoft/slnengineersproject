@@ -157,13 +157,18 @@ const isLegacyBasementBanner = (banner) => {
   return hasLegacyCopy && hasLegacyMetrics;
 };
 
+export const isLogoBanner = (banner) => {
+  if (!banner) return false;
+  if (typeof banner.isCompanyLogoBanner === 'boolean') {
+    return banner.isCompanyLogoBanner;
+  }
+  if (banner._id === 'default-banner-company-overview') return true;
+  if (banner.imageUrl === '/sln-logo.png' || banner.imageUrl?.endsWith('/sln-logo.png')) return true;
+  return false;
+};
+
 export const getBannerCopy = (banner) => {
-  const isLogo = Boolean(
-    banner?.isCompanyLogoBanner ||
-    banner?.imageUrl?.toLowerCase().includes('logo') ||
-    banner?.imageUrl?.toLowerCase().includes('sln') ||
-    banner?._id === 'default-banner-company-overview'
-  );
+  const isLogo = isLogoBanner(banner);
   const defaultPreset = isLogo ? HOMEPAGE_BANNER_PRESETS[0] : HOMEPAGE_BANNER_PRESETS[1];
 
   if (banner && !isLogo && isLegacyBasementBanner(banner)) return HOMEPAGE_BANNER_PRESETS[1];
