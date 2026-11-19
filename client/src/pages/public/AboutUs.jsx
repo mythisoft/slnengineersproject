@@ -24,15 +24,31 @@ import {
   ArrowUp,
 } from 'lucide-react';
 import { fetchApi } from '../../utils/api';
+import { DEFAULT_ABOUT_CONTENT } from '../../utils/aboutData';
+
+const PRINCIPLE_ICON_MAP = {
+  Search,
+  FlaskConical,
+  ShieldCheck,
+  HardHat,
+  Shield,
+  Layers,
+  Building2,
+  Sparkles,
+};
+
+const resolvePrincipleIcon = (name) => {
+  return PRINCIPLE_ICON_MAP[name] || Search;
+};
 
 export default function AboutUs() {
   const [settings, setSettings] = useState(null);
   const [aboutData, setAboutData] = useState(() => {
     try {
       const cached = localStorage.getItem('sln_custom_about_content');
-      return cached ? JSON.parse(cached) : null;
+      return cached ? { ...DEFAULT_ABOUT_CONTENT, ...JSON.parse(cached) } : DEFAULT_ABOUT_CONTENT;
     } catch {
-      return null;
+      return DEFAULT_ABOUT_CONTENT;
     }
   });
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -64,9 +80,10 @@ export default function AboutUs() {
     fetchApi('/about')
       .then((res) => {
         if (res.success && res.data) {
-          setAboutData(res.data);
+          const merged = { ...DEFAULT_ABOUT_CONTENT, ...res.data };
+          setAboutData(merged);
           try {
-            localStorage.setItem('sln_custom_about_content', JSON.stringify(res.data));
+            localStorage.setItem('sln_custom_about_content', JSON.stringify(merged));
           } catch {
             // ignore
           }
@@ -533,10 +550,10 @@ export default function AboutUs() {
             Engineering Evolution
           </span>
           <h2 className="text-xl sm:text-2xl font-black text-[#0f2847] tracking-tight">
-            The Three-Generation Engineering Roadmap
+            {aboutData?.generationsRoadmap?.sectionTitle || DEFAULT_ABOUT_CONTENT.generationsRoadmap.sectionTitle}
           </h2>
           <p className="text-xs text-slate-500 mt-1 mb-6 max-w-2xl leading-relaxed">
-            Continuous civil engineering progression from foundational craftsmanship to modern polymers and next-generation smart chemistry across all four core disciplines: Waterproofing, Structural Repairs, Painting, and False Ceilings.
+            {aboutData?.generationsRoadmap?.sectionSubtitle || DEFAULT_ABOUT_CONTENT.generationsRoadmap.sectionSubtitle}
           </p>
         </div>
 
@@ -552,7 +569,7 @@ export default function AboutUs() {
                 1
               </div>
               <span className="text-[11px] font-bold text-slate-700 mt-2 bg-white px-2.5 py-0.5 rounded-full shadow-2xs border border-slate-200/60">
-                Past — Classical Craft across 4 Pillars
+                {aboutData?.generationsRoadmap?.cards?.[0]?.era || 'Past'} — {aboutData?.generationsRoadmap?.cards?.[0]?.subtitle || 'Classical Craft across 4 Pillars'}
               </span>
             </div>
             {/* Step 2 Node — Present */}
@@ -561,7 +578,7 @@ export default function AboutUs() {
                 2
               </div>
               <span className="text-[11px] font-bold text-slate-700 mt-2 bg-white px-2.5 py-0.5 rounded-full shadow-2xs border border-slate-200/60">
-                Present — Advanced Polymers &amp; Systems
+                {aboutData?.generationsRoadmap?.cards?.[1]?.era || 'Present'} — {aboutData?.generationsRoadmap?.cards?.[1]?.subtitle || 'Advanced Polymers & Systems'}
               </span>
             </div>
             {/* Step 3 Node — Future */}
@@ -570,7 +587,7 @@ export default function AboutUs() {
                 3
               </div>
               <span className="text-[11px] font-bold text-slate-700 mt-2 bg-white px-2.5 py-0.5 rounded-full shadow-2xs border border-slate-200/60">
-                Future — Smart Chemistry &amp; Modular Tech
+                {aboutData?.generationsRoadmap?.cards?.[2]?.era || 'Future'} — {aboutData?.generationsRoadmap?.cards?.[2]?.subtitle || 'Smart Chemistry & Modular Tech'}
               </span>
             </div>
           </div>
@@ -607,7 +624,7 @@ export default function AboutUs() {
 
               {/* Period Pill */}
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#0284c7] group-hover:bg-sky-600 text-white inline-block mb-2 shadow-2xs transition-colors duration-200">
-                Past Era • Classical Foundation
+                {aboutData?.generationsRoadmap?.cards?.[0]?.pill || 'Past Era • Classical Foundation'}
               </span>
 
               {/* Header */}
@@ -617,35 +634,28 @@ export default function AboutUs() {
                 </div>
                 <div>
                   <h3 className="text-sm font-extrabold text-[#0f2847] leading-tight">
-                    Past Generation
+                    {aboutData?.generationsRoadmap?.cards?.[0]?.era || 'Past Generation'}
                   </h3>
-                  <div className="text-[11px] font-bold text-[#0891b2]">Foundational Craft across All 4 Pillars</div>
+                  <div className="text-[11px] font-bold text-[#0891b2]">
+                    {aboutData?.generationsRoadmap?.cards?.[0]?.subtitle || 'Foundational Craft across All 4 Pillars'}
+                  </div>
                 </div>
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                Mastery in traditional brick-bat coba terrace waterproofing, lime-mortar structural masonry repairs, artisanal lime wash and oil-based protective painting, and timber-framed plaster false ceiling architecture.
+                {aboutData?.generationsRoadmap?.cards?.[0]?.description ||
+                  DEFAULT_ABOUT_CONTENT.generationsRoadmap.cards[0].description}
               </p>
             </div>
 
             {/* Checkpoints — All 4 Pillars */}
             <div className="space-y-2 pt-3 border-t border-slate-100 text-xs text-slate-700 font-medium">
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>Waterproofing: Brick-Bat Coba &amp; Bitumen Tanking</span>
-              </div>
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>Building Repairs: Lime-Mortar Masonry Stitching</span>
-              </div>
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>Painting: Traditional Lime Washes &amp; Protective Enamels</span>
-              </div>
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>False Ceiling: Timber Framing &amp; Plaster Cornice Work</span>
-              </div>
+              {(aboutData?.generationsRoadmap?.cards?.[0]?.checkpoints || DEFAULT_ABOUT_CONTENT.generationsRoadmap.cards[0].checkpoints).map((cp, idx) => (
+                <div key={idx} className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
+                  <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
+                  <span>{cp.pillar ? `${cp.pillar}: ` : ''}{cp.text}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -682,7 +692,7 @@ export default function AboutUs() {
 
               {/* Period Pill */}
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#0284c7] group-hover:bg-sky-600 text-white inline-block mb-2 shadow-2xs transition-colors duration-200">
-                Present Era • Industrial Polymers
+                {aboutData?.generationsRoadmap?.cards?.[1]?.pill || 'Present Era • Industrial Polymers'}
               </span>
 
               {/* Header */}
@@ -692,35 +702,28 @@ export default function AboutUs() {
                 </div>
                 <div>
                   <h3 className="text-sm font-extrabold text-[#0f2847] leading-tight">
-                    Present Generation
+                    {aboutData?.generationsRoadmap?.cards?.[1]?.era || 'Present Generation'}
                   </h3>
-                  <div className="text-[11px] font-bold text-[#0891b2]">Engineered Precision across All 4 Pillars</div>
+                  <div className="text-[11px] font-bold text-[#0891b2]">
+                    {aboutData?.generationsRoadmap?.cards?.[1]?.subtitle || 'Engineered Precision across All 4 Pillars'}
+                  </div>
                 </div>
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                Advanced cold-applied polyurethane waterproofing membranes, epoxy rebar passivating repairs, anti-carbonation monsoon exterior paint shields, and commercial metal-grid acoustic false ceilings.
+                {aboutData?.generationsRoadmap?.cards?.[1]?.description ||
+                  DEFAULT_ABOUT_CONTENT.generationsRoadmap.cards[1].description}
               </p>
             </div>
 
             {/* Checkpoints — All 4 Pillars */}
             <div className="space-y-2 pt-3 border-t border-slate-100 text-xs text-slate-700 font-medium">
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>Waterproofing: High-Pressure PU Injection &amp; Elastomers</span>
-              </div>
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>Building Repairs: Rebar Rust Passivation &amp; Epoxy Micro-Grouting</span>
-              </div>
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>Painting: Weather-Shield Acrylics &amp; Anti-Carbonation Coatings</span>
-              </div>
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>False Ceiling: Galvanized Metal Framing &amp; Gypsum Ceilings</span>
-              </div>
+              {(aboutData?.generationsRoadmap?.cards?.[1]?.checkpoints || DEFAULT_ABOUT_CONTENT.generationsRoadmap.cards[1].checkpoints).map((cp, idx) => (
+                <div key={idx} className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
+                  <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
+                  <span>{cp.pillar ? `${cp.pillar}: ` : ''}{cp.text}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -752,7 +755,7 @@ export default function AboutUs() {
 
               {/* Period Pill */}
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#0284c7] group-hover:bg-sky-600 text-white inline-block mb-2 shadow-2xs transition-colors duration-200">
-                Future Era • Smart Nano Chemistry
+                {aboutData?.generationsRoadmap?.cards?.[2]?.pill || 'Future Era • Smart Nano Chemistry'}
               </span>
 
               {/* Header */}
@@ -762,35 +765,28 @@ export default function AboutUs() {
                 </div>
                 <div>
                   <h3 className="text-sm font-extrabold text-[#0f2847] leading-tight">
-                    Future Generation
+                    {aboutData?.generationsRoadmap?.cards?.[2]?.era || 'Future Generation'}
                   </h3>
-                  <div className="text-[11px] font-bold text-[#0891b2]">Next-Gen Science across All 4 Pillars</div>
+                  <div className="text-[11px] font-bold text-[#0891b2]">
+                    {aboutData?.generationsRoadmap?.cards?.[2]?.subtitle || 'Next-Gen Science across All 4 Pillars'}
+                  </div>
                 </div>
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                Pioneering deep self-healing nano-crystalline concrete matrices, carbon-fiber composite structural retrofitting, solar heat-reflective smart paints, and modular acoustic magnetic-cove ceiling systems.
+                {aboutData?.generationsRoadmap?.cards?.[2]?.description ||
+                  DEFAULT_ABOUT_CONTENT.generationsRoadmap.cards[2].description}
               </p>
             </div>
 
             {/* Checkpoints — All 4 Pillars */}
             <div className="space-y-2 pt-3 border-t border-slate-100 text-xs text-slate-700 font-medium">
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>Waterproofing: Self-Healing Crystalline Nanotechnology</span>
-              </div>
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>Building Repairs: Carbon-Fiber (CFRP) Structural Retrofitting</span>
-              </div>
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>Painting: Solar-Reflective Cool Coatings &amp; Eco Emulsions</span>
-              </div>
-              <div className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
-                <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
-                <span>False Ceiling: Modular Acoustic Baffles &amp; LED Cove Systems</span>
-              </div>
+              {(aboutData?.generationsRoadmap?.cards?.[2]?.checkpoints || DEFAULT_ABOUT_CONTENT.generationsRoadmap.cards[2].checkpoints).map((cp, idx) => (
+                <div key={idx} className="flex items-start gap-2 group/check hover:translate-x-1 transition-transform duration-200">
+                  <Check size={14} className="text-emerald-600 shrink-0 mt-0.5 group-hover/check:scale-115 transition-transform" />
+                  <span>{cp.pillar ? `${cp.pillar}: ` : ''}{cp.text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -803,10 +799,10 @@ export default function AboutUs() {
             The SLN Difference
           </span>
           <h2 className="text-xl sm:text-2xl font-black text-[#0f2847] tracking-tight">
-            Why Conventional Repair Fails — And How SLN Succeeds Across All Pillars
+            {aboutData?.slnDifference?.sectionTitle || DEFAULT_ABOUT_CONTENT.slnDifference.sectionTitle}
           </h2>
           <p className="text-xs text-slate-500 mt-1 mb-6 max-w-2xl leading-relaxed">
-            Most contractors treat symptoms with cosmetic putty and generic coats. We diagnose root hydrostatic paths, reinforce structural matrices, and execute complete protection across all four engineering disciplines.
+            {aboutData?.slnDifference?.sectionSubtitle || DEFAULT_ABOUT_CONTENT.slnDifference.sectionSubtitle}
           </p>
         </div>
 
@@ -822,64 +818,28 @@ export default function AboutUs() {
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold text-[#e11d48]">
-                    The Cosmetic Contractor Approach
+                    {aboutData?.slnDifference?.contractorApproach?.title || DEFAULT_ABOUT_CONTENT.slnDifference.contractorApproach.title}
                   </h3>
-                  <div className="text-[11px] font-bold text-slate-400">Fragmented Trades &amp; Superficial Masking</div>
+                  <div className="text-[11px] font-bold text-slate-400">
+                    {aboutData?.slnDifference?.contractorApproach?.subtitle || DEFAULT_ABOUT_CONTENT.slnDifference.contractorApproach.subtitle}
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center mb-4">
-                {/* 5 Failure Points Across Disciplines */}
+                {/* Failure Points Across Disciplines */}
                 <div className="sm:col-span-8 space-y-2 text-xs text-slate-600">
-                  <div className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-rose-50/70 transition-colors duration-200">
-                    <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
-                      <X size={13} className="text-rose-500 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
-                      <span>Waterproofing: Superficial Tar &amp; Slurry</span>
-                    </strong>
-                    <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
-                      Unreinforced cement slurries and tar coats applied over damp slabs crack under movement, trapping water inside building masonry.
-                    </p>
-                  </div>
-
-                  <div className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-rose-50/70 transition-colors duration-200">
-                    <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
-                      <X size={13} className="text-rose-500 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
-                      <span>Building Repairs: Untreated Rebar &amp; Rigid Fillers</span>
-                    </strong>
-                    <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
-                      Cosmetic crack pastes spread directly over corroding rebar without rust passivation, causing spalling concrete chunks to break off.
-                    </p>
-                  </div>
-
-                  <div className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-rose-50/70 transition-colors duration-200">
-                    <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
-                      <X size={13} className="text-rose-500 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
-                      <span>Painting: Trapped Moisture &amp; Blistering</span>
-                    </strong>
-                    <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
-                      Generic acrylic emulsions rolled over damp plaster, trapping hydrostatic vapor and causing paint bubbling, flaking, and black mold.
-                    </p>
-                  </div>
-
-                  <div className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-rose-50/70 transition-colors duration-200">
-                    <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
-                      <X size={13} className="text-rose-500 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
-                      <span>False Ceiling: Sagging Discolored Gypsum</span>
-                    </strong>
-                    <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
-                      Moisture-sensitive boards and unrated tin channels that warp, rust, and collapse under hidden seepage loads.
-                    </p>
-                  </div>
-
-                  <div className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-rose-50/70 transition-colors duration-200">
-                    <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
-                      <X size={13} className="text-rose-500 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
-                      <span>Zero Technical Accountability</span>
-                    </strong>
-                    <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
-                      Fragmented casual labor with zero engineering oversight and no accountability when next monsoon hits.
-                    </p>
-                  </div>
+                  {(aboutData?.slnDifference?.contractorApproach?.points || DEFAULT_ABOUT_CONTENT.slnDifference.contractorApproach.points).map((pt, idx) => (
+                    <div key={idx} className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-rose-50/70 transition-colors duration-200">
+                      <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
+                        <X size={13} className="text-rose-500 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
+                        <span>{pt.title}</span>
+                      </strong>
+                      <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
+                        {pt.description}
+                      </p>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Multi-Pillar Failure Graphic */}
@@ -933,7 +893,7 @@ export default function AboutUs() {
             <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 group-hover:bg-rose-100/70 flex items-center gap-2 text-xs text-rose-800 transition-colors duration-200">
               <X size={14} className="text-rose-600 shrink-0 font-bold" />
               <span>
-                <strong>Outcome:</strong> Re-leakage, peeling paint &amp; structural spalling within 3–6 months.
+                <strong>Outcome:</strong> {aboutData?.slnDifference?.contractorApproach?.outcome || DEFAULT_ABOUT_CONTENT.slnDifference.contractorApproach.outcome}
               </span>
             </div>
           </div>
@@ -948,64 +908,28 @@ export default function AboutUs() {
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold text-[#0f2847]">
-                    SLN 4-Pillar Engineered Standard
+                    {aboutData?.slnDifference?.slnStandard?.title || DEFAULT_ABOUT_CONTENT.slnDifference.slnStandard.title}
                   </h3>
-                  <div className="text-[11px] font-bold text-teal-600">Unified Civil Engineering Across All 4 Disciplines</div>
+                  <div className="text-[11px] font-bold text-teal-600">
+                    {aboutData?.slnDifference?.slnStandard?.subtitle || DEFAULT_ABOUT_CONTENT.slnDifference.slnStandard.subtitle}
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center mb-4">
-                {/* 5 Success Points Across Disciplines */}
+                {/* Success Points Across Disciplines */}
                 <div className="sm:col-span-8 space-y-2 text-xs text-slate-600">
-                  <div className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-teal-50/70 transition-colors duration-200">
-                    <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
-                      <Check size={13} className="text-teal-600 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
-                      <span>Waterproofing: Monolithic 400% Elongation Elastomers</span>
-                    </strong>
-                    <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
-                      Hydrostatic head pressure calculation, substrate core-sampling, and deep crystalline PU barrier injection that flexes with structural movement.
-                    </p>
-                  </div>
-
-                  <div className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-teal-50/70 transition-colors duration-200">
-                    <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
-                      <Check size={13} className="text-teal-600 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
-                      <span>Building Repairs: Rebar Rust Passivation &amp; Grouting</span>
-                    </strong>
-                    <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
-                      Full mechanical concrete chipping, anti-corrosion rebar zinc priming, epoxy shear crack stitching, and polymer-modified micro-concreting.
-                    </p>
-                  </div>
-
-                  <div className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-teal-50/70 transition-colors duration-200">
-                    <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
-                      <Check size={13} className="text-teal-600 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
-                      <span>Painting: Monsoon Weather-Shield Acrylics</span>
-                    </strong>
-                    <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
-                      Anti-carbonation primers, crack-bridging intermediate films, and breathable elastomeric topcoats that withstand heavy monsoon downpours.
-                    </p>
-                  </div>
-
-                  <div className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-teal-50/70 transition-colors duration-200">
-                    <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
-                      <Check size={13} className="text-teal-600 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
-                      <span>False Ceiling: Moisture-Resistant Acoustic Systems</span>
-                    </strong>
-                    <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
-                      Galvanized steel grid framing with zero corrosion risk, water-resistant gypsum paneling, and integrated indirect LED cove channels.
-                    </p>
-                  </div>
-
-                  <div className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-teal-50/70 transition-colors duration-200">
-                    <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
-                      <Check size={13} className="text-teal-600 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
-                      <span>Direct Senior Engineer Oversight &amp; Handover</span>
-                    </strong>
-                    <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
-                      Licensed civil engineers supervise every application on-site, providing itemized technical reports and scheduled post-monsoon audits.
-                    </p>
-                  </div>
+                  {(aboutData?.slnDifference?.slnStandard?.points || DEFAULT_ABOUT_CONTENT.slnDifference.slnStandard.points).map((pt, idx) => (
+                    <div key={idx} className="group/point p-1.5 -mx-1.5 rounded-lg hover:bg-teal-50/70 transition-colors duration-200">
+                      <strong className="block text-slate-900 font-bold flex items-start gap-1.5">
+                        <Check size={13} className="text-teal-600 shrink-0 mt-0.5 group-hover/point:scale-125 transition-transform duration-200" />
+                        <span>{pt.title}</span>
+                      </strong>
+                      <p className="text-[11px] text-slate-500 leading-snug pl-5 mt-0.5">
+                        {pt.description}
+                      </p>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Multi-Pillar Engineered Protection Graphic */}
@@ -1067,7 +991,7 @@ export default function AboutUs() {
             <div className="p-2.5 rounded-lg bg-teal-50 border border-teal-200 group-hover:bg-teal-100/70 flex items-center gap-2 text-xs text-teal-800 transition-colors duration-200">
               <Check size={14} className="text-teal-600 shrink-0 font-bold" />
               <span>
-                <strong>Outcome:</strong> Monolithic, permanent seal backed by three generations of engineering mastery (Past, Present &amp; Future).
+                <strong>Outcome:</strong> {aboutData?.slnDifference?.slnStandard?.outcome || DEFAULT_ABOUT_CONTENT.slnDifference.slnStandard.outcome}
               </span>
             </div>
           </div>
@@ -1087,61 +1011,29 @@ export default function AboutUs() {
 
         {/* 4 Principle Cards in 1 Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-          {/* Principle 1 — Scientific Diagnosis */}
-          <div className="relative bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 hover:shadow-xl hover:border-sky-300 hover:-translate-y-2 transition-all duration-300 group overflow-hidden scroll-reveal-blur stagger-1">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-            <div className="w-11 h-11 rounded-full bg-[#0284c7] text-white flex items-center justify-center shrink-0 shadow-xs mb-3 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
-              <Search size={19} />
-            </div>
-            <h3 className="text-sm font-extrabold text-[#0f2847] group-hover:text-[#0284c7] transition-colors duration-200 mb-1.5">
-              Scientific Diagnosis
-            </h3>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              We never guess. We measure substrate moisture levels, check slab gradient falls, and trace hydrostatic capillary paths with electronic meters before recommending solutions.
-            </p>
-          </div>
-
-          {/* Principle 2 — Certified Chemistry */}
-          <div className="relative bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 hover:shadow-xl hover:border-cyan-300 hover:-translate-y-2 transition-all duration-300 group overflow-hidden scroll-reveal-blur stagger-2">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 to-teal-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-            <div className="w-11 h-11 rounded-full bg-[#0891b2] text-white flex items-center justify-center shrink-0 shadow-xs mb-3 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
-              <FlaskConical size={19} />
-            </div>
-            <h3 className="text-sm font-extrabold text-[#0f2847] group-hover:text-[#0891b2] transition-colors duration-200 mb-1.5">
-              Certified Chemistry
-            </h3>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              We exclusively specify tested formulations from global chemical leaders—Fosroc, Dr. Fixit, Sika, and Asian Paints SmartCare—mixed strictly to manufacturer ratios.
-            </p>
-          </div>
-
-          {/* Principle 3 — Documented Accountability */}
-          <div className="relative bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 hover:shadow-xl hover:border-sky-300 hover:-translate-y-2 transition-all duration-300 group overflow-hidden scroll-reveal-blur stagger-3">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-            <div className="w-11 h-11 rounded-full bg-[#0284c7] text-white flex items-center justify-center shrink-0 shadow-xs mb-3 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
-              <ShieldCheck size={19} />
-            </div>
-            <h3 className="text-sm font-extrabold text-[#0f2847] group-hover:text-[#0284c7] transition-colors duration-200 mb-1.5">
-              Documented Accountability
-            </h3>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Every project carries itemized engineering specifications, standardized quality sign-offs, and scheduled annual post-monsoon technical audits.
-            </p>
-          </div>
-
-          {/* Principle 4 — Direct Engineer Oversight */}
-          <div className="relative bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 hover:shadow-xl hover:border-slate-400 hover:-translate-y-2 transition-all duration-300 group overflow-hidden scroll-reveal-blur stagger-4">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-slate-700 to-[#0f2847] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-            <div className="w-11 h-11 rounded-full bg-[#0f172a] text-white flex items-center justify-center shrink-0 shadow-xs mb-3 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
-              <HardHat size={19} />
-            </div>
-            <h3 className="text-sm font-extrabold text-[#0f2847] group-hover:text-slate-900 transition-colors duration-200 mb-1.5">
-              Direct Engineer Oversight
-            </h3>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Qualified civil engineers oversee substrate grinding, primer bonding, joint reinforcing, and final topcoats. We never leave sites to unguided casual labor.
-            </p>
-          </div>
+          {(aboutData?.principles || DEFAULT_ABOUT_CONTENT.principles).map((pr, idx) => {
+            const IconComponent = resolvePrincipleIcon(pr.icon || (idx === 0 ? 'Search' : idx === 1 ? 'FlaskConical' : idx === 2 ? 'ShieldCheck' : 'HardHat'));
+            return (
+              <div
+                key={idx}
+                className={`relative bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 hover:shadow-xl hover:border-sky-300 hover:-translate-y-2 transition-all duration-300 group overflow-hidden scroll-reveal-blur stagger-${idx + 1}`}
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                <div
+                  style={{ backgroundColor: pr.color || (idx === 0 ? '#0284c7' : idx === 1 ? '#0891b2' : idx === 2 ? '#0284c7' : '#0f172a') }}
+                  className="w-11 h-11 rounded-full text-white flex items-center justify-center shrink-0 shadow-xs mb-3 group-hover:scale-110 group-hover:shadow-md transition-all duration-300"
+                >
+                  <IconComponent size={19} />
+                </div>
+                <h3 className="text-sm font-extrabold text-[#0f2847] group-hover:text-[#0284c7] transition-colors duration-200 mb-1.5">
+                  {pr.title}
+                </h3>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  {pr.description}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -1158,13 +1050,13 @@ export default function AboutUs() {
               </div>
               <div>
                 <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
-                  Ready for Permanent Zero-Leak Protection?
+                  {aboutData?.ctaBanner?.title || DEFAULT_ABOUT_CONTENT.ctaBanner.title}
                 </h3>
                 <div className="text-xs font-bold text-sky-300 mt-1">
-                  Consult With Our Senior Engineers Today
+                  {aboutData?.ctaBanner?.subtitle || DEFAULT_ABOUT_CONTENT.ctaBanner.subtitle}
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed mt-1">
-                  Contact SLN Engineers Projects Pvt. Ltd. We provide comprehensive precision moisture diagnostic surveys, clear technical proposals, and itemized engineering specifications for permanent protection.
+                  {aboutData?.ctaBanner?.description || DEFAULT_ABOUT_CONTENT.ctaBanner.description}
                 </p>
               </div>
             </div>
