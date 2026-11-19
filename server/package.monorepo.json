@@ -1,0 +1,20 @@
+{
+  "name": "sln-engineers-platform",
+  "version": "1.0.0",
+  "description": "SLN Engineers Projects Pvt. Ltd. — Official Website & Customer Engagement Platform",
+  "scripts": {
+    "dev:server": "cd server && npm run dev",
+    "start:server": "cd server && npm start",
+    "dev:client": "cd client && npm run dev",
+    "build:client": "cd client && npm run build",
+    "seed": "cd server && npm run seed"
+  },
+  "keywords": [
+    "waterproofing",
+    "restoration",
+    "civil-engineering",
+    "mern"
+  ],
+  "author": "SLN Engineers Projects Pvt. Ltd.",
+  "license": "ISC"
+}
