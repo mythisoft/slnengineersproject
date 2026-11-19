@@ -256,19 +256,19 @@ router.put('/reviews/page-content', protect, authorize('superadmin', 'admin'), u
 router.post('/reviews/page-content/reset', protect, authorize('superadmin', 'admin'), resetReviewPageContent);
 
 // ==================== QR REVIEW LINKS & GOOGLE REVIEW QR ====================
-router.get('/google-review-qr', protect, authorize('superadmin'), getGoogleReviewQRCode);
-router.put('/google-review-qr', protect, authorize('superadmin'), updateGoogleReviewUrl);
-router.post('/google-review-qr/generate-new', protect, authorize('superadmin'), generateNewGoogleQRCode);
-router.post('/google-review-qr/reset', protect, authorize('superadmin'), resetGoogleQRCode);
-router.get('/customer-review-qr', protect, authorize('superadmin'), getCustomerReviewQRCode);
-router.put('/customer-review-qr', protect, authorize('superadmin'), updateCustomerReviewUrl);
-router.post('/customer-review-qr/generate-new', protect, authorize('superadmin'), generateNewCustomerQRCode);
-router.post('/customer-review-qr/reset', protect, authorize('superadmin'), resetCustomerQRCode);
-router.post('/projects/:id/review-link', protect, authorize('superadmin'), (req, res, next) => {
+router.get('/google-review-qr', protect, authorize('superadmin', 'admin'), getGoogleReviewQRCode);
+router.put('/google-review-qr', protect, authorize('superadmin', 'admin'), updateGoogleReviewUrl);
+router.post('/google-review-qr/generate-new', protect, authorize('superadmin', 'admin'), generateNewGoogleQRCode);
+router.post('/google-review-qr/reset', protect, authorize('superadmin', 'admin'), resetGoogleQRCode);
+router.get('/customer-review-qr', protect, authorize('superadmin', 'admin'), getCustomerReviewQRCode);
+router.put('/customer-review-qr', protect, authorize('superadmin', 'admin'), updateCustomerReviewUrl);
+router.post('/customer-review-qr/generate-new', protect, authorize('superadmin', 'admin'), generateNewCustomerQRCode);
+router.post('/customer-review-qr/reset', protect, authorize('superadmin', 'admin'), resetCustomerQRCode);
+router.post('/projects/:id/review-link', protect, authorize('superadmin', 'admin'), (req, res, next) => {
   req.body.projectId = req.params.id;
   generateProjectReviewLink(req, res, next);
 });
-router.post('/review-links', protect, authorize('superadmin'), generateProjectReviewLink);
+router.post('/review-links', protect, authorize('superadmin', 'admin'), generateProjectReviewLink);
 router.get('/review-links', protect, authorize('superadmin'), getAllReviewLinks);
 router.patch('/review-links/:id', protect, authorize('superadmin'), toggleReviewLinkStatus);
 

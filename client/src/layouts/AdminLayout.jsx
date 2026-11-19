@@ -74,7 +74,7 @@ export default function AdminLayout() {
     { name: 'About Page Content', path: '/admin/about', icon: Info, superOnly: true },
     { name: 'Contact Page Content', path: '/admin/contact', icon: PhoneCall, superOnly: true },
     { name: 'Trust Metrics & Badges', path: '/admin/trust-metrics', icon: ShieldCheck, superOnly: true },
-    { name: 'Review QR Codes', path: '/admin/qr-codes', icon: QrCode, superOnly: true },
+    { name: 'Review QR Codes', path: '/admin/qr-codes', icon: QrCode, superOnly: false },
     { name: 'Customer Reviews', path: '/admin/reviews', icon: Star, superOnly: false },
     { name: 'Social Media & Share', path: '/admin/social', icon: Share2, superOnly: true },
     { name: 'Customer Directory', path: '/admin/customers', icon: Users, superOnly: true },
