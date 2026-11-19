@@ -1618,3 +1618,79 @@ export const getAuditLogs = async (req, res, next) => {
     next(error);
   }
 };
+
+// ==================== SERVICES PAGE HEADER & COPY CONTENT CRUD ====================
+export const getServicePageContent = async (req, res, next) => {
+  try {
+    const settings = await CompanySettings.findOne();
+    const content = settings?.servicesPageContent || {};
+    res.json({ success: true, data: content });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateServicePageContent = async (req, res, next) => {
+  try {
+    const pageContent = req.body;
+    let settings = await CompanySettings.findOne();
+    if (!settings) {
+      settings = new CompanySettings();
+    }
+    settings.servicesPageContent = {
+      ...(settings.servicesPageContent || {}),
+      ...pageContent,
+    };
+    await settings.save();
+
+    try {
+      await logAuditEvent({
+        req,
+        action: 'UPDATE_SERVICE_PAGE_CONTENT',
+        resource: 'CompanySettings',
+        resourceId: settings._id,
+        details: { updatedFields: Object.keys(pageContent) },
+      });
+    } catch (auditErr) {
+      console.warn('Audit log warning:', auditErr.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'Services page header & content updated successfully in database.',
+      data: settings.servicesPageContent,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetServicePageContent = async (req, res, next) => {
+  try {
+    let settings = await CompanySettings.findOne();
+    if (!settings) {
+      settings = new CompanySettings();
+    }
+    settings.servicesPageContent = {};
+    await settings.save();
+
+    try {
+      await logAuditEvent({
+        req,
+        action: 'RESET_SERVICE_PAGE_CONTENT',
+        resource: 'CompanySettings',
+        resourceId: settings._id,
+      });
+    } catch (auditErr) {
+      console.warn('Audit log warning:', auditErr.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'Services page content reset to defaults in database.',
+      data: {},
+    });
+  } catch (error) {
+    next(error);
+  }
+};

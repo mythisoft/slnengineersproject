@@ -42,6 +42,9 @@ import {
   getAdminSettings,
   updateAdminSettings,
   getAuditLogs,
+  getServicePageContent,
+  updateServicePageContent,
+  resetServicePageContent,
 } from '../controllers/adminController.js';
 import {
   getAllDisciplines,
@@ -149,11 +152,11 @@ router.put('/transformations/:id', protect, authorize('superadmin'), updateTrans
 router.delete('/transformations/:id', protect, authorize('superadmin'), deleteTransformation);
 
 // ==================== DISCIPLINE PILLARS ====================
-router.get('/disciplines', protect, authorize('superadmin'), getAllDisciplines);
-router.post('/disciplines', protect, authorize('superadmin'), createDiscipline);
-router.post('/disciplines/init-defaults', protect, authorize('superadmin'), initDefaultDisciplines);
-router.put('/disciplines/:id', protect, authorize('superadmin'), updateDiscipline);
-router.delete('/disciplines/:id', protect, authorize('superadmin'), deleteDiscipline);
+router.get('/disciplines', protect, authorize('superadmin', 'admin'), getAllDisciplines);
+router.post('/disciplines', protect, authorize('superadmin', 'admin'), createDiscipline);
+router.post('/disciplines/init-defaults', protect, authorize('superadmin', 'admin'), initDefaultDisciplines);
+router.put('/disciplines/:id', protect, authorize('superadmin', 'admin'), updateDiscipline);
+router.delete('/disciplines/:id', protect, authorize('superadmin', 'admin'), deleteDiscipline);
 
 // ==================== HORIZONTAL PILLAR CARDS & GLIMPSE VIDEO ====================
 router.get('/pillar-cards', protect, authorize('superadmin'), getAdminPillarCards);
@@ -181,9 +184,13 @@ router.post('/pillar-cards/upload-video', protect, authorize('superadmin'), uplo
 router.put('/pillar-cards/:id', protect, authorize('superadmin'), updatePillarCard);
 router.delete('/pillar-cards/:id', protect, authorize('superadmin'), deletePillarCard);
 
-// ==================== SERVICES ====================
-router.get('/services', protect, authorize('superadmin'), getAllServices);
-router.post('/services/upload', protect, authorize('superadmin'), imageUpload.single('file'), async (req, res) => {
+// ==================== SERVICES & SERVICE PAGE CONTENT (CRUD) ====================
+router.get('/services/page-content', protect, authorize('superadmin', 'admin'), getServicePageContent);
+router.put('/services/page-content', protect, authorize('superadmin', 'admin'), updateServicePageContent);
+router.post('/services/page-content/reset', protect, authorize('superadmin', 'admin'), resetServicePageContent);
+
+router.get('/services', protect, authorize('superadmin', 'admin'), getAllServices);
+router.post('/services/upload', protect, authorize('superadmin', 'admin'), imageUpload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Please select an image file.' });
   }
@@ -199,10 +206,10 @@ router.post('/services/upload', protect, authorize('superadmin'), imageUpload.si
   const url = await handleUploadToCloudinaryOrLocal(req.file, 'sln_waterproofing/services');
   res.status(201).json({ success: true, data: { url } });
 });
-router.post('/services', protect, authorize('superadmin'), createService);
-router.post('/services/init-defaults', protect, authorize('superadmin'), initDefaultServices);
-router.put('/services/:id', protect, authorize('superadmin'), updateService);
-router.delete('/services/:id', protect, authorize('superadmin'), deleteService);
+router.post('/services', protect, authorize('superadmin', 'admin'), createService);
+router.post('/services/init-defaults', protect, authorize('superadmin', 'admin'), initDefaultServices);
+router.put('/services/:id', protect, authorize('superadmin', 'admin'), updateService);
+router.delete('/services/:id', protect, authorize('superadmin', 'admin'), deleteService);
 
 // ==================== PROJECTS ====================
 router.get('/projects', protect, authorize('superadmin'), getAllProjects);
@@ -264,8 +271,8 @@ router.get('/social-links', protect, authorize('superadmin'), getAdminSocialLink
 router.put('/social-links/:id', protect, authorize('superadmin'), updateSocialLink);
 
 // ==================== SETTINGS & AUDIT LOGS ====================
-router.get('/settings', protect, authorize('superadmin'), getAdminSettings);
-router.put('/settings', protect, authorize('superadmin'), updateAdminSettings);
+router.get('/settings', protect, authorize('superadmin', 'admin'), getAdminSettings);
+router.put('/settings', protect, authorize('superadmin', 'admin'), updateAdminSettings);
 router.get('/audit-logs', protect, authorize('superadmin'), getAuditLogs);
 
 // ==================== ABOUT US PAGE CONTENT ====================

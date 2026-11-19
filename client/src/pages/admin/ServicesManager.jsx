@@ -318,9 +318,14 @@ export default function ServicesManager() {
 
     // 3. Load Services Page Header Content (from backend settings)
     try {
-      const settingsRes = await fetchApi('/settings');
-      if (settingsRes.success && settingsRes.data?.servicesPageContent && Object.keys(settingsRes.data.servicesPageContent).length > 0) {
-        setHeroFormData((prev) => ({ ...DEFAULT_SERVICES_HERO, ...prev, ...settingsRes.data.servicesPageContent }));
+      let pageContentRes = await fetchApi('/admin/services/page-content').catch(() => null);
+      if (pageContentRes && pageContentRes.success && pageContentRes.data && Object.keys(pageContentRes.data).length > 0) {
+        setHeroFormData((prev) => ({ ...DEFAULT_SERVICES_HERO, ...prev, ...pageContentRes.data }));
+      } else {
+        const settingsRes = await fetchApi('/settings');
+        if (settingsRes.success && settingsRes.data?.servicesPageContent && Object.keys(settingsRes.data.servicesPageContent).length > 0) {
+          setHeroFormData((prev) => ({ ...DEFAULT_SERVICES_HERO, ...prev, ...settingsRes.data.servicesPageContent }));
+        }
       }
     } catch (e) {
       console.warn('Could not load servicesPageContent from settings:', e);
@@ -849,16 +854,24 @@ export default function ServicesManager() {
     try {
       window.dispatchEvent(new Event('sln_services_hero_updated'));
 
-      // Persist to MongoDB CompanySettings
-      const res = await fetchApi('/admin/settings', {
-        method: 'PUT',
-        body: JSON.stringify({ servicesPageContent: heroFormData }),
-      });
+      // Persist to MongoDB CompanySettings (via dedicated endpoint with fallback)
+      let res;
+      try {
+        res = await fetchApi('/admin/services/page-content', {
+          method: 'PUT',
+          body: JSON.stringify(heroFormData),
+        });
+      } catch {
+        res = await fetchApi('/admin/settings', {
+          method: 'PUT',
+          body: JSON.stringify({ servicesPageContent: heroFormData }),
+        });
+      }
 
-      if (res.success) {
+      if (res && res.success) {
         showToast('Services page header & copy saved and published successfully to database!');
       } else {
-        showToast(res.message || 'Failed to save to database.', 'error');
+        showToast(res?.message || 'Failed to save to database.', 'error');
       }
     } catch (err) {
       console.error('Error saving services page content:', err);
@@ -875,10 +888,18 @@ export default function ServicesManager() {
       setHeroFormData(DEFAULT_SERVICES_HERO);
       window.dispatchEvent(new Event('sln_services_hero_updated'));
 
-      await fetchApi('/admin/settings', {
-        method: 'PUT',
-        body: JSON.stringify({ servicesPageContent: DEFAULT_SERVICES_HERO }),
-      });
+      let res;
+      try {
+        res = await fetchApi('/admin/services/page-content/reset', {
+          method: 'POST',
+        });
+      } catch {
+        res = await fetchApi('/admin/settings', {
+          method: 'PUT',
+          body: JSON.stringify({ servicesPageContent: DEFAULT_SERVICES_HERO }),
+        });
+      }
+
       showToast('Services page header reset to defaults in database.');
     } catch (err) {
       showToast('Reset failed.', 'error');

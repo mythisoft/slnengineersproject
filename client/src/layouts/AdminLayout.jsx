@@ -65,8 +65,8 @@ export default function AdminLayout() {
   const allNavItems = [
     { name: 'Dashboard Overview', path: '/admin', icon: LayoutDashboard, superOnly: false },
     { name: 'Enquiry Pipeline', path: '/admin/enquiries', icon: Inbox, superOnly: false },
+    { name: 'Services Catalog', path: '/admin/services', icon: Layers, superOnly: false },
     { name: 'Projects & Showcase', path: '/admin/projects', icon: Briefcase, superOnly: true },
-    { name: 'Services Catalog', path: '/admin/services', icon: Layers, superOnly: true },
     { name: 'Home Page Content', path: '/admin/home', icon: Home, superOnly: true },
     { name: 'Navbar & Header Links', path: '/admin/navbar', icon: Menu, superOnly: true },
     { name: 'Homepage Banners', path: '/admin/banners', icon: Images, superOnly: true },
