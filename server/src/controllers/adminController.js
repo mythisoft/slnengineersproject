@@ -1694,3 +1694,79 @@ export const resetServicePageContent = async (req, res, next) => {
     next(error);
   }
 };
+
+// ==================== REVIEWS PAGE HEADER & COPY CONTENT CRUD ====================
+export const getReviewPageContent = async (req, res, next) => {
+  try {
+    const settings = await CompanySettings.findOne();
+    const content = settings?.reviewsPageContent || {};
+    res.json({ success: true, data: content });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateReviewPageContent = async (req, res, next) => {
+  try {
+    const pageContent = req.body;
+    let settings = await CompanySettings.findOne();
+    if (!settings) {
+      settings = new CompanySettings();
+    }
+    settings.reviewsPageContent = {
+      ...(settings.reviewsPageContent || {}),
+      ...pageContent,
+    };
+    await settings.save();
+
+    try {
+      await logAuditEvent({
+        req,
+        action: 'UPDATE_REVIEW_PAGE_CONTENT',
+        resource: 'CompanySettings',
+        resourceId: settings._id,
+        details: { updatedFields: Object.keys(pageContent) },
+      });
+    } catch (auditErr) {
+      console.warn('Audit log warning:', auditErr.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'Reviews page header & content updated successfully in database.',
+      data: settings.reviewsPageContent,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetReviewPageContent = async (req, res, next) => {
+  try {
+    let settings = await CompanySettings.findOne();
+    if (!settings) {
+      settings = new CompanySettings();
+    }
+    settings.reviewsPageContent = {};
+    await settings.save();
+
+    try {
+      await logAuditEvent({
+        req,
+        action: 'RESET_REVIEW_PAGE_CONTENT',
+        resource: 'CompanySettings',
+        resourceId: settings._id,
+      });
+    } catch (auditErr) {
+      console.warn('Audit log warning:', auditErr.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'Reviews page content reset to defaults in database.',
+      data: {},
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -13,10 +13,20 @@ import {
   MessageSquare,
   Calendar,
   Building2,
+  Sparkles,
+  Save,
+  RotateCcw,
+  ExternalLink,
+  Eye,
+  Sliders,
+  ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 import { fetchApi } from '../../utils/api';
+import { DEFAULT_REVIEWS_HERO } from '../../utils/reviewsData';
 
 export default function ReviewsModeration() {
+  const [activeTab, setActiveTab] = useState('reviews'); // 'reviews' | 'page-content'
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All'); // All, Pending, Approved, Spam
@@ -24,6 +34,16 @@ export default function ReviewsModeration() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
   const [bulkProcessing, setBulkProcessing] = useState(false);
+
+  // Reviews Page Header & Copy Content State
+  const [heroFormData, setHeroFormData] = useState(DEFAULT_REVIEWS_HERO);
+  const [savingHero, setSavingHero] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (text, type = 'success') => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   // Modal State for Create & Edit
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,11 +68,89 @@ export default function ReviewsModeration() {
       })
       .catch((e) => console.error(e))
       .finally(() => setLoading(false));
+
+    // Also load reviewsPageContent from database
+    fetchApi('/admin/reviews/page-content')
+      .then((res) => {
+        if (res.success && res.data && Object.keys(res.data).length > 0) {
+          setHeroFormData((prev) => ({ ...DEFAULT_REVIEWS_HERO, ...prev, ...res.data }));
+        } else {
+          // Fallback to settings
+          fetchApi('/admin/settings').then((sRes) => {
+            if (sRes.success && sRes.data?.reviewsPageContent && Object.keys(sRes.data.reviewsPageContent).length > 0) {
+              setHeroFormData((prev) => ({ ...DEFAULT_REVIEWS_HERO, ...prev, ...sRes.data.reviewsPageContent }));
+            }
+          });
+        }
+      })
+      .catch((e) => console.warn('Could not load reviewsPageContent:', e));
   };
 
   useEffect(() => {
     loadReviews();
   }, []);
+
+  // Save Reviews Page Content to MongoDB
+  const handleSaveHeroContent = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setSavingHero(true);
+    try {
+      let res;
+      try {
+        res = await fetchApi('/admin/reviews/page-content', {
+          method: 'PUT',
+          body: JSON.stringify(heroFormData),
+        });
+      } catch {
+        res = await fetchApi('/admin/settings', {
+          method: 'PUT',
+          body: JSON.stringify({ reviewsPageContent: heroFormData }),
+        });
+      }
+
+      if (res && res.success) {
+        showToast('Reviews page header & content saved and published to database!');
+      } else {
+        showToast(res?.message || 'Failed to save to database.', 'error');
+      }
+    } catch (err) {
+      console.error('Error saving review page content:', err);
+      showToast(err.message || 'Failed to save to database.', 'error');
+    } finally {
+      setSavingHero(false);
+    }
+  };
+
+  // Reset Reviews Page Content to defaults
+  const handleResetHeroContent = async () => {
+    if (!window.confirm('Reset Reviews page header & content to default text?')) return;
+    setSavingHero(true);
+    try {
+      setHeroFormData(DEFAULT_REVIEWS_HERO);
+      let res;
+      try {
+        res = await fetchApi('/admin/reviews/page-content/reset', {
+          method: 'POST',
+        });
+      } catch {
+        res = await fetchApi('/admin/settings', {
+          method: 'PUT',
+          body: JSON.stringify({ reviewsPageContent: DEFAULT_REVIEWS_HERO }),
+        });
+      }
+
+      if (res && res.success) {
+        showToast('Reviews page content reset to defaults in database.');
+      } else {
+        showToast(res?.message || 'Failed to reset.', 'error');
+      }
+    } catch (err) {
+      console.error('Error resetting review page content:', err);
+      showToast(err.message || 'Failed to reset.', 'error');
+    } finally {
+      setSavingHero(false);
+    }
+  };
 
   // Open Create Modal
   const handleOpenCreateModal = () => {
@@ -282,29 +380,104 @@ export default function ReviewsModeration() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Title and Create Button */}
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div
+          className={`fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg animate-in fade-in slide-in-from-top-2 duration-200 ${
+            toastMessage.type === 'error'
+              ? 'bg-rose-600 text-white shadow-rose-600/30'
+              : 'bg-emerald-600 text-white shadow-emerald-600/30'
+          }`}
+        >
+          <CheckCircle2 size={16} />
+          <span>{toastMessage.text}</span>
+        </div>
+      )}
+
+      {/* Header with Title and Mode Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900">
             Customer Reviews &amp; Moderation
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Full review management: create, edit, approve, or delete client testimonials.
+            Full reviews management: moderate client ratings and customize the public review page header &amp; copy.
           </p>
         </div>
 
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {activeTab === 'reviews' && (
+            <button
+              type="button"
+              onClick={handleOpenCreateModal}
+              className="btn btn-primary btn-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm text-xs font-bold"
+            >
+              <Plus size={15} />
+              <span>Add New Review</span>
+            </button>
+          )}
+
+          {activeTab === 'page-content' && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleResetHeroContent}
+                disabled={savingHero}
+                className="btn btn-outline btn-sm text-xs flex items-center gap-1.5 cursor-pointer bg-white text-slate-700 hover:bg-slate-50"
+              >
+                <RotateCcw size={13} />
+                <span>Reset Defaults</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveHeroContent}
+                disabled={savingHero}
+                className="btn btn-primary btn-sm text-xs flex items-center gap-1.5 font-bold shadow-md shadow-sky-600/30 cursor-pointer"
+              >
+                <Save size={14} />
+                <span>{savingHero ? 'Saving...' : 'Save & Publish'}</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modern High-Level Navigation Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
         <button
           type="button"
-          onClick={handleOpenCreateModal}
-          className="btn btn-primary btn-sm flex items-center justify-center gap-2 self-start sm:self-auto cursor-pointer shadow-sm text-xs font-bold"
+          onClick={() => setActiveTab('reviews')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'reviews'
+              ? 'bg-sky-600 text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+          }`}
         >
-          <Plus size={15} />
-          <span>Add New Review</span>
+          <Star size={14} />
+          <span>Client Reviews List ({reviews.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('page-content')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'page-content'
+              ? 'bg-sky-600 text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Sparkles size={14} />
+          <span>Review Page Header &amp; Copy (CRUD)</span>
         </button>
       </div>
 
-      {/* Filter Tabs & Search Bar */}
-      <div className="card p-3 bg-white border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-2xs">
+      {/* ===================================================================== */}
+      {/* TAB 1: CLIENT REVIEWS LIST & MODERATION TABLE                         */}
+      {/* ===================================================================== */}
+      {activeTab === 'reviews' && (
+        <div className="space-y-6">
+          {/* Filter Tabs & Search Bar */}
+          <div className="card p-3 bg-white border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-2xs">
         {/* Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
           <button
@@ -609,6 +782,424 @@ export default function ReviewsModeration() {
           })
         )}
       </div>
+      </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* TAB 2: REVIEWS PAGE HEADER & COPY (CRUD CONTROLS)                     */}
+      {/* ===================================================================== */}
+      {activeTab === 'page-content' && (
+        <div className="space-y-6">
+          {/* Banner Bar with status and actions */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-sky-50 border border-sky-200 text-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-600/20 shrink-0">
+                <Sparkles size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-sky-950">
+                  Live Public Header &amp; Copy Editor for /reviews
+                </h3>
+                <p className="text-xs text-sky-800/80 mt-0.5">
+                  Update the hero title, lineage badge, Google review callout, 4 trust metrics, and testimonial catalog headings. Changes publish immediately.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <a
+                href="/reviews"
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-outline btn-sm text-xs flex items-center gap-1.5 cursor-pointer bg-white text-slate-700 hover:bg-slate-50"
+              >
+                <ExternalLink size={13} />
+                <span>Open Live Page</span>
+              </a>
+              <button
+                type="button"
+                onClick={handleSaveHeroContent}
+                disabled={savingHero}
+                className="btn btn-primary btn-sm text-xs flex items-center gap-1.5 font-bold shadow-md shadow-sky-600/30 cursor-pointer"
+              >
+                <Save size={14} />
+                <span>{savingHero ? 'Saving...' : 'Save & Publish'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Interactive Live Hero Simulation / Preview */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <Eye size={13} />
+                <span>Live Hero Preview (As seen on /reviews)</span>
+              </span>
+              <span className="text-[11px] text-slate-400">
+                Real-time preview of public hero styling
+              </span>
+            </div>
+
+            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#f0f9ff] via-[#e0f2fe]/80 to-[#f8fafc] text-slate-900 p-6 sm:p-8 border border-sky-200 shadow-md">
+              <div className="relative z-10 max-w-2xl space-y-4">
+                {/* Eyebrow */}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/15 border border-sky-300 text-[#0284c7] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0284c7] shrink-0" />
+                  <span>{heroFormData.badge || '40 Years of Field Engineering • Three Generations'}</span>
+                </div>
+
+                {/* Headline */}
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                  {heroFormData.title || 'Customer Reviews'}{' '}
+                  {heroFormData.titleAccent && (
+                    <span className="text-[#0284c7] font-extrabold">{heroFormData.titleAccent}</span>
+                  )}
+                </h1>
+
+                {/* Narrative */}
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
+                  {heroFormData.description || 'Genuine experiences submitted by property owners, luxury villa residents, facility managers, and civil architects through our tamper-proof handover QR-code warranty system.'}
+                </p>
+
+                {/* Star rating preview */}
+                <div className="flex items-center gap-2 pt-1">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={16} fill="currentColor" />
+                    ))}
+                  </div>
+                  <span className="text-sm font-black text-slate-900">5.0</span>
+                  <span className="text-xs text-slate-500 font-medium">Based on verified client reviews</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Controls for Review Page Content */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+            <div>
+              <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <Sliders size={16} className="text-sky-600" />
+                <span>1. Hero Header &amp; Subtitle Copy</span>
+              </h4>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Configure the badge, primary headline, accented text, and description paragraph.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Top Pill Badge
+                </label>
+                <input
+                  type="text"
+                  value={heroFormData.badge || ''}
+                  onChange={(e) => setHeroFormData({ ...heroFormData, badge: e.target.value })}
+                  placeholder="e.g. 40 Years of Field Engineering • Three Generations"
+                  className="form-input text-xs w-full py-2"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Primary Title Prefix
+                </label>
+                <input
+                  type="text"
+                  value={heroFormData.title || ''}
+                  onChange={(e) => setHeroFormData({ ...heroFormData, title: e.target.value })}
+                  placeholder="e.g. Customer Reviews"
+                  className="form-input text-xs w-full py-2"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Accented Colored Title (Blue)
+                </label>
+                <input
+                  type="text"
+                  value={heroFormData.titleAccent || ''}
+                  onChange={(e) => setHeroFormData({ ...heroFormData, titleAccent: e.target.value })}
+                  placeholder="e.g. & Feedback"
+                  className="form-input text-xs w-full py-2"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Hero Technical Narrative / Description
+                </label>
+                <textarea
+                  rows="3"
+                  value={heroFormData.description || ''}
+                  onChange={(e) => setHeroFormData({ ...heroFormData, description: e.target.value })}
+                  placeholder="Explain your customer verification and quality review system..."
+                  className="form-input text-xs w-full py-2"
+                />
+              </div>
+            </div>
+
+            {/* Google Review Box Section */}
+            <div className="pt-4 border-t border-slate-100">
+              <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 mb-1">
+                <Star size={16} className="text-amber-500" />
+                <span>2. Google Business Profile Callout Card</span>
+              </h4>
+              <p className="text-xs text-slate-500 mb-4">
+                Customize the copy on the floating Google Review card in the hero section.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Card Headline
+                  </label>
+                  <input
+                    type="text"
+                    value={heroFormData.googleCardHeadline || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, googleCardHeadline: e.target.value })}
+                    placeholder="e.g. Review Us on"
+                    className="form-input text-xs w-full py-2"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Card Sub-headline
+                  </label>
+                  <input
+                    type="text"
+                    value={heroFormData.googleCardSubheadline || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, googleCardSubheadline: e.target.value })}
+                    placeholder="e.g. Google Business Profile"
+                    className="form-input text-xs w-full py-2"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Description Text
+                  </label>
+                  <input
+                    type="text"
+                    value={heroFormData.googleCardDescription || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, googleCardDescription: e.target.value })}
+                    placeholder="e.g. We believe in total transparency. We invite all clients to share their candid feedback on our public Google Business listing."
+                    className="form-input text-xs w-full py-2"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Internal CTA Button Text
+                  </label>
+                  <input
+                    type="text"
+                    value={heroFormData.googleCardCtaText || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, googleCardCtaText: e.target.value })}
+                    placeholder="e.g. Give a Customer Review"
+                    className="form-input text-xs w-full py-2"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    External Google CTA Text
+                  </label>
+                  <input
+                    type="text"
+                    value={heroFormData.googleCardExternalText || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, googleCardExternalText: e.target.value })}
+                    placeholder="e.g. Write a Google Review"
+                    className="form-input text-xs w-full py-2"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 4 Trust Metric Tiles Section */}
+            <div className="pt-4 border-t border-slate-100">
+              <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 mb-1">
+                <ShieldCheck size={16} className="text-emerald-600" />
+                <span>3. Four Trust Metric Banners</span>
+              </h4>
+              <p className="text-xs text-slate-500 mb-4">
+                Customize the 4 horizontal metric cards placed below the hero section.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Tile 1 */}
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <span className="text-[10px] font-black uppercase text-amber-700 block">Metric 1 (Rating)</span>
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile1Value || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile1Value: e.target.value })}
+                    placeholder="5.0 / 5.0"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile1Label || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile1Label: e.target.value })}
+                    placeholder="Average Star Rating"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile1Sub || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile1Sub: e.target.value })}
+                    placeholder="100% Verified Clients"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                </div>
+
+                {/* Tile 2 */}
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <span className="text-[10px] font-black uppercase text-sky-700 block">Metric 2 (Lineage)</span>
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile2Value || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile2Value: e.target.value })}
+                    placeholder="3"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile2Label || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile2Label: e.target.value })}
+                    placeholder="Generations of Engineers"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile2Sub || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile2Sub: e.target.value })}
+                    placeholder="Family-Led Integrity"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                </div>
+
+                {/* Tile 3 */}
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <span className="text-[10px] font-black uppercase text-sky-700 block">Metric 3 (Track Record)</span>
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile3Value || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile3Value: e.target.value })}
+                    placeholder="1,450+"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile3Label || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile3Label: e.target.value })}
+                    placeholder="Zero-Leak Sites Sealed"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile3Sub || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile3Sub: e.target.value })}
+                    placeholder="Zero Re-leak Failures"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                </div>
+
+                {/* Tile 4 */}
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <span className="text-[10px] font-black uppercase text-emerald-700 block">Metric 4 (Verification)</span>
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile4Value || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile4Value: e.target.value })}
+                    placeholder="QR Handover"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile4Label || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile4Label: e.target.value })}
+                    placeholder="Authentic QR Verification"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                  <input
+                    type="text"
+                    value={heroFormData.trustTile4Sub || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, trustTile4Sub: e.target.value })}
+                    placeholder="Bonded Warranty Included"
+                    className="form-input text-xs w-full py-1.5"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonials Catalog Section */}
+            <div className="pt-4 border-t border-slate-100">
+              <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 mb-1">
+                <Star size={16} className="text-sky-600" />
+                <span>4. Reviews Catalog Section Headings</span>
+              </h4>
+              <p className="text-xs text-slate-500 mb-4">
+                Headings above the grid of client testimonial cards.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Section Subtitle / Eyebrow
+                  </label>
+                  <input
+                    type="text"
+                    value={heroFormData.catalogSubtitle || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, catalogSubtitle: e.target.value })}
+                    placeholder="e.g. Field Verified Testimonials"
+                    className="form-input text-xs w-full py-2"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Section Main Title
+                  </label>
+                  <input
+                    type="text"
+                    value={heroFormData.catalogTitle || ''}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, catalogTitle: e.target.value })}
+                    placeholder="e.g. Real Experiences From Property Owners"
+                    className="form-input text-xs w-full py-2"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Actions */}
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleResetHeroContent}
+                disabled={savingHero}
+                className="btn btn-outline btn-sm text-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <RotateCcw size={13} />
+                <span>Reset to Defaults</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSaveHeroContent}
+                disabled={savingHero}
+                className="btn btn-primary btn-sm text-xs flex items-center gap-1.5 font-bold shadow-md shadow-sky-600/30 cursor-pointer"
+              >
+                <Save size={14} />
+                <span>{savingHero ? 'Saving...' : 'Save & Publish Reviews Content'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CREATE & EDIT REVIEW MODAL */}
       {isModalOpen && (

@@ -1,0 +1,27 @@
+export const DEFAULT_REVIEWS_HERO = {
+  badge: '40 Years of Field Engineering • Three Generations',
+  title: 'Customer Reviews & Feedback',
+  titleAccent: '& Feedback',
+  description:
+    'Genuine experiences submitted by property owners, luxury villa residents, facility managers, and civil architects through our tamper-proof handover QR-code warranty system.',
+  googleCardHeadline: 'Review Us on',
+  googleCardSubheadline: 'Google Business Profile',
+  googleCardDescription:
+    'We believe in total transparency. We invite all clients to share their candid feedback on our public Google Business listing.',
+  googleCardCtaText: 'Give a Customer Review',
+  googleCardExternalText: 'Write a Google Review',
+  trustTile1Value: '5.0 / 5.0',
+  trustTile1Label: 'Average Star Rating',
+  trustTile1Sub: '100% Verified Clients',
+  trustTile2Value: '3',
+  trustTile2Label: 'Generations of Engineers',
+  trustTile2Sub: 'Family-Led Integrity',
+  trustTile3Value: '1,450+',
+  trustTile3Label: 'Zero-Leak Sites Sealed',
+  trustTile3Sub: 'Zero Re-leak Failures',
+  trustTile4Value: 'QR Handover',
+  trustTile4Label: 'Authentic QR Verification',
+  trustTile4Sub: 'Bonded Warranty Included',
+  catalogTitle: 'Real Experiences From Property Owners',
+  catalogSubtitle: 'Field Verified Testimonials',
+};

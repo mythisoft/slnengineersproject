@@ -20,6 +20,7 @@ import {
   ArrowUp,
 } from 'lucide-react';
 import { fetchApi } from '../../utils/api';
+import { DEFAULT_REVIEWS_HERO } from '../../utils/reviewsData';
 
 // 3 Verified Client Reviews matching the design mockup exactly
 const REVIEWS_DATA = [
@@ -192,6 +193,7 @@ export default function CustomerReviews() {
     'Hello SLN Engineers, I would like to request an on-site waterproofing inspection.';
   const whatsappUrl = `https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(whatsappMsg)}`;
   const googleReviewUrl = settings?.googleReviewUrl || 'https://g.page/r/slnengineers/review';
+  const pageContent = { ...DEFAULT_REVIEWS_HERO, ...(settings?.reviewsPageContent || {}) };
 
   return (
     <div className="reviews-page bg-slate-50/70 text-slate-800 antialiased pb-20 relative">
@@ -230,17 +232,20 @@ export default function CustomerReviews() {
             {/* Eyebrow Pill */}
             <div className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1 rounded-full bg-sky-500/15 border border-sky-300/80 text-[#0284c7] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2.5 sm:mb-4 shadow-2xs animate-pulse-glow max-w-full">
               <span className="w-1.5 h-1.5 rounded-full bg-[#0284c7] animate-pulse shrink-0" />
-              <span className="truncate">40 Years of Field Engineering • Three Generations</span>
+              <span className="truncate">{pageContent.badge || '40 Years of Field Engineering • Three Generations'}</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-2.5 sm:mb-3 text-reveal">
-              Customer Reviews <span className="text-[#0284c7] font-extrabold">&amp; Feedback</span>
+              {pageContent.title || 'Customer Reviews'}{' '}
+              {pageContent.titleAccent && (
+                <span className="text-[#0284c7] font-extrabold">{pageContent.titleAccent}</span>
+              )}
             </h1>
 
             {/* Subtext */}
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-lg mb-4 sm:mb-6 text-reveal delay-100">
-              Genuine experiences submitted by property owners, luxury villa residents, facility managers, and civil architects through our tamper-proof handover QR-code warranty system.
+              {pageContent.description || 'Genuine experiences submitted by property owners, luxury villa residents, facility managers, and civil architects through our tamper-proof handover QR-code warranty system.'}
             </p>
 
             {/* Rating Stars Bar */}
@@ -290,16 +295,16 @@ export default function CustomerReviews() {
                 </div>
                 <div>
                   <h3 className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">
-                    Review Us on
+                    {pageContent.googleCardHeadline || 'Review Us on'}
                   </h3>
                   <p className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">
-                    Google Business Profile
+                    {pageContent.googleCardSubheadline || 'Google Business Profile'}
                   </p>
                 </div>
               </div>
 
               <p className="text-[11px] text-slate-600 leading-relaxed mb-4">
-                We believe in total transparency. We invite all clients to share their candid feedback on our public Google Business listing.
+                {pageContent.googleCardDescription || 'We believe in total transparency. We invite all clients to share their candid feedback on our public Google Business listing.'}
               </p>
 
               <div className="space-y-2">
@@ -308,7 +313,7 @@ export default function CustomerReviews() {
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
                 >
                   <Star size={14} className="text-amber-300 fill-amber-300" />
-                  <span>Give a Customer Review</span>
+                  <span>{pageContent.googleCardCtaText || 'Give a Customer Review'}</span>
                   <ArrowRight size={13} />
                 </Link>
 
@@ -321,7 +326,7 @@ export default function CustomerReviews() {
                   <span className="w-4 h-4 rounded-full bg-white text-sky-700 flex items-center justify-center font-bold text-[9px]">
                     G
                   </span>
-                  <span>Write a Google Review</span>
+                  <span>{pageContent.googleCardExternalText || 'Write a Google Review'}</span>
                 </a>
               </div>
             </div>
@@ -340,11 +345,11 @@ export default function CustomerReviews() {
               </div>
               <div>
                 <div className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-amber-600 tracking-tight leading-none transition-colors duration-200">
-                  {reviewsData?.stats?.avgRating || '5.0'} / 5.0
+                  {pageContent.trustTile1Value || (reviewsData?.stats?.avgRating ? `${reviewsData.stats.avgRating} / 5.0` : '5.0 / 5.0')}
                 </div>
-                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">Average Star Rating</div>
+                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">{pageContent.trustTile1Label || 'Average Star Rating'}</div>
                 <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">
-                  {reviewsData?.stats?.totalReviews ? `${reviewsData.stats.totalReviews} Verified Client Reviews` : '100% Verified Clients'}
+                  {pageContent.trustTile1Sub || (reviewsData?.stats?.totalReviews ? `${reviewsData.stats.totalReviews} Verified Client Reviews` : '100% Verified Clients')}
                 </div>
               </div>
             </div>
@@ -356,10 +361,10 @@ export default function CustomerReviews() {
               </div>
               <div>
                 <div className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-[#0284c7] tracking-tight leading-none transition-colors duration-200">
-                  3
+                  {pageContent.trustTile2Value || '3'}
                 </div>
-                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">Generations of Engineers</div>
-                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">Family-Led Integrity</div>
+                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">{pageContent.trustTile2Label || 'Generations of Engineers'}</div>
+                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">{pageContent.trustTile2Sub || 'Family-Led Integrity'}</div>
               </div>
             </div>
 
@@ -370,10 +375,10 @@ export default function CustomerReviews() {
               </div>
               <div>
                 <div className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-[#0284c7] tracking-tight leading-none transition-colors duration-200">
-                  1,450+
+                  {pageContent.trustTile3Value || '1,450+'}
                 </div>
-                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">Zero-Leak Sites Sealed</div>
-                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">Zero Re-leak Failures</div>
+                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">{pageContent.trustTile3Label || 'Zero-Leak Sites Sealed'}</div>
+                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">{pageContent.trustTile3Sub || 'Zero Re-leak Failures'}</div>
               </div>
             </div>
 
@@ -384,10 +389,10 @@ export default function CustomerReviews() {
               </div>
               <div>
                 <div className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-emerald-700 tracking-tight leading-none transition-colors duration-200">
-                  QR Handover
+                  {pageContent.trustTile4Value || 'QR Handover'}
                 </div>
-                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">Authentic QR Verification</div>
-                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">Bonded Warranty Included</div>
+                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">{pageContent.trustTile4Label || 'Authentic QR Verification'}</div>
+                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">{pageContent.trustTile4Sub || 'Bonded Warranty Included'}</div>
               </div>
             </div>
           </div>
@@ -399,10 +404,10 @@ export default function CustomerReviews() {
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-left mb-6 sm:mb-8 scroll-reveal">
             <span className="text-[#0284c7] font-bold text-xs uppercase tracking-wider block mb-1">
-              Field Verified Testimonials
+              {pageContent.catalogSubtitle || 'Field Verified Testimonials'}
             </span>
             <h2 className="text-xl sm:text-3xl font-extrabold text-[#061b33] tracking-tight">
-              Real Experiences From Property Owners
+              {pageContent.catalogTitle || 'Real Experiences From Property Owners'}
             </h2>
           </div>
 

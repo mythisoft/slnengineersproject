@@ -110,6 +110,10 @@ const companySettingsSchema = new mongoose.Schema(
       type: Object,
       default: {},
     },
+    reviewsPageContent: {
+      type: Object,
+      default: {},
+    },
     homePageContent: {
       type: Object,
       default: {},

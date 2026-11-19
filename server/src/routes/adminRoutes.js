@@ -45,6 +45,9 @@ import {
   getServicePageContent,
   updateServicePageContent,
   resetServicePageContent,
+  getReviewPageContent,
+  updateReviewPageContent,
+  resetReviewPageContent,
 } from '../controllers/adminController.js';
 import {
   getAllDisciplines,
@@ -248,6 +251,9 @@ router.post('/reviews', protect, authorize('superadmin', 'admin'), createReview)
 router.put('/reviews/:id', protect, authorize('superadmin', 'admin'), updateReviewStatus);
 router.patch('/reviews/:id', protect, authorize('superadmin', 'admin'), updateReviewStatus);
 router.delete('/reviews/:id', protect, authorize('superadmin', 'admin'), deleteReview);
+router.get('/reviews/page-content', protect, authorize('superadmin', 'admin'), getReviewPageContent);
+router.put('/reviews/page-content', protect, authorize('superadmin', 'admin'), updateReviewPageContent);
+router.post('/reviews/page-content/reset', protect, authorize('superadmin', 'admin'), resetReviewPageContent);
 
 // ==================== QR REVIEW LINKS & GOOGLE REVIEW QR ====================
 router.get('/google-review-qr', protect, authorize('superadmin'), getGoogleReviewQRCode);
