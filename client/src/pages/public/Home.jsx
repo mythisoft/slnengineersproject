@@ -777,7 +777,7 @@ export default function Home() {
       clearTimeout(timer);
       observer.disconnect();
     };
-  }, [services.length, featuredProjects.length, reviews.length, allProjects.length, banners.length, contentReady, displayDisciplinePillars.length, combinedHomeReviews.length]);
+  }, [services.length, featuredProjects.length, reviews.length, allProjects.length, banners.length, contentReady]);
 
   const phone = settings?.phone || '+91 8977668776';
   const whatsapp = settings?.whatsappNumber || '+918977668776';
