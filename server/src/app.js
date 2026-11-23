@@ -57,6 +57,17 @@ if (process.env.NODE_ENV !== 'test') {
 const uploadsPath = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadsPath));
 
+// Welcome root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    name: 'SLN Engineers Projects Pvt. Ltd. API',
+    status: 'online',
+    version: '1.0.0',
+    healthCheck: '/api/health',
+    message: 'Backend API is running on Railway.',
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   const isDbConnected = mongoose.connection.readyState === 1;
