@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -58,10 +59,13 @@ app.use('/uploads', express.static(uploadsPath));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  const isDbConnected = mongoose.connection.readyState === 1;
   res.json({
-    status: 'healthy',
+    status: isDbConnected ? 'healthy' : 'degraded',
+    database: isDbConnected ? 'connected' : 'disconnected',
     timestamp: new Date().toISOString(),
     service: 'SLN Engineers Projects Pvt. Ltd. Backend API',
+    uptime: Math.round(process.uptime()),
     version: '1.0.0',
   });
 });
