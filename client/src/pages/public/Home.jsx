@@ -400,6 +400,18 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [glimpseStartedOnScroll, isGlimpseActive, glimpseSettings.isEnabled, glimpseSettings.videoUrl]);
 
+  // Preload Pillar Card Service Images immediately so they render with zero delay after glimpse video
+  useEffect(() => {
+    if (activePillarCards.length > 0) {
+      activePillarCards.forEach((card) => {
+        if (card.imageUrl) {
+          const img = new Image();
+          img.src = card.imageUrl;
+        }
+      });
+    }
+  }, [activePillarCards]);
+
   // Photo Banner: Letter-by-Letter Animated Services Rotator from Company Banner
   const [activePhotoServiceIndex, setActivePhotoServiceIndex] = useState(0);
   const [isPhotoServicePaused, setIsPhotoServicePaused] = useState(false);
@@ -2045,10 +2057,10 @@ export default function Home() {
               {glimpseSettings.isEnabled && Boolean(glimpseSettings.videoUrl) && (
                 <div
                   onClick={() => setIsGlimpseActive(false)}
-                  className={`absolute inset-0 z-20 transition-all duration-700 ease-in-out flex items-center justify-center bg-slate-900 cursor-pointer ${
+                  className={`absolute inset-0 z-20 transition-all duration-200 ease-out flex items-center justify-center bg-slate-900 cursor-pointer ${
                     isGlimpseActive
                       ? 'opacity-100 pointer-events-auto scale-100'
-                      : 'opacity-0 pointer-events-none scale-105'
+                      : 'opacity-0 pointer-events-none scale-100'
                   }`}
                   title="Click to view cards"
                 >
@@ -2074,10 +2086,10 @@ export default function Home() {
 
               {/* LAYER 2: 4 Discipline Cards inside the Background Card — Side by Side Without Gap */}
               <div
-                className={`transition-all duration-700 ease-out ${
+                className={`transition-all duration-200 ease-out ${
                   isGlimpseActive && glimpseSettings.isEnabled && Boolean(glimpseSettings.videoUrl)
-                    ? 'opacity-0 scale-95 pointer-events-none'
-                    : 'opacity-100 scale-100 pointer-events-auto'
+                    ? 'opacity-0 pointer-events-none'
+                    : 'opacity-100 pointer-events-auto'
                 }`}
               >
                 <div
@@ -2102,7 +2114,7 @@ export default function Home() {
                       <Link
                         key={card._id || card.pillarId}
                         to={`/services?discipline=${encodeURIComponent(targetDiscipline)}&category=${encodeURIComponent(card.pillarName)}`}
-                        className={`group pillar-interactive-card card-glow-hover cursor-pointer flex flex-col relative no-underline scroll-reveal stagger-${(idx % 4) + 1} border-slate-200/80 [&:nth-child(odd)]:border-r sm:[&:nth-child(odd)]:border-r-0 [&:nth-child(1)]:border-b [&:nth-child(2)]:border-b sm:[&:nth-child(1)]:border-b-0 sm:[&:nth-child(2)]:border-b-0 ${
+                        className={`group pillar-interactive-card card-glow-hover cursor-pointer flex flex-col relative no-underline border-slate-200/80 [&:nth-child(odd)]:border-r sm:[&:nth-child(odd)]:border-r-0 [&:nth-child(1)]:border-b [&:nth-child(2)]:border-b sm:[&:nth-child(1)]:border-b-0 sm:[&:nth-child(2)]:border-b-0 ${
                           isSelected
                             ? 'bg-sky-50/50'
                             : 'bg-white hover:bg-slate-50/70'
@@ -2122,7 +2134,8 @@ export default function Home() {
                           <img
                             src={card.imageUrl}
                             alt={card.pillarName}
-                            loading="lazy"
+                            loading="eager"
+                            fetchPriority="high"
                             className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
                           />
                         </div>
