@@ -304,7 +304,7 @@ export default function ServicesManager() {
     // 2. Load Services
     try {
       const srvRes = await fetchApi('/admin/services');
-      if (srvRes.success && Array.isArray(srvRes.data) && srvRes.data.length > 0) {
+      if (srvRes.success && Array.isArray(srvRes.data)) {
         commitServicesState(srvRes.data);
       } else {
         commitServicesState(DEFAULT_SERVICES);
@@ -560,14 +560,16 @@ export default function ServicesManager() {
     const targetId = srv._id || srv.id;
     if (!window.confirm(`Are you sure you want to delete service "${srv.title}"?`)) return;
 
-    const updatedList = services.filter((s) => s._id !== targetId && s.id !== targetId);
-    commitServicesState(updatedList);
-
     try {
-      await fetchApi(`/admin/services/${targetId}`, { method: 'DELETE' });
-      showToast(`Service "${srv.title}" removed successfully.`);
+      const res = await fetchApi(`/admin/services/${targetId}`, { method: 'DELETE' });
+      if (res && res.success === false) {
+        throw new Error(res.message || 'Failed to delete service on server');
+      }
+      const updatedList = services.filter((s) => s._id !== targetId && s.id !== targetId);
+      commitServicesState(updatedList);
+      showToast(`Service "${srv.title}" deleted successfully.`);
     } catch (e) {
-      showToast(`Service "${srv.title}" removed locally.`);
+      alert(`Could not delete service from database: ${e.message || 'Server error'}`);
     }
   };
 

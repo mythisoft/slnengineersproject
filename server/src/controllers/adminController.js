@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import Service from '../models/Service.js';
-import Project from '../models/Project.js';
+import Service, { ServiceInitialization } from '../models/Service.js';
+import Project, { ProjectInitialization } from '../models/Project.js';
 import Enquiry from '../models/Enquiry.js';
 import Customer from '../models/Customer.js';
 import Review from '../models/Review.js';
@@ -18,58 +18,21 @@ import { DEFAULT_PROJECTS } from '../utils/defaultProjects.js';
 
 export const ensureProjectsSeed = async () => {
   try {
-    for (const proj of DEFAULT_PROJECTS) {
-      const existing = await Project.findOne({ slug: proj.slug });
-      if (!existing) {
-        await Project.create(proj);
-      } else {
-        await Project.updateOne(
-          { _id: existing._id },
-          {
-            $set: {
-              disciplineId: proj.disciplineId,
-              disciplineName: proj.disciplineName,
-              serviceTitle: existing.serviceTitle || proj.serviceTitle,
-              serviceCategory: existing.serviceCategory || proj.serviceCategory,
-              coverImage: existing.coverImage || proj.coverImage,
-              warrantyYears: existing.warrantyYears || proj.warrantyYears,
-              warrantyTitle: existing.warrantyTitle || proj.warrantyTitle,
-              formulation: existing.formulation?.length ? existing.formulation : proj.formulation,
-            },
-          }
-        );
-      }
+    const initId = 'initial-projects-v1';
+    if (await ProjectInitialization.exists({ _id: initId })) {
+      return;
     }
 
-    // Heal any legacy misplaced projects in MongoDB
-    await Project.updateMany(
-      {
-        $or: [{ serviceCategory: /paint/i }, { title: /paint|weather|façade|facade/i }],
-        disciplineId: { $ne: 'painting' },
-      },
-      { $set: { disciplineId: 'painting', disciplineName: 'Interior & Exterior Painting' } }
-    );
-    await Project.updateMany(
-      {
-        $or: [{ serviceCategory: /repair|crack|stitch|spall|joint/i }, { title: /repair|crack|stitch|spall|joint/i }],
-        disciplineId: { $ne: 'repairs' },
-      },
-      { $set: { disciplineId: 'repairs', disciplineName: 'Building Repairs & Restoration' } }
-    );
-    await Project.updateMany(
-      {
-        $or: [{ serviceCategory: /ceiling|gypsum|interior|drywall|acoustic/i }, { title: /ceiling|gypsum|drywall|acoustic/i }],
-        disciplineId: { $ne: 'false-ceiling' },
-      },
-      { $set: { disciplineId: 'false-ceiling', disciplineName: 'False Ceiling & Interior Work' } }
-    );
-    await Project.updateMany(
-      {
-        $or: [{ serviceCategory: /waterproof|terrace|basement|dampness/i }, { title: /waterproof|terrace|basement|dampness/i }],
-        disciplineId: { $exists: false },
-      },
-      { $set: { disciplineId: 'waterproofing', disciplineName: 'Waterproofing Solutions' } }
-    );
+    const count = await Project.countDocuments();
+    if (count === 0) {
+      console.log('Seeding initial projects into MongoDB...');
+      for (const proj of DEFAULT_PROJECTS) {
+        await Project.create(proj);
+      }
+      console.log('Projects seeded successfully.');
+    }
+
+    await ProjectInitialization.create({ _id: initId }).catch(() => {});
   } catch (err) {
     console.warn('Auto-seed projects notice:', err.message);
   }
@@ -77,26 +40,19 @@ export const ensureProjectsSeed = async () => {
 
 export const ensureServicesSeed = async () => {
   try {
+    const initId = 'initial-services-v1';
+    if (await ServiceInitialization.exists({ _id: initId })) {
+      return;
+    }
+
     const count = await Service.countDocuments();
     if (count === 0) {
       console.log('Seeding initial 14 default services into MongoDB...');
       await Service.insertMany(DEFAULT_SERVICES);
       console.log('Default services seeded successfully.');
-    } else {
-      // Heal any legacy misplaced disciplines in MongoDB
-      await Service.updateMany(
-        { $or: [{ slug: 'terrace-roof-waterproofing' }, { title: /terrace/i }], disciplineId: { $ne: 'waterproofing' } },
-        { $set: { disciplineId: 'waterproofing', disciplineName: 'Waterproofing Solutions' } }
-      );
-      await Service.updateMany(
-        { $or: [{ slug: 'bathroom-wet-area-waterproofing' }, { title: /bathroom/i }], disciplineId: { $ne: 'waterproofing' } },
-        { $set: { disciplineId: 'waterproofing', disciplineName: 'Waterproofing Solutions' } }
-      );
-      await Service.updateMany(
-        { $or: [{ slug: 'basement-waterproofing' }, { title: /basement/i }], disciplineId: { $ne: 'waterproofing' } },
-        { $set: { disciplineId: 'waterproofing', disciplineName: 'Waterproofing Solutions' } }
-      );
     }
+
+    await ServiceInitialization.create({ _id: initId }).catch(() => {});
   } catch (err) {
     console.warn('Auto-seed services notice:', err.message);
   }

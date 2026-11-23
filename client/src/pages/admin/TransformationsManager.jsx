@@ -541,16 +541,18 @@ export default function TransformationsManager() {
     if (!window.confirm(`Delete the "${preset.title}" comparison?`)) return;
     setError('');
 
-    setPresets((prev) => {
-      const remaining = prev.filter((p) => p._id !== preset._id);
-      window.dispatchEvent(new Event('sln_transformations_updated'));
-      return remaining;
-    });
-
     try {
       await fetchApi(`/admin/transformations/${preset._id}`, { method: 'DELETE' });
+      setPresets((prev) => {
+        const remaining = prev.filter((p) => p._id !== preset._id);
+        window.dispatchEvent(new Event('sln_transformations_updated'));
+        return remaining;
+      });
+      showToast(`Comparison "${preset.title}" deleted.`);
     } catch (err) {
-      console.warn('Delete API warning:', err);
+      console.error('Delete comparison error:', err);
+      setError(`Failed to delete from server: ${err.message}`);
+      alert(`Failed to delete from server: ${err.message}`);
     }
   };
 

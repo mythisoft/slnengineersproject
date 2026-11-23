@@ -373,7 +373,7 @@ export default function ProjectsManager() {
     // 3. Load Projects
     try {
       const projRes = await fetchApi('/admin/projects?limit=100');
-      if (projRes.success && Array.isArray(projRes.data) && projRes.data.length > 0) {
+      if (projRes.success && Array.isArray(projRes.data)) {
         commitProjectsState(projRes.data);
       } else {
         commitProjectsState(DEFAULT_PROJECTS);
@@ -735,14 +735,15 @@ export default function ProjectsManager() {
     const targetId = project._id || project.id;
     if (!window.confirm(`Are you sure you want to delete project: "${project.title}"?`)) return;
 
-    const updatedList = projects.filter((p) => p._id !== targetId && p.id !== targetId);
-    commitProjectsState(updatedList);
-
     try {
       await fetchApi(`/admin/projects/${targetId}`, { method: 'DELETE' });
+      const updatedList = projects.filter((p) => p._id !== targetId && p.id !== targetId);
+      commitProjectsState(updatedList);
       showToast(`Project "${project.title}" deleted.`);
     } catch (err) {
-      showToast(`Project removed locally.`);
+      console.error('Delete project error:', err);
+      showToast(`Failed to delete project: ${err.message}`, 'error');
+      alert(`Failed to delete project from server: ${err.message}`);
     }
   };
 

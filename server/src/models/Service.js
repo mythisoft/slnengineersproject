@@ -160,3 +160,15 @@ serviceSchema.pre('save', function (next) {
 
 export const Service = mongoose.model('Service', serviceSchema);
 export default Service;
+
+const initializationSchema = new mongoose.Schema(
+  {
+    _id: { type: String },
+  },
+  { versionKey: false }
+);
+
+export const ServiceInitialization = mongoose.model(
+  'ServiceInitialization',
+  initializationSchema
+);

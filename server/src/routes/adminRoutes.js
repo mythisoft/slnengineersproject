@@ -113,8 +113,8 @@ router.get('/auth/me', protect, getAdminProfile);
 router.get('/dashboard', protect, getDashboardStats);
 
 // ==================== HOMEPAGE BANNERS ====================
-router.get('/banners', protect, authorize('superadmin'), getAdminBanners);
-router.post('/banners/upload', protect, authorize('superadmin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
+router.get('/banners', protect, authorize('superadmin', 'admin'), getAdminBanners);
+router.post('/banners/upload', protect, authorize('superadmin', 'admin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Please select an image file.' });
   }
@@ -124,30 +124,30 @@ router.post('/banners/upload', protect, authorize('superadmin'), imageUpload.sin
     data: { url },
   });
 }));
-router.post('/banners', protect, authorize('superadmin'), createBanner);
-router.post('/banners/init-defaults', protect, authorize('superadmin'), initDefaultBanners);
-router.put('/banners/:id', protect, authorize('superadmin'), updateBanner);
-router.delete('/banners/:id', protect, authorize('superadmin'), deleteBanner);
+router.post('/banners', protect, authorize('superadmin', 'admin'), createBanner);
+router.post('/banners/init-defaults', protect, authorize('superadmin', 'admin'), initDefaultBanners);
+router.put('/banners/:id', protect, authorize('superadmin', 'admin'), updateBanner);
+router.delete('/banners/:id', protect, authorize('superadmin', 'admin'), deleteBanner);
 
 // ==================== HERO TRUST METRICS TILES ====================
-router.get('/trust-metrics', protect, authorize('superadmin'), getAdminTrustMetrics);
-router.post('/trust-metrics', protect, authorize('superadmin'), createTrustMetric);
-router.post('/trust-metrics/init-defaults', protect, authorize('superadmin'), initDefaultTrustMetrics);
-router.put('/trust-metrics/:id', protect, authorize('superadmin'), updateTrustMetric);
-router.delete('/trust-metrics/:id', protect, authorize('superadmin'), deleteTrustMetric);
+router.get('/trust-metrics', protect, authorize('superadmin', 'admin'), getAdminTrustMetrics);
+router.post('/trust-metrics', protect, authorize('superadmin', 'admin'), createTrustMetric);
+router.post('/trust-metrics/init-defaults', protect, authorize('superadmin', 'admin'), initDefaultTrustMetrics);
+router.put('/trust-metrics/:id', protect, authorize('superadmin', 'admin'), updateTrustMetric);
+router.delete('/trust-metrics/:id', protect, authorize('superadmin', 'admin'), deleteTrustMetric);
 
 // ==================== BEFORE & AFTER TRANSFORMATIONS ====================
-router.get('/transformations', protect, authorize('superadmin'), getAdminTransformations);
-router.post('/transformations/upload', protect, authorize('superadmin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
+router.get('/transformations', protect, authorize('superadmin', 'admin'), getAdminTransformations);
+router.post('/transformations/upload', protect, authorize('superadmin', 'admin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Please select an image file.' });
   }
   const url = await uploadFileToCloudinary(req.file, 'sln_waterproofing/transformations');
   res.status(201).json({ success: true, data: { url } });
 }));
-router.post('/transformations', protect, authorize('superadmin'), createTransformation);
-router.put('/transformations/:id', protect, authorize('superadmin'), updateTransformation);
-router.delete('/transformations/:id', protect, authorize('superadmin'), deleteTransformation);
+router.post('/transformations', protect, authorize('superadmin', 'admin'), createTransformation);
+router.put('/transformations/:id', protect, authorize('superadmin', 'admin'), updateTransformation);
+router.delete('/transformations/:id', protect, authorize('superadmin', 'admin'), deleteTransformation);
 
 // ==================== DISCIPLINE PILLARS ====================
 router.get('/disciplines', protect, authorize('superadmin', 'admin'), getAllDisciplines);
@@ -197,17 +197,17 @@ router.put('/services/:id', protect, authorize('superadmin', 'admin'), updateSer
 router.delete('/services/:id', protect, authorize('superadmin', 'admin'), deleteService);
 
 // ==================== PROJECTS ====================
-router.get('/projects', protect, authorize('superadmin'), getAllProjects);
-router.post('/projects/upload', protect, authorize('superadmin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
+router.get('/projects', protect, authorize('superadmin', 'admin'), getAllProjects);
+router.post('/projects/upload', protect, authorize('superadmin', 'admin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Please select an image file.' });
   }
   const url = await uploadFileToCloudinary(req.file, 'sln_waterproofing/projects');
   res.status(201).json({ success: true, data: { url } });
 }));
-router.post('/projects', protect, authorize('superadmin'), createProject);
-router.put('/projects/:id', protect, authorize('superadmin'), updateProject);
-router.delete('/projects/:id', protect, authorize('superadmin'), deleteProject);
+router.post('/projects', protect, authorize('superadmin', 'admin'), createProject);
+router.put('/projects/:id', protect, authorize('superadmin', 'admin'), updateProject);
+router.delete('/projects/:id', protect, authorize('superadmin', 'admin'), deleteProject);
 
 // ==================== ENQUIRIES (Accessible to both Admin & Super Admin) ====================
 router.get('/enquiries', protect, authorize('superadmin', 'admin'), getAllEnquiries);
@@ -215,8 +215,8 @@ router.put('/enquiries/:id', protect, authorize('superadmin', 'admin'), updateEn
 router.delete('/enquiries/:id', protect, authorize('superadmin', 'admin'), deleteEnquiry);
 
 // ==================== CUSTOMERS ====================
-router.get('/customers', protect, authorize('superadmin'), getAllCustomers);
-router.post('/customers', protect, authorize('superadmin'), createCustomer);
+router.get('/customers', protect, authorize('superadmin', 'admin'), getAllCustomers);
+router.post('/customers', protect, authorize('superadmin', 'admin'), createCustomer);
 
 // ==================== REVIEWS MODERATION & CRUD (Accessible to Admin & Super Admin) ====================
 router.get('/reviews', protect, authorize('superadmin', 'admin'), getAllReviews);
@@ -242,27 +242,27 @@ router.post('/projects/:id/review-link', protect, authorize('superadmin', 'admin
   generateProjectReviewLink(req, res, next);
 });
 router.post('/review-links', protect, authorize('superadmin', 'admin'), generateProjectReviewLink);
-router.get('/review-links', protect, authorize('superadmin'), getAllReviewLinks);
-router.patch('/review-links/:id', protect, authorize('superadmin'), toggleReviewLinkStatus);
+router.get('/review-links', protect, authorize('superadmin', 'admin'), getAllReviewLinks);
+router.patch('/review-links/:id', protect, authorize('superadmin', 'admin'), toggleReviewLinkStatus);
 
 // ==================== SOCIAL LINKS ====================
-router.get('/social-links', protect, authorize('superadmin'), getAdminSocialLinks);
-router.put('/social-links/:id', protect, authorize('superadmin'), updateSocialLink);
+router.get('/social-links', protect, authorize('superadmin', 'admin'), getAdminSocialLinks);
+router.put('/social-links/:id', protect, authorize('superadmin', 'admin'), updateSocialLink);
 
 // ==================== SETTINGS & AUDIT LOGS ====================
 router.get('/settings', protect, authorize('superadmin', 'admin'), getAdminSettings);
 router.put('/settings', protect, authorize('superadmin', 'admin'), updateAdminSettings);
-router.get('/audit-logs', protect, authorize('superadmin'), getAuditLogs);
+router.get('/audit-logs', protect, authorize('superadmin', 'admin'), getAuditLogs);
 
 // ==================== ABOUT US PAGE CONTENT ====================
-router.get('/about', protect, authorize('superadmin'), getAdminAboutContent);
-router.put('/about', protect, authorize('superadmin'), updateAboutContent);
-router.post('/about/reset', protect, authorize('superadmin'), resetAboutContent);
+router.get('/about', protect, authorize('superadmin', 'admin'), getAdminAboutContent);
+router.put('/about', protect, authorize('superadmin', 'admin'), updateAboutContent);
+router.post('/about/reset', protect, authorize('superadmin', 'admin'), resetAboutContent);
 
 // ==================== CONTACT US PAGE CONTENT ====================
-router.get('/contact', protect, authorize('superadmin'), getAdminContactContent);
-router.put('/contact', protect, authorize('superadmin'), updateContactContent);
-router.post('/contact/reset', protect, authorize('superadmin'), resetContactContent);
+router.get('/contact', protect, authorize('superadmin', 'admin'), getAdminContactContent);
+router.put('/contact', protect, authorize('superadmin', 'admin'), updateContactContent);
+router.post('/contact/reset', protect, authorize('superadmin', 'admin'), resetContactContent);
 
 // ==================== MEDIA UPLOAD ====================
 router.post('/media/upload', protect, authorize('superadmin', 'admin'), upload.single('file'), asyncHandler(async (req, res) => {

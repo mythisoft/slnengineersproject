@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import TransformationPreset, { TransformationPresetInitialization } from '../models/TransformationPreset.js';
 import { logAuditEvent } from '../utils/auditLogger.js';
 
@@ -319,20 +320,29 @@ export const updateTransformation = async (req, res, next) => {
 
 export const deleteTransformation = async (req, res, next) => {
   try {
-    inMemoryPresets = inMemoryPresets.filter((p) => String(p._id) !== String(req.params.id));
-    const preset = await TransformationPreset.findByIdAndDelete(req.params.id);
+    const id = req.params.id;
+    inMemoryPresets = inMemoryPresets.filter(
+      (p) => String(p._id) !== String(id) && String(p.id) !== String(id)
+    );
+
+    let preset = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      preset = await TransformationPreset.findByIdAndDelete(id);
+    }
     if (!preset) {
-      return res.json({ success: true, message: 'Transformation deleted from memory.' });
+      preset = await TransformationPreset.findOneAndDelete({
+        $or: [{ _id: id }, { id: id }, { title: id }, { caseStudySlug: id }],
+      });
     }
 
     await logAuditEvent({
       req,
       action: 'DELETE_TRANSFORMATION',
       resource: 'TransformationPreset',
-      resourceId: preset._id,
-      details: { title: preset.title },
+      resourceId: preset?._id || id,
+      details: { title: preset?.title || id },
     });
-    res.json({ success: true, message: 'Transformation deleted.' });
+    res.json({ success: true, message: 'Transformation deleted successfully.' });
   } catch (error) {
     next(error);
   }

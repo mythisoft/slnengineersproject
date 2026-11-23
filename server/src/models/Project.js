@@ -153,3 +153,15 @@ projectSchema.index({ isFeatured: 1, isPublished: 1 });
 
 export const Project = mongoose.model('Project', projectSchema);
 export default Project;
+
+const initializationSchema = new mongoose.Schema(
+  {
+    _id: { type: String },
+  },
+  { versionKey: false }
+);
+
+export const ProjectInitialization = mongoose.model(
+  'ProjectInitialization',
+  initializationSchema
+);
