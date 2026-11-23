@@ -9,12 +9,10 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
-  Sparkles,
   Inbox,
   LayoutDashboard,
   ExternalLink,
   HardHat,
-  Check,
   ChevronLeft,
   KeyRound,
 } from 'lucide-react';
@@ -31,13 +29,11 @@ export default function AdminLogin({ forcedRole }) {
   const [activeRole, setActiveRole] = useState(initialRole);
   const isSuper = activeRole === 'superadmin';
 
-  const defaultUsername = isSuper ? 'superadmin' : 'admin';
-  const [identifier, setIdentifier] = useState(defaultUsername);
-  const [password, setPassword] = useState('Admin@12345');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [demoFilled, setDemoFilled] = useState(false);
 
   // Sync with prop/URL changes if any
   useEffect(() => {
@@ -48,15 +44,15 @@ export default function AdminLogin({ forcedRole }) {
 
   // Update default identifier when activeRole changes
   useEffect(() => {
-    setIdentifier(isSuper ? 'superadmin' : 'admin');
-    setPassword('Admin@12345');
+    setIdentifier('');
+    setPassword('');
     setError('');
   }, [isSuper]);
 
   const handleRoleSwitch = (role) => {
     setActiveRole(role);
-    setIdentifier(role === 'superadmin' ? 'superadmin' : 'admin');
-    setPassword('Admin@12345');
+    setIdentifier('');
+    setPassword('');
     setError('');
     // Gracefully update browser URL bar without page refresh
     const targetUrl = role === 'superadmin' ? '/superadmin/login' : '/admin/login';
@@ -93,14 +89,6 @@ export default function AdminLogin({ forcedRole }) {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDefaultCredentials = () => {
-    setIdentifier(isSuper ? 'superadmin' : 'admin');
-    setPassword('Admin@12345');
-    setError('');
-    setDemoFilled(true);
-    setTimeout(() => setDemoFilled(false), 2200);
   };
 
   return (
@@ -286,7 +274,7 @@ export default function AdminLogin({ forcedRole }) {
           />
 
           <div>
-            {/* Header / Fill Demo */}
+            {/* Header */}
             <div className="flex items-center justify-between pb-3 sm:pb-4 mb-5 sm:mb-6 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <div
@@ -307,30 +295,6 @@ export default function AdminLogin({ forcedRole }) {
                   </span>
                 </div>
               </div>
-
-              {/* 1-Tap Animated Demo Credentials Button */}
-              <button
-                type="button"
-                onClick={fillDefaultCredentials}
-                className={`text-xs font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-xl border cursor-pointer transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-2xs ${
-                  demoFilled
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 ring-2 ring-emerald-400/20'
-                    : 'bg-sky-50 text-sky-700 hover:text-sky-900 border-sky-200/90 hover:bg-sky-100/80'
-                }`}
-                title="Fill default credentials for this role"
-              >
-                {demoFilled ? (
-                  <>
-                    <Check size={13} className="text-emerald-600 animate-in zoom-in-50" />
-                    <span>Loaded!</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={13} className="text-amber-500" />
-                    <span>Fill Demo</span>
-                  </>
-                )}
-              </button>
             </div>
 
             {/* Error Message Box */}
@@ -422,15 +386,6 @@ export default function AdminLogin({ forcedRole }) {
               </button>
             </form>
 
-            {/* Quick Demo Credentials Reminder Box */}
-            <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-1 text-[11px] bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 font-mono">
-              <span className="text-slate-600">
-                User: <strong className="text-slate-900 font-bold">{isSuper ? 'superadmin' : 'admin'}</strong>
-              </span>
-              <span className="text-slate-600">
-                Pass: <strong className="text-slate-900 font-bold">Admin@12345</strong>
-              </span>
-            </div>
           </div>
 
           {/* Public Website Return Link with Transform Hover */}

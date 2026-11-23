@@ -15,7 +15,8 @@ import {
 } from '../controllers/publicController.js';
 import { enquiryLimiter, reviewLimiter } from '../middleware/rateLimiter.js';
 import { upload } from '../utils/mediaStorage.js';
-import { handleUploadToCloudinaryOrLocal } from '../utils/cloudinary.js';
+import { uploadFileToCloudinary } from '../utils/cloudinary.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { getPublicBanners } from '../controllers/bannerController.js';
 import { getPublicTransformations } from '../controllers/transformationController.js';
 import { getPublicTrustMetrics } from '../controllers/trustMetricController.js';
@@ -49,13 +50,13 @@ router.get('/projects/:slug', getPublicProjectBySlug);
 router.post('/enquiries', enquiryLimiter, submitPublicEnquiry);
 
 // Upload optional customer photo for enquiry
-router.post('/enquiries/upload', upload.single('photo'), async (req, res) => {
+router.post('/enquiries/upload', upload.single('photo'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No file uploaded' });
   }
-  const fileUrl = await handleUploadToCloudinaryOrLocal(req.file, 'sln_waterproofing/enquiries');
+  const fileUrl = await uploadFileToCloudinary(req.file, 'sln_waterproofing/enquiries');
   res.json({ success: true, url: fileUrl });
-});
+}));
 
 // Customer Reviews & Feedback
 router.get('/reviews', getPublicReviews);

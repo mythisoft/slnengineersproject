@@ -171,8 +171,9 @@ export default function ServicesManager() {
       });
       if (res?.data?.url) return res.data.url;
       if (res?.url) return res.url;
+      throw new Error(res?.message || 'Service image upload failed.');
     } catch (err) {
-      console.warn('Dedicated service upload endpoint unavailable, trying /admin/media/upload:', err);
+      console.warn('Service image upload failed, trying the general media endpoint:', err);
       try {
         const fallback = await fetchApi('/admin/media/upload', {
           method: 'POST',
@@ -180,16 +181,12 @@ export default function ServicesManager() {
         });
         if (fallback?.data?.url) return fallback.data.url;
         if (fallback?.url) return fallback.url;
+        throw new Error(fallback?.message || 'Service image upload failed.');
       } catch (fallbackErr) {
-        console.warn('Media upload unavailable, falling back to data URL:', fallbackErr);
+        console.error('Service image upload failed:', fallbackErr);
+        throw fallbackErr;
       }
     }
-    // High-reliability offline/local data URL fallback
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.readAsDataURL(file);
-    });
   };
 
   const handleCoverFileUpload = async (e) => {

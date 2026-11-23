@@ -1,10 +1,4 @@
 import express from 'express';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 import { adminLogin, adminLogout, getAdminProfile } from '../controllers/authController.js';
 import {
   getDashboardStats,
@@ -66,8 +60,9 @@ import {
 } from '../controllers/pillarCardController.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { loginLimiter } from '../middleware/rateLimiter.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { imageUpload, upload } from '../utils/mediaStorage.js';
-import { handleUploadToCloudinaryOrLocal } from '../utils/cloudinary.js';
+import { uploadFileToCloudinary } from '../utils/cloudinary.js';
 import {
   getAdminBanners,
   createBanner,
@@ -119,16 +114,16 @@ router.get('/dashboard', protect, getDashboardStats);
 
 // ==================== HOMEPAGE BANNERS ====================
 router.get('/banners', protect, authorize('superadmin'), getAdminBanners);
-router.post('/banners/upload', protect, authorize('superadmin'), imageUpload.single('file'), async (req, res) => {
+router.post('/banners/upload', protect, authorize('superadmin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Please select an image file.' });
   }
-  const url = await handleUploadToCloudinaryOrLocal(req.file, 'sln_waterproofing/banners');
+  const url = await uploadFileToCloudinary(req.file, 'sln_waterproofing/banners');
   res.status(201).json({
     success: true,
     data: { url },
   });
-});
+}));
 router.post('/banners', protect, authorize('superadmin'), createBanner);
 router.post('/banners/init-defaults', protect, authorize('superadmin'), initDefaultBanners);
 router.put('/banners/:id', protect, authorize('superadmin'), updateBanner);
@@ -143,13 +138,13 @@ router.delete('/trust-metrics/:id', protect, authorize('superadmin'), deleteTrus
 
 // ==================== BEFORE & AFTER TRANSFORMATIONS ====================
 router.get('/transformations', protect, authorize('superadmin'), getAdminTransformations);
-router.post('/transformations/upload', protect, authorize('superadmin'), imageUpload.single('file'), async (req, res) => {
+router.post('/transformations/upload', protect, authorize('superadmin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Please select an image file.' });
   }
-  const url = await handleUploadToCloudinaryOrLocal(req.file, 'sln_waterproofing/transformations');
+  const url = await uploadFileToCloudinary(req.file, 'sln_waterproofing/transformations');
   res.status(201).json({ success: true, data: { url } });
-});
+}));
 router.post('/transformations', protect, authorize('superadmin'), createTransformation);
 router.put('/transformations/:id', protect, authorize('superadmin'), updateTransformation);
 router.delete('/transformations/:id', protect, authorize('superadmin'), deleteTransformation);
@@ -166,24 +161,13 @@ router.get('/pillar-cards', protect, authorize('superadmin'), getAdminPillarCard
 router.post('/pillar-cards', protect, authorize('superadmin'), createPillarCard);
 router.put('/pillar-cards/reorder', protect, authorize('superadmin'), reorderPillarCards);
 router.put('/pillar-cards/glimpse-settings', protect, authorize('superadmin'), updateGlimpseSettings);
-router.post('/pillar-cards/upload-video', protect, authorize('superadmin'), upload.single('file'), async (req, res) => {
+router.post('/pillar-cards/upload-video', protect, authorize('superadmin'), upload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No video file uploaded' });
   }
-
-  // Also copy to client/public/uploads if it exists so Vite can serve it statically
-  try {
-    const clientUploadsPath = path.join(__dirname, '../../../client/public/uploads');
-    if (fs.existsSync(clientUploadsPath)) {
-      fs.copyFileSync(req.file.path, path.join(clientUploadsPath, req.file.filename));
-    }
-  } catch (copyErr) {
-    console.warn('Could not copy video to client/public/uploads:', copyErr);
-  }
-
-  const url = await handleUploadToCloudinaryOrLocal(req.file, 'sln_waterproofing/videos');
+  const url = await uploadFileToCloudinary(req.file, 'sln_waterproofing/videos');
   res.status(201).json({ success: true, data: { url } });
-});
+}));
 router.put('/pillar-cards/:id', protect, authorize('superadmin'), updatePillarCard);
 router.delete('/pillar-cards/:id', protect, authorize('superadmin'), deletePillarCard);
 
@@ -193,22 +177,13 @@ router.put('/services/page-content', protect, authorize('superadmin', 'admin'), 
 router.post('/services/page-content/reset', protect, authorize('superadmin', 'admin'), resetServicePageContent);
 
 router.get('/services', protect, authorize('superadmin', 'admin'), getAllServices);
-router.post('/services/upload', protect, authorize('superadmin', 'admin'), imageUpload.single('file'), async (req, res) => {
+router.post('/services/upload', protect, authorize('superadmin', 'admin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Please select an image file.' });
   }
-  // Also copy to client/public/uploads if it exists so Vite dev server can serve it statically
-  try {
-    const clientUploadsPath = path.join(__dirname, '../../../client/public/uploads');
-    if (fs.existsSync(clientUploadsPath)) {
-      fs.copyFileSync(req.file.path, path.join(clientUploadsPath, req.file.filename));
-    }
-  } catch (copyErr) {
-    console.warn('Could not copy image to client/public/uploads:', copyErr);
-  }
-  const url = await handleUploadToCloudinaryOrLocal(req.file, 'sln_waterproofing/services');
+  const url = await uploadFileToCloudinary(req.file, 'sln_waterproofing/services');
   res.status(201).json({ success: true, data: { url } });
-});
+}));
 router.post('/services', protect, authorize('superadmin', 'admin'), createService);
 router.post('/services/init-defaults', protect, authorize('superadmin', 'admin'), initDefaultServices);
 router.put('/services/:id', protect, authorize('superadmin', 'admin'), updateService);
@@ -216,22 +191,13 @@ router.delete('/services/:id', protect, authorize('superadmin', 'admin'), delete
 
 // ==================== PROJECTS ====================
 router.get('/projects', protect, authorize('superadmin'), getAllProjects);
-router.post('/projects/upload', protect, authorize('superadmin'), imageUpload.single('file'), async (req, res) => {
+router.post('/projects/upload', protect, authorize('superadmin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Please select an image file.' });
   }
-  // Also copy to client/public/uploads if it exists so Vite dev server can serve it statically
-  try {
-    const clientUploadsPath = path.join(__dirname, '../../../client/public/uploads');
-    if (fs.existsSync(clientUploadsPath)) {
-      fs.copyFileSync(req.file.path, path.join(clientUploadsPath, req.file.filename));
-    }
-  } catch (copyErr) {
-    console.warn('Could not copy image to client/public/uploads:', copyErr);
-  }
-  const url = await handleUploadToCloudinaryOrLocal(req.file, 'sln_waterproofing/projects');
+  const url = await uploadFileToCloudinary(req.file, 'sln_waterproofing/projects');
   res.status(201).json({ success: true, data: { url } });
-});
+}));
 router.post('/projects', protect, authorize('superadmin'), createProject);
 router.put('/projects/:id', protect, authorize('superadmin'), updateProject);
 router.delete('/projects/:id', protect, authorize('superadmin'), deleteProject);
@@ -292,24 +258,24 @@ router.put('/contact', protect, authorize('superadmin'), updateContactContent);
 router.post('/contact/reset', protect, authorize('superadmin'), resetContactContent);
 
 // ==================== MEDIA UPLOAD ====================
-router.post('/media/upload', protect, authorize('superadmin'), upload.single('file'), async (req, res) => {
+router.post('/media/upload', protect, authorize('superadmin'), upload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Please select an image or video file' });
   }
 
-  const fileUrl = await handleUploadToCloudinaryOrLocal(req.file, 'sln_waterproofing/media');
+  const fileUrl = await uploadFileToCloudinary(req.file, 'sln_waterproofing/media');
   res.status(201).json({
     success: true,
     data: {
       url: fileUrl,
-      filename: req.file.filename,
+      filename: req.file.originalname,
       originalName: req.file.originalname,
       mimeType: req.file.mimetype,
       size: req.file.size,
       mediaType: req.file.mimetype.startsWith('video') ? 'video' : 'image',
     },
   });
-});
+}));
 
 // ==================== ADMIN USER MANAGEMENT & PASSWORDS (Super Admin only) ====================
 router.get('/users', protect, authorize('superadmin'), getAllUsers);

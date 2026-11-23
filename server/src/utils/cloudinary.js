@@ -9,36 +9,55 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config(); // fallback to cwd
 
-// Configure Cloudinary with environment variables
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'vqifqntv',
-  api_key: process.env.CLOUDINARY_API_KEY || '815783325292386',
-  api_secret: process.env.CLOUDINARY_API_SECRET || 'vMzIIqvXJQ8zi9x0HPXmCdgfXy4',
-  secure: true,
-});
+// Configure Cloudinary only with environment variables. Never hardcode credentials.
+const cloudinaryUrl = process.env.CLOUDINARY_URL;
+if (cloudinaryUrl) {
+  try {
+    const match = cloudinaryUrl.match(/^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/);
+    if (match) {
+      cloudinary.config({
+        cloud_name: match[3],
+        api_key: match[1],
+        api_secret: match[2],
+        secure: true,
+      });
+    }
+  } catch {
+    // Configuration validation is handled by isCloudinaryConfigured().
+  }
+} else {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
+  });
+}
 
 /**
  * Check if Cloudinary credentials are fully provided
  */
 export const isCloudinaryConfigured = () => {
+  if (process.env.CLOUDINARY_URL) {
+    return /^cloudinary:\/\/[^:]+:[^@]+@.+$/.test(process.env.CLOUDINARY_URL);
+  }
+
   return Boolean(
-    (process.env.CLOUDINARY_CLOUD_NAME &&
-      process.env.CLOUDINARY_API_KEY &&
-      process.env.CLOUDINARY_API_SECRET) ||
-      process.env.CLOUDINARY_URL
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
   );
 };
 
 /**
- * Upload a local file to Cloudinary
- * @param {string} filePath - Path to local file
+ * Upload a file buffer to Cloudinary
+ * @param {Buffer} fileBuffer - In-memory file contents
  * @param {object} options - Optional cloudinary upload parameters
  * @returns {Promise<object>} Upload result with secure_url, public_id, etc.
  */
-export const uploadToCloudinary = async (filePath, options = {}) => {
+export const uploadToCloudinary = async (fileBuffer, options = {}) => {
   return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(
-      filePath,
+    const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: options.folder || 'sln_waterproofing',
         resource_type: options.resource_type || 'auto',
@@ -49,6 +68,7 @@ export const uploadToCloudinary = async (filePath, options = {}) => {
         resolve(result);
       }
     );
+    uploadStream.end(fileBuffer);
   });
 };
 
@@ -65,31 +85,27 @@ export const deleteFromCloudinary = async (publicId, resourceType = 'image') => 
 };
 
 /**
- * Universal upload handler that uploads to Cloudinary when configured,
- * and seamlessly falls back to the local /uploads path if offline or anything fails.
+ * Upload directly from memory to Cloudinary without writing files to disk.
  */
-export const handleUploadToCloudinaryOrLocal = async (file, folder = 'sln_waterproofing') => {
-  if (!file) return null;
-  const localUrl = `/uploads/${file.filename}`;
-
+export const uploadFileToCloudinary = async (file, folder = 'sln_waterproofing') => {
+  if (!file?.buffer) throw new Error('No file buffer provided for upload');
   if (!isCloudinaryConfigured()) {
-    return localUrl;
+    throw new Error('Cloudinary is not configured');
   }
 
   try {
     const isVideo = file.mimetype?.startsWith('video');
-    const result = await uploadToCloudinary(file.path, {
+    const result = await uploadToCloudinary(file.buffer, {
       folder,
       resource_type: isVideo ? 'video' : 'auto',
     });
     if (result?.secure_url) {
       return result.secure_url;
     }
+    throw new Error('Cloudinary did not return a secure URL');
   } catch (err) {
-    console.warn(`[Cloudinary] Upload to cloud failed for ${file.originalname}, falling back to local:`, err.message);
+    throw new Error(`Cloudinary upload failed: ${err.message}`);
   }
-
-  return localUrl;
 };
 
 export default cloudinary;

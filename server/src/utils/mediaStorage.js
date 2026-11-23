@@ -1,32 +1,4 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Ensure upload directory exists
-const uploadDirectory = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadDirectory)) {
-  fs.mkdirSync(uploadDirectory, { recursive: true });
-}
-
-// Multer storage engine
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDirectory);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const sanitizedExt = path.extname(file.originalname).toLowerCase();
-    const baseName = path
-      .basename(file.originalname, sanitizedExt)
-      .replace(/[^\w-]/g, '')
-      .substring(0, 30);
-    cb(null, `${baseName}-${uniqueSuffix}${sanitizedExt}`);
-  },
-});
 
 // File filter (images and videos only, strict validation)
 const fileFilter = (req, file, cb) => {
@@ -58,7 +30,7 @@ const imageFileFilter = (req, file, cb) => {
 };
 
 export const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50 MB max file size for videos & media
   },
@@ -66,7 +38,7 @@ export const upload = multer({
 });
 
 export const imageUpload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 20 * 1024 * 1024,
   },

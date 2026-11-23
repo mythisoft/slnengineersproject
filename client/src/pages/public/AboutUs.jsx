@@ -172,18 +172,18 @@ export default function AboutUs() {
                 <span>Waterproofing</span>
               </Link>
               <Link
-                to="/services?discipline=repairs"
-                className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-sky-950/70 border border-orange-400/30 hover:border-orange-300 hover:text-white transition-all flex items-center gap-1.5 text-[11px] sm:text-xs"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
-                <span>Building Repairs</span>
-              </Link>
-              <Link
                 to="/services?discipline=painting"
                 className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-sky-950/70 border border-blue-400/30 hover:border-blue-300 hover:text-white transition-all flex items-center gap-1.5 text-[11px] sm:text-xs"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
                 <span>Painting</span>
+              </Link>
+              <Link
+                to="/services?discipline=repairs"
+                className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-sky-950/70 border border-orange-400/30 hover:border-orange-300 hover:text-white transition-all flex items-center gap-1.5 text-[11px] sm:text-xs"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
+                <span>Building Repairs</span>
               </Link>
               <Link
                 to="/services?discipline=false-ceiling"
@@ -433,18 +433,18 @@ export default function AboutUs() {
                   <span className="truncate">Waterproofing</span>
                 </Link>
                 <Link
-                  to="/services?discipline=repairs"
-                  className="px-2 sm:px-2.5 py-2 text-center text-orange-400 hover:bg-orange-950/60 hover:text-orange-300 transition-colors flex items-center justify-center gap-1 border-b sm:border-b-0 border-slate-800"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
-                  <span className="truncate">Repairs</span>
-                </Link>
-                <Link
                   to="/services?discipline=painting"
                   className="px-2 sm:px-2.5 py-2 text-center text-blue-400 hover:bg-blue-950/60 hover:text-blue-300 transition-colors flex items-center justify-center gap-1"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
                   <span className="truncate">Painting</span>
+                </Link>
+                <Link
+                  to="/services?discipline=repairs"
+                  className="px-2 sm:px-2.5 py-2 text-center text-orange-400 hover:bg-orange-950/60 hover:text-orange-300 transition-colors flex items-center justify-center gap-1 border-b sm:border-b-0 border-slate-800"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
+                  <span className="truncate">Repairs</span>
                 </Link>
                 <Link
                   to="/services?discipline=false-ceiling"

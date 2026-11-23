@@ -267,14 +267,18 @@ export default function TransformationsManager() {
         method: 'POST',
         body: data,
       });
-      return response.data?.url || response.url;
+      const url = response.data?.url || response.url;
+      if (url) return url;
+      throw new Error(response.message || 'Transformation image upload failed.');
     } catch (e) {
-      // Fallback try /admin/media/upload
+      console.warn('Transformation upload failed, trying the general media endpoint:', e);
       const fallback = await fetchApi('/admin/media/upload', {
         method: 'POST',
         body: data,
       });
-      return fallback.data?.url || fallback.url;
+      const url = fallback.data?.url || fallback.url;
+      if (url) return url;
+      throw new Error(fallback.message || 'Transformation image upload failed.');
     }
   };
 
@@ -289,21 +293,11 @@ export default function TransformationsManager() {
       let afterImage = form.afterImage;
 
       if (beforeFile) {
-        try {
-          beforeImage = await uploadImage(beforeFile);
-        } catch (uploadErr) {
-          console.warn('Image upload failed, using preview URL:', uploadErr);
-          beforeImage = beforePreview || form.beforeImage;
-        }
+        beforeImage = await uploadImage(beforeFile);
       }
 
       if (afterFile) {
-        try {
-          afterImage = await uploadImage(afterFile);
-        } catch (uploadErr) {
-          console.warn('Image upload failed, using preview URL:', uploadErr);
-          afterImage = afterPreview || form.afterImage;
-        }
+        afterImage = await uploadImage(afterFile);
       }
 
       if (!beforeImage) {

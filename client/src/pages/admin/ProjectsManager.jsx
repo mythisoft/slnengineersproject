@@ -249,8 +249,9 @@ export default function ProjectsManager() {
       });
       if (res?.data?.url) return res.data.url;
       if (res?.url) return res.url;
+      throw new Error(res?.message || 'Project image upload failed.');
     } catch (err) {
-      console.warn('Dedicated project upload failed, trying fallback /admin/media/upload:', err);
+      console.warn('Project image upload failed, trying the general media endpoint:', err);
       try {
         const fallback = await fetchApi('/admin/media/upload', {
           method: 'POST',
@@ -258,15 +259,12 @@ export default function ProjectsManager() {
         });
         if (fallback?.data?.url) return fallback.data.url;
         if (fallback?.url) return fallback.url;
+        throw new Error(fallback?.message || 'Project image upload failed.');
       } catch (fallbackErr) {
-        console.warn('Media upload failed, converting to data URL:', fallbackErr);
+        console.error('Project image upload failed:', fallbackErr);
+        throw fallbackErr;
       }
     }
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.readAsDataURL(file);
-    });
   };
 
   const handleCoverFileUpload = async (e) => {

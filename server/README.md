@@ -138,17 +138,21 @@ node test_suite.js
 
 ---
 
-## 7. Production Deployment Checklist (Railway / Microsoft Azure)
+## 7. Deploying the Backend to Railway
 
-1. **Database**: Provision a MongoDB Atlas M0/M10 cluster and set `MONGODB_URI` in production environment settings.
-2. **Environment Variables**:
-   - Set `NODE_ENV=production`.
-   - Set `JWT_SECRET` to a high-entropy 256-bit key.
-   - Update `CLIENT_URL` and `PUBLIC_DOMAIN` to your custom production domain (e.g., `https://www.slnengineers.com`).
-   - Configure Cloudinary variables (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`) if using cloud object storage.
-3. **Frontend Build**: Run `npm run build` inside `client/`. Serve static assets via Azure App Service, NGINX, or a CDN.
-4. **HTTPS & Headers**: Ensure SSL certificates are active. Helmet headers and secure cookie flags will automatically enforce HTTPS in production.
-5. **Backups**: Configure automated daily snapshots in MongoDB Atlas.
+1. Create a Railway project and deploy this repository from GitHub.
+2. Set the service **Root Directory** to `/server`. Railway will use `server/package-lock.json` and `server/railway.json`.
+3. Add these variables in the Railway service's **Variables**:
+   - `NODE_ENV=production`
+   - `MONGODB_URI` with your MongoDB Atlas connection string; allow Railway access in the Atlas network settings.
+   - `JWT_SECRET` with a newly generated, high-entropy secret.
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET`, or a `CLOUDINARY_URL`.
+   - `CLIENT_URL` set to the deployed frontend origin.
+   - `PUBLIC_DOMAIN` set to the public website origin.
+4. Deploy. Railway starts the service with `npm start`, provides `PORT` automatically, and checks `/api/health`.
+5. After the first deployment, replace the seeded administrator password before sharing the service publicly.
+
+Uploaded media is streamed from memory to Cloudinary; Railway's local filesystem is not used for new uploads. Configure MongoDB Atlas backups separately.
 
 ---
 

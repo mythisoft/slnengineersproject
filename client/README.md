@@ -145,7 +145,7 @@ node test_suite.js
    - Set `NODE_ENV=production`.
    - Set `JWT_SECRET` to a high-entropy 256-bit key.
    - Update `CLIENT_URL` and `PUBLIC_DOMAIN` to your custom production domain (e.g., `https://www.slnengineers.com`).
-   - Configure Cloudinary variables (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`) if using cloud object storage.
+   - Configure `CLOUDINARY_URL` or all three Cloudinary credentials (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`) on the server. Media uploads require Cloudinary and are not saved to local disk.
 3. **Frontend Build**: Run `npm run build` inside `client/`. Serve static assets via Azure App Service, NGINX, or a CDN.
 4. **HTTPS & Headers**: Ensure SSL certificates are active. Helmet headers and secure cookie flags will automatically enforce HTTPS in production.
 5. **Backups**: Configure automated daily snapshots in MongoDB Atlas.

@@ -202,21 +202,11 @@ export default function PillarCardsManager() {
         setFormData((prev) => ({ ...prev, imageUrl: uploadedUrl }));
         showToast('Image uploaded successfully!', 'success');
       } else {
-        // Fallback: convert to base64 data URL for local storage
-        const reader = new FileReader();
-        reader.onload = () => {
-          setFormData((prev) => ({ ...prev, imageUrl: reader.result }));
-          showToast('Image loaded for card preview.', 'success');
-        };
-        reader.readAsDataURL(file);
+        throw new Error(res.message || 'Image upload failed.');
       }
     } catch (err) {
-      console.warn('Server upload failed, converting to local data URL:', err);
-      const reader = new FileReader();
-      reader.onload = () => {
-        setFormData((prev) => ({ ...prev, imageUrl: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      console.error('Image upload failed:', err);
+      setUploadError(err.message || 'Image upload failed.');
     } finally {
       setIsUploading(false);
     }
