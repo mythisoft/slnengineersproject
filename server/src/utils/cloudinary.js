@@ -85,26 +85,44 @@ export const deleteFromCloudinary = async (publicId, resourceType = 'image') => 
 };
 
 /**
- * Upload directly from memory to Cloudinary without writing files to disk.
+ * Upload directly from memory to Cloudinary with fallback to local static file storage.
  */
 export const uploadFileToCloudinary = async (file, folder = 'sln_waterproofing') => {
   if (!file?.buffer) throw new Error('No file buffer provided for upload');
-  if (!isCloudinaryConfigured()) {
-    throw new Error('Cloudinary is not configured');
+
+  if (isCloudinaryConfigured()) {
+    try {
+      const isVideo = file.mimetype?.startsWith('video');
+      const result = await uploadToCloudinary(file.buffer, {
+        folder,
+        resource_type: isVideo ? 'video' : 'auto',
+      });
+      if (result?.secure_url) {
+        return result.secure_url;
+      }
+    } catch (err) {
+      console.warn(`[Cloudinary] Upload failed, falling back to local file storage:`, err.message);
+    }
   }
 
+  // Fallback: Save file to local uploads directory so application never blocks
   try {
-    const isVideo = file.mimetype?.startsWith('video');
-    const result = await uploadToCloudinary(file.buffer, {
-      folder,
-      resource_type: isVideo ? 'video' : 'auto',
-    });
-    if (result?.secure_url) {
-      return result.secure_url;
+    const fs = await import('fs');
+    const uploadsDir = path.resolve(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
     }
-    throw new Error('Cloudinary did not return a secure URL');
-  } catch (err) {
-    throw new Error(`Cloudinary upload failed: ${err.message}`);
+    const ext = path.extname(file.originalname || '') || (file.mimetype?.startsWith('video') ? '.mp4' : '.jpg');
+    const safeName = (file.originalname || 'upload')
+      .replace(/[^a-zA-Z0-9.-]/g, '_')
+      .slice(0, 30);
+    const filename = `${safeName}-${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
+    const filePath = path.join(uploadsDir, filename);
+    fs.writeFileSync(filePath, file.buffer);
+    return `/uploads/${filename}`;
+  } catch (diskErr) {
+    console.error('[Storage] Local disk write failed:', diskErr);
+    throw new Error(`File upload failed: ${diskErr.message}`);
   }
 };
 

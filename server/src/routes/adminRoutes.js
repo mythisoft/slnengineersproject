@@ -157,19 +157,26 @@ router.put('/disciplines/:id', protect, authorize('superadmin', 'admin'), update
 router.delete('/disciplines/:id', protect, authorize('superadmin', 'admin'), deleteDiscipline);
 
 // ==================== HORIZONTAL PILLAR CARDS & GLIMPSE VIDEO ====================
-router.get('/pillar-cards', protect, authorize('superadmin'), getAdminPillarCards);
-router.post('/pillar-cards', protect, authorize('superadmin'), createPillarCard);
-router.put('/pillar-cards/reorder', protect, authorize('superadmin'), reorderPillarCards);
-router.put('/pillar-cards/glimpse-settings', protect, authorize('superadmin'), updateGlimpseSettings);
-router.post('/pillar-cards/upload-video', protect, authorize('superadmin'), upload.single('file'), asyncHandler(async (req, res) => {
+router.get('/pillar-cards', protect, authorize('superadmin', 'admin'), getAdminPillarCards);
+router.post('/pillar-cards', protect, authorize('superadmin', 'admin'), createPillarCard);
+router.put('/pillar-cards/reorder', protect, authorize('superadmin', 'admin'), reorderPillarCards);
+router.put('/pillar-cards/glimpse-settings', protect, authorize('superadmin', 'admin'), updateGlimpseSettings);
+router.post('/pillar-cards/upload-image', protect, authorize('superadmin', 'admin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Please select an image file.' });
+  }
+  const url = await uploadFileToCloudinary(req.file, 'sln_waterproofing/pillar_cards');
+  res.status(201).json({ success: true, data: { url } });
+}));
+router.post('/pillar-cards/upload-video', protect, authorize('superadmin', 'admin'), upload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No video file uploaded' });
   }
   const url = await uploadFileToCloudinary(req.file, 'sln_waterproofing/videos');
   res.status(201).json({ success: true, data: { url } });
 }));
-router.put('/pillar-cards/:id', protect, authorize('superadmin'), updatePillarCard);
-router.delete('/pillar-cards/:id', protect, authorize('superadmin'), deletePillarCard);
+router.put('/pillar-cards/:id', protect, authorize('superadmin', 'admin'), updatePillarCard);
+router.delete('/pillar-cards/:id', protect, authorize('superadmin', 'admin'), deletePillarCard);
 
 // ==================== SERVICES & SERVICE PAGE CONTENT (CRUD) ====================
 router.get('/services/page-content', protect, authorize('superadmin', 'admin'), getServicePageContent);
@@ -258,7 +265,7 @@ router.put('/contact', protect, authorize('superadmin'), updateContactContent);
 router.post('/contact/reset', protect, authorize('superadmin'), resetContactContent);
 
 // ==================== MEDIA UPLOAD ====================
-router.post('/media/upload', protect, authorize('superadmin'), upload.single('file'), asyncHandler(async (req, res) => {
+router.post('/media/upload', protect, authorize('superadmin', 'admin'), upload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Please select an image or video file' });
   }

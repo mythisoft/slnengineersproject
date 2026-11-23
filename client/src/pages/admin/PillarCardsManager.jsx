@@ -164,7 +164,7 @@ export default function PillarCardsManager() {
     }
   };
 
-  // Handle Image File Upload to /api/admin/media/upload
+  // Handle Image File Upload using fetchApi
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -187,28 +187,33 @@ export default function PillarCardsManager() {
       data.append('file', file);
       data.append('folder', 'pillar-cards');
 
-      const token = localStorage.getItem('sln_admin_token');
-      const response = await fetch('/api/admin/media/upload', {
-        method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: data,
-      });
+      let res;
+      try {
+        res = await fetchApi('/admin/pillar-cards/upload-image', {
+          method: 'POST',
+          body: data,
+        });
+      } catch (uploadErr) {
+        console.warn('Dedicated pillar card upload failed, trying general media upload:', uploadErr);
+        res = await fetchApi('/admin/media/upload', {
+          method: 'POST',
+          body: data,
+        });
+      }
 
-      const res = await response.json();
-      if (res.success && (res.url || res.data?.url)) {
-        const uploadedUrl = res.url || res.data.url;
+      const uploadedUrl = res?.url || res?.data?.url;
+      if (uploadedUrl) {
         setFormData((prev) => ({ ...prev, imageUrl: uploadedUrl }));
         showToast('Image uploaded successfully!', 'success');
       } else {
-        throw new Error(res.message || 'Image upload failed.');
+        throw new Error(res?.message || 'Image upload failed.');
       }
     } catch (err) {
       console.error('Image upload failed:', err);
       setUploadError(err.message || 'Image upload failed.');
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -490,21 +495,14 @@ export default function PillarCardsManager() {
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
 
-      // Support both possible token keys
-      const token = localStorage.getItem('sln_admin_token') || localStorage.getItem('token') || '';
-
-      const response = await fetch('/api/admin/pillar-cards/upload-video', {
+      const res = await fetchApi('/admin/pillar-cards/upload-video', {
         method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body: uploadFormData,
       });
 
-      const res = await response.json().catch(() => ({}));
+      const uploadedUrl = res?.data?.url || res?.url;
 
-      if (res.success && res.data?.url) {
-        const uploadedUrl = res.data.url;
+      if (uploadedUrl) {
         const updatedSettings = {
           ...glimpseSettings,
           videoUrl: uploadedUrl,
@@ -521,7 +519,7 @@ export default function PillarCardsManager() {
         window.dispatchEvent(new Event('sln_glimpse_video_updated'));
         showToast('Glimpse video uploaded and saved successfully to database!');
       } else {
-        setVideoUploadError(res.message || 'Failed to upload video to server.');
+        setVideoUploadError(res?.message || 'Failed to upload video to server.');
       }
     } catch (err) {
       console.error('Server upload failed:', err);
