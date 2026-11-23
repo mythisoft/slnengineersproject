@@ -1,0 +1,13 @@
+{
+  "name": "sln-engineers-project",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "server"
+  ],
+  "scripts": {
+    "start": "cd server && npm start",
+    "build": "cd server && npm install"
+  }
+}
