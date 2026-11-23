@@ -38,6 +38,7 @@ import {
   RotateCcw,
   Play,
   Pause,
+  ArrowUp,
 } from 'lucide-react';
 import BeforeAfterSlider from '../../components/common/BeforeAfterSlider';
 import { openInspectionModal } from '../../components/common/InspectionModal';
@@ -285,6 +286,7 @@ export default function Home() {
   const [prevBannerIndex, setPrevBannerIndex] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [contentReady, setContentReady] = useState(false);
   const [activeModalProject, setActiveModalProject] = useState(null);
 
@@ -495,7 +497,7 @@ export default function Home() {
     }
   };
 
-  // Track viewport scroll progress percentage (0 - 100%)
+  // Track viewport scroll progress percentage (0 - 100%) and back-to-top trigger
   useEffect(() => {
     const handleScroll = () => {
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -503,6 +505,7 @@ export default function Home() {
         const progress = Math.min(100, Math.max(0, (window.scrollY / scrollHeight) * 100));
         setScrollProgress(progress);
       }
+      setShowBackToTop(window.scrollY > 350);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -734,7 +737,8 @@ export default function Home() {
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
-    const revealSelectors = '.scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale, .scroll-reveal-blur, .scroll-reveal-pop';
+    const revealSelectors =
+      '.scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale, .scroll-reveal-blur, .scroll-reveal-pop, .scroll-reveal-fade-up, .scroll-reveal-card';
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
       document.querySelectorAll(revealSelectors).forEach((el) => {
@@ -753,8 +757,8 @@ export default function Home() {
         });
       },
       {
-        threshold: 0.1,
-        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.08,
+        rootMargin: '0px 0px -20px 0px',
       },
     );
 
@@ -766,12 +770,14 @@ export default function Home() {
 
     observeNew();
     const frame = window.requestAnimationFrame(observeNew);
+    const timer = setTimeout(observeNew, 400);
 
     return () => {
       window.cancelAnimationFrame(frame);
+      clearTimeout(timer);
       observer.disconnect();
     };
-  }, [services.length, featuredProjects.length, reviews.length, allProjects.length, banners.length, contentReady]);
+  }, [services.length, featuredProjects.length, reviews.length, allProjects.length, banners.length, contentReady, displayDisciplinePillars.length, combinedHomeReviews.length]);
 
   const phone = settings?.phone || '+91 8977668776';
   const whatsapp = settings?.whatsappNumber || '+918977668776';
@@ -2193,7 +2199,7 @@ export default function Home() {
               </p>
 
               {/* Minimalist Project Context Card */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/90 border border-slate-200/90 shadow-2xs space-y-2 card-interactive-3d hover:border-sky-300">
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/90 border border-slate-200/90 shadow-2xs space-y-2 card-interactive-3d hover:border-sky-300 scroll-reveal-fade-up stagger-1">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold tracking-wider uppercase bg-sky-100 text-sky-900 border border-sky-200 shadow-2xs">
@@ -2234,7 +2240,7 @@ export default function Home() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    {displayDisciplinePillars.map((pillar) => {
+                    {displayDisciplinePillars.map((pillar, idx) => {
                       const isSelected = (selectedDisciplinePillar || 'waterproofing') === pillar.id;
                       const Icon = pillar.icon;
                       return (
@@ -2242,7 +2248,7 @@ export default function Home() {
                           key={pillar.id}
                           type="button"
                           onClick={() => setSelectedDisciplinePillar(pillar.id)}
-                          className={`p-2.5 rounded-xl text-left transition-all cursor-pointer relative overflow-hidden flex items-center gap-2.5 border hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 duration-200 ${
+                          className={`p-2.5 rounded-xl text-left transition-all cursor-pointer relative overflow-hidden flex items-center gap-2.5 border hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 duration-200 scroll-reveal-pop stagger-${(idx % 4) + 1} ${
                             isSelected
                               ? `bg-gradient-to-r ${pillar.activeGradient} text-white ${pillar.activeBorder} shadow-md`
                               : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs'
@@ -2339,7 +2345,7 @@ export default function Home() {
               return (
                 <div
                   key={project._id || project.id || idx}
-                  className={`bg-white rounded-xl border border-slate-200/90 shadow-xs hover:shadow-xl transition-all flex flex-col justify-between overflow-hidden card-interactive-3d scroll-reveal stagger-${(idx % 3) + 1}`}
+                  className={`bg-white rounded-xl border border-slate-200/90 shadow-xs hover:shadow-xl transition-all flex flex-col justify-between overflow-hidden card-interactive-3d scroll-reveal-card stagger-${(idx % 3) + 1}`}
                 >
                   <div
                     onClick={() => setActiveModalProject(project)}
@@ -2422,7 +2428,7 @@ export default function Home() {
             {/* Right 4 Trust Cards in One Row */}
             <div className={`lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 ${(lineageContent.trustCards || []).length <= 4 ? 'lg:grid-cols-2 xl:grid-cols-4' : 'lg:grid-cols-3'} gap-3.5 sm:gap-4`}>
               {(lineageContent.trustCards || DEFAULT_HOME_CONTENT.lineageSection.trustCards).map((card, idx) => (
-                <div key={idx} className={`bg-slate-50 rounded-xl border border-slate-200/90 p-4 shadow-2xs space-y-2 card-interactive-3d scroll-reveal stagger-${(idx % 4) + 1}`}>
+                <div key={idx} className={`bg-slate-50 rounded-xl border border-slate-200/90 p-4 shadow-2xs space-y-2 card-interactive-3d scroll-reveal-pop stagger-${(idx % 4) + 1}`}>
                   <div className="w-10 h-10 rounded-full bg-[#0284c7] text-white flex items-center justify-center shrink-0 icon-bounce">
                     {renderTrustCardIcon(card.icon, 18)}
                   </div>
@@ -2469,7 +2475,7 @@ export default function Home() {
               {combinedHomeReviews.map((rev, idx) => (
                 <div
                   key={rev._id || `home-rev-${idx}`}
-                  className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs hover:shadow-md hover:border-sky-300 transition-all duration-300 flex flex-col justify-between space-y-3 card-interactive-3d opacity-100"
+                  className={`bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs hover:shadow-md hover:border-sky-300 transition-all duration-300 flex flex-col justify-between space-y-3 card-interactive-3d scroll-reveal-pop stagger-${(idx % 3) + 1}`}
                 >
                   <div>
                     <div className="flex items-center gap-1 text-amber-400 mb-2">
@@ -2578,18 +2584,18 @@ export default function Home() {
                 e.stopPropagation();
                 openInspectionModal();
               }}
-              className="btn btn-primary btn-lg font-bold shadow-lg btn-ripple w-full sm:w-auto justify-center cursor-pointer"
+              className="btn btn-primary btn-lg font-bold shadow-lg btn-ripple w-full sm:w-auto justify-center cursor-pointer scroll-reveal-pop stagger-1"
             >
               <span>{bottomCtaContent.primaryCtaText || 'Book Site Visit'}</span> <ArrowRight size={17} />
             </button>
-            <a href={`tel:${phone.replace(/\s+/g, '')}`} className="btn btn-outline-light btn-lg font-semibold btn-ripple w-full sm:w-auto justify-center">
+            <a href={`tel:${phone.replace(/\s+/g, '')}`} className="btn btn-outline-light btn-lg font-semibold btn-ripple w-full sm:w-auto justify-center scroll-reveal-pop stagger-2">
               <Phone size={17} /> {(bottomCtaContent.phoneCtaText || 'Call {phone}').replace('{phone}', phone)}
             </a>
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-whatsapp btn-lg font-semibold btn-ripple w-full sm:w-auto justify-center"
+              className="btn btn-whatsapp btn-lg font-semibold btn-ripple w-full sm:w-auto justify-center scroll-reveal-pop stagger-3"
             >
               <MessageCircle size={17} /> {bottomCtaContent.whatsappCtaText || 'WhatsApp'}
             </a>
@@ -2789,6 +2795,44 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Floating Smooth Scroll to Top Button with Dynamic Progress Ring */}
+      <button
+        type="button"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        aria-label="Scroll back to top"
+        className={`fixed bottom-24 right-6 z-40 p-2.5 rounded-full bg-slate-900/90 hover:bg-[#0284c7] text-white border border-white/20 shadow-xl backdrop-blur-md transition-all duration-300 cursor-pointer group ${
+          showBackToTop ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' : 'opacity-0 translate-y-4 scale-90 pointer-events-none'
+        } hover:scale-110 active:scale-95`}
+        title="Scroll to Top"
+      >
+        <div className="relative w-8 h-8 flex items-center justify-center">
+          <svg className="w-8 h-8 -rotate-90" viewBox="0 0 36 36">
+            <circle
+              cx="18"
+              cy="18"
+              r="15"
+              fill="none"
+              className="text-white/20"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            />
+            <circle
+              cx="18"
+              cy="18"
+              r="15"
+              fill="none"
+              className="text-sky-400 group-hover:text-white transition-colors"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeDasharray={94.25}
+              strokeDashoffset={94.25 - (94.25 * scrollProgress) / 100}
+              strokeLinecap="round"
+            />
+          </svg>
+          <ArrowUp size={15} className="absolute text-white group-hover:-translate-y-0.5 transition-transform duration-200" />
+        </div>
+      </button>
     </div>
   );
 }

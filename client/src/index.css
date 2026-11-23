@@ -2971,12 +2971,28 @@ a:hover {
   will-change: opacity, transform;
 }
 
+.scroll-reveal-fade-up {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal-card {
+  opacity: 0;
+  transform: translateY(32px) scale(0.96);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
 .scroll-reveal.is-revealed,
 .scroll-reveal-left.is-revealed,
 .scroll-reveal-right.is-revealed,
 .scroll-reveal-scale.is-revealed,
 .scroll-reveal-blur.is-revealed,
-.scroll-reveal-pop.is-revealed {
+.scroll-reveal-pop.is-revealed,
+.scroll-reveal-fade-up.is-revealed,
+.scroll-reveal-card.is-revealed {
   opacity: 1;
   filter: none;
   transform: none;
@@ -2988,7 +3004,9 @@ a:hover {
 .scroll-reveal-right.stagger-1,
 .scroll-reveal-scale.stagger-1,
 .scroll-reveal-blur.stagger-1,
-.scroll-reveal-pop.stagger-1 {
+.scroll-reveal-pop.stagger-1,
+.scroll-reveal-fade-up.stagger-1,
+.scroll-reveal-card.stagger-1 {
   transition-delay: 100ms;
 }
 
@@ -2997,7 +3015,9 @@ a:hover {
 .scroll-reveal-right.stagger-2,
 .scroll-reveal-scale.stagger-2,
 .scroll-reveal-blur.stagger-2,
-.scroll-reveal-pop.stagger-2 {
+.scroll-reveal-pop.stagger-2,
+.scroll-reveal-fade-up.stagger-2,
+.scroll-reveal-card.stagger-2 {
   transition-delay: 200ms;
 }
 
@@ -3006,7 +3026,9 @@ a:hover {
 .scroll-reveal-right.stagger-3,
 .scroll-reveal-scale.stagger-3,
 .scroll-reveal-blur.stagger-3,
-.scroll-reveal-pop.stagger-3 {
+.scroll-reveal-pop.stagger-3,
+.scroll-reveal-fade-up.stagger-3,
+.scroll-reveal-card.stagger-3 {
   transition-delay: 300ms;
 }
 
@@ -3015,7 +3037,9 @@ a:hover {
 .scroll-reveal-right.stagger-4,
 .scroll-reveal-scale.stagger-4,
 .scroll-reveal-blur.stagger-4,
-.scroll-reveal-pop.stagger-4 {
+.scroll-reveal-pop.stagger-4,
+.scroll-reveal-fade-up.stagger-4,
+.scroll-reveal-card.stagger-4 {
   transition-delay: 400ms;
 }
 
@@ -3024,7 +3048,9 @@ a:hover {
 .scroll-reveal-right.stagger-5,
 .scroll-reveal-scale.stagger-5,
 .scroll-reveal-blur.stagger-5,
-.scroll-reveal-pop.stagger-5 {
+.scroll-reveal-pop.stagger-5,
+.scroll-reveal-fade-up.stagger-5,
+.scroll-reveal-card.stagger-5 {
   transition-delay: 500ms;
 }
 
@@ -3033,7 +3059,9 @@ a:hover {
 .scroll-reveal-right.stagger-6,
 .scroll-reveal-scale.stagger-6,
 .scroll-reveal-blur.stagger-6,
-.scroll-reveal-pop.stagger-6 {
+.scroll-reveal-pop.stagger-6,
+.scroll-reveal-fade-up.stagger-6,
+.scroll-reveal-card.stagger-6 {
   transition-delay: 600ms;
 }
 
@@ -3131,7 +3159,9 @@ a:hover {
   .scroll-reveal-right,
   .scroll-reveal-scale,
   .scroll-reveal-blur,
-  .scroll-reveal-pop {
+  .scroll-reveal-pop,
+  .scroll-reveal-fade-up,
+  .scroll-reveal-card {
     opacity: 1 !important;
     filter: none !important;
     transform: none !important;
