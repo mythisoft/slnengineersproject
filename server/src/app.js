@@ -58,7 +58,7 @@ const uploadsPath = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadsPath));
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get(['/', '/api/health'], (req, res) => {
   const isDbConnected = mongoose.connection.readyState === 1;
   res.json({
     status: isDbConnected ? 'healthy' : 'degraded',
