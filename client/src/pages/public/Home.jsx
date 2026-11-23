@@ -1922,11 +1922,11 @@ export default function Home() {
                   return (
                     <div
                       key={item._id || idx}
-                      className={`flex items-center gap-2 sm:gap-3.5 px-1 sm:px-2 lg:px-4 xl:px-6 trust-metric-card scroll-reveal stagger-${idx + 1}`}
+                      className="flex items-center gap-2 sm:gap-3.5 px-1 sm:px-2 lg:px-4 xl:px-6 trust-metric-card transition-all duration-200 hover:-translate-y-0.5"
                     >
                       <div
                         style={{ backgroundColor: item.color || '#0284c7' }}
-                        className="w-9 h-9 sm:w-11 sm:h-11 rounded-full text-white flex items-center justify-center shrink-0 shadow-xs icon-bounce"
+                        className="w-9 h-9 sm:w-11 sm:h-11 rounded-full text-white flex items-center justify-center shrink-0 shadow-xs"
                       >
                         <IconComp size={18} className="sm:hidden" />
                         <IconComp size={20} className="hidden sm:inline" />
@@ -1950,11 +1950,11 @@ export default function Home() {
                     return (
                       <div
                         key={item._id || idx + 4}
-                        className={`flex items-center gap-2 sm:gap-3.5 px-1 sm:px-2 lg:px-4 xl:px-6 trust-metric-card scroll-reveal stagger-${idx + 5}`}
+                        className="flex items-center gap-2 sm:gap-3.5 px-1 sm:px-2 lg:px-4 xl:px-6 trust-metric-card transition-all duration-200 hover:-translate-y-0.5"
                       >
                         <div
                           style={{ backgroundColor: item.color || '#0284c7' }}
-                          className="w-9 h-9 sm:w-11 sm:h-11 rounded-full text-white flex items-center justify-center shrink-0 shadow-xs icon-bounce"
+                          className="w-9 h-9 sm:w-11 sm:h-11 rounded-full text-white flex items-center justify-center shrink-0 shadow-xs"
                         >
                           <IconComp size={18} className="sm:hidden" />
                           <IconComp size={20} className="hidden sm:inline" />
