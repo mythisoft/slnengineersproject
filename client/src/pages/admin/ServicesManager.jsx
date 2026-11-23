@@ -71,15 +71,6 @@ const CURATED_IMAGES = [
   { label: 'Acoustic Grid', url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80' },
 ];
 
-// Quick suggestions for civil engineering standards & specifications
-const CIVIL_STANDARD_PRESETS = [
-  'IS 1346 & IS 3067 Certified',
-  'IS 15477 Heavy Duty Compliance',
-  'ASTM D412 Civil Standard',
-  'IS 456 Structural Concrete Rehab',
-  'GreenPro Eco Certified',
-];
-
 const CIVIL_ADVANTAGE_SUGGESTIONS = [
   'IS 1346 & IS 3067 civil standard compliance',
   '100% hydrostatic negative/positive water pressure resistance',
@@ -2322,52 +2313,21 @@ export default function ServicesManager() {
                       </div>
                     </div>
 
-                    {/* Category Sub-Tag & Engineering Standard */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2">
-                        <label className="block text-xs font-bold text-slate-900">
-                          Category Sub-Tag / Trade Label
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Terrace & Roof, Wet Areas, Facade"
-                          className="form-input text-xs w-full py-2 px-3 rounded-xl border border-slate-200 bg-white"
-                          value={serviceFormData.categoryLabel}
-                          onChange={(e) => setServiceFormData({ ...serviceFormData, categoryLabel: e.target.value })}
-                        />
-                        <p className="text-[10.5px] text-slate-500">
-                          Short engineering sub-label displayed on cards &amp; breadcrumbs.
-                        </p>
-                      </div>
-
-                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2">
-                        <label className="block text-xs font-bold text-slate-900">
-                          Civil Engineering Standard
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. IS 1346 & IS 3067 Certified Standards"
-                          className="form-input text-xs w-full py-2 px-3 rounded-xl border border-slate-200 bg-white"
-                          value={serviceFormData.standard}
-                          onChange={(e) => setServiceFormData({ ...serviceFormData, standard: e.target.value })}
-                        />
-                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                          {CIVIL_STANDARD_PRESETS.map((st) => (
-                            <button
-                              key={st}
-                              type="button"
-                              onClick={() => setServiceFormData({ ...serviceFormData, standard: st })}
-                              className={`text-[9.5px] px-2 py-0.5 rounded-md font-bold transition-colors cursor-pointer border ${
-                                serviceFormData.standard === st
-                                  ? 'bg-sky-100 text-sky-800 border-sky-300'
-                                  : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200'
-                              }`}
-                            >
-                              {st.split(' ')[0] + ' ' + (st.split(' ')[1] || '')}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                    {/* Category Sub-Tag */}
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2">
+                      <label className="block text-xs font-bold text-slate-900">
+                        Category Sub-Tag / Trade Label
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Terrace & Roof, Wet Areas, Facade"
+                        className="form-input text-xs w-full py-2 px-3 rounded-xl border border-slate-200 bg-white"
+                        value={serviceFormData.categoryLabel}
+                        onChange={(e) => setServiceFormData({ ...serviceFormData, categoryLabel: e.target.value })}
+                      />
+                      <p className="text-[10.5px] text-slate-500">
+                        Short engineering sub-label displayed on cards &amp; breadcrumbs.
+                      </p>
                     </div>
 
                     {/* Featured Service on Homepage Switch */}
@@ -3097,7 +3057,9 @@ export default function ServicesManager() {
                                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-400">
                                   Engineering Specifications
                                 </span>
-                                <span className="text-[10px] font-mono text-slate-400">{serviceFormData.standard}</span>
+                                {serviceFormData.standard && (
+                                  <span className="text-[10px] font-mono text-slate-400">{serviceFormData.standard}</span>
+                                )}
                               </div>
 
                               <h4 className="text-sm font-black text-white">{serviceFormData.title}</h4>
