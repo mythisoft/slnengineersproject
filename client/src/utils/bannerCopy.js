@@ -1,35 +1,43 @@
 export const DEFAULT_COMPANY_BANNER_SERVICES = [
   {
+    id: 'waterproofing',
     name: 'Waterproofing Solutions',
     shortCategory: 'Active Leak Defense & Crystalline Tanking',
     tag: 'IS 1346 Certified',
     icon: 'Droplets',
     accentColor: '#38bdf8',
     targetBannerIndex: 1,
+    link: '/services?discipline=waterproofing',
   },
   {
+    id: 'painting',
     name: 'Interior & Exterior Painting',
     shortCategory: 'Weather-Shield & Aesthetic Finishes',
     tag: 'UV Weather-Shield',
     icon: 'Paintbrush',
     accentColor: '#f59e0b',
     targetBannerIndex: 1,
+    link: '/services?discipline=painting',
   },
   {
+    id: 'restoration',
     name: 'Building Repairs & Restoration',
     shortCategory: 'Structural Crack Stitching & Concrete Rehab',
     tag: 'Structural Defense',
     icon: 'Building2',
     accentColor: '#029746',
     targetBannerIndex: 1,
+    link: '/services?discipline=repairs',
   },
   {
+    id: 'ceiling',
     name: 'False Ceiling & Interior Work',
     shortCategory: 'Acoustic Ceilings & Gypsum Partitions',
     tag: 'Acoustic & Gypsum',
     icon: 'Layers',
     accentColor: '#fbbf24',
     targetBannerIndex: 1,
+    link: '/services?discipline=false-ceiling',
   },
 ];
 

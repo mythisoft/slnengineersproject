@@ -126,6 +126,7 @@ const CORE_FOUR_SERVICES = [
     accentColor: '#38bdf8', // Sky Blue
     glowColor: 'rgba(56, 189, 248, 0.4)',
     targetBannerIndex: 1,
+    link: '/services?discipline=waterproofing',
   },
   {
     id: 'painting',
@@ -136,6 +137,7 @@ const CORE_FOUR_SERVICES = [
     accentColor: '#f59e0b', // Amber / Yellow
     glowColor: 'rgba(245, 158, 11, 0.4)',
     targetBannerIndex: 1,
+    link: '/services?discipline=painting',
   },
   {
     id: 'restoration',
@@ -146,6 +148,7 @@ const CORE_FOUR_SERVICES = [
     accentColor: '#029746', // SLN Green
     glowColor: 'rgba(2, 151, 70, 0.4)',
     targetBannerIndex: 1,
+    link: '/services?discipline=repairs',
   },
   {
     id: 'ceiling',
@@ -156,8 +159,33 @@ const CORE_FOUR_SERVICES = [
     accentColor: '#fbbf24', // Warm Yellow
     glowColor: 'rgba(251, 191, 36, 0.4)',
     targetBannerIndex: 1,
+    link: '/services?discipline=false-ceiling',
   },
 ];
+
+// Helper to resolve service navigation link from banner card
+const getServiceNavigationPath = (service) => {
+  if (service?.link) return service.link;
+  const name = (service?.name || service?.title || '').toLowerCase();
+  const id = (service?.id || service?.slug || service?.disciplineId || '').toLowerCase();
+
+  if (id === 'waterproofing' || name.includes('waterproof')) {
+    return '/services?discipline=waterproofing';
+  }
+  if (id === 'painting' || name.includes('paint')) {
+    return '/services?discipline=painting';
+  }
+  if (id === 'restoration' || id === 'repairs' || name.includes('repair') || name.includes('restor')) {
+    return '/services?discipline=repairs';
+  }
+  if (id === 'ceiling' || id === 'false-ceiling' || name.includes('ceiling')) {
+    return '/services?discipline=false-ceiling';
+  }
+  if (service?.slug) {
+    return `/services/${service.slug}`;
+  }
+  return `/services?category=${encodeURIComponent(service?.name || '')}`;
+};
 
 const BANNER_TOPLINE_SERVICES = CORE_FOUR_SERVICES;
 
@@ -1357,22 +1385,16 @@ export default function Home() {
                       ).map((service, sIdx) => {
                         const SIcon = resolveBannerServiceIcon(service.icon);
                         const accent = service.accentColor || '#38bdf8';
-                        const targetIdx = Number.isFinite(service.targetBannerIndex) ? service.targetBannerIndex : 1;
+                        const navPath = getServiceNavigationPath(service);
                         return (
-                          <div
+                          <Link
                             key={service._id || service.id || sIdx}
-                            onClick={() => handleBannerSelect(targetIdx)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                handleBannerSelect(targetIdx);
-                              }
-                            }}
-                            className="home-all-service-card-light group cursor-pointer"
+                            to={navPath}
+                            className="home-all-service-card-light group cursor-pointer block no-underline transition-all duration-200 hover:-translate-y-0.5"
                             style={{
                               borderColor: `${accent}35`,
                             }}
+                            title={`Explore ${service.name}`}
                           >
                             <div className="flex items-center gap-3 relative z-10">
                               <div
@@ -1397,7 +1419,7 @@ export default function Home() {
                                 </p>
                               </div>
                             </div>
-                          </div>
+                          </Link>
                         );
                       })}
                     </div>

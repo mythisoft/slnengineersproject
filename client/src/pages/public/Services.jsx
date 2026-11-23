@@ -181,8 +181,13 @@ export default function Services() {
     const idParam = searchParams.get('id');
 
     if (disciplineParam) {
+      const discKey = disciplineParam.toLowerCase().trim();
       const foundDisc = disciplines.find(
-        (d) => d.id === disciplineParam.toLowerCase().trim() || d.slug === disciplineParam.toLowerCase().trim()
+        (d) =>
+          d.id === discKey ||
+          d.slug === discKey ||
+          (d.id === 'repairs' && (discKey === 'restoration' || discKey.includes('repair') || discKey.includes('restor'))) ||
+          (d.id === 'false-ceiling' && (discKey === 'ceiling' || discKey.includes('ceil') || discKey.includes('false')))
       );
       if (foundDisc) {
         setActiveDiscipline(foundDisc.slug || foundDisc.id);
