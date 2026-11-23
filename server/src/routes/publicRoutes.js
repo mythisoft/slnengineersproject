@@ -27,6 +27,27 @@ import { getPublicContactContent } from '../controllers/contactController.js';
 
 const router = express.Router();
 
+// Base API Index
+router.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'SLN Engineers Public API Gateway',
+    version: '1.0.0',
+    availableEndpoints: [
+      '/api/settings',
+      '/api/services',
+      '/api/projects',
+      '/api/banners',
+      '/api/transformations',
+      '/api/trust-metrics',
+      '/api/disciplines',
+      '/api/pillar-cards',
+      '/api/reviews',
+      '/api/health',
+    ],
+  });
+});
+
 // Company Settings & Contact
 router.get('/settings', getPublicSettings);
 router.get('/about', getPublicAboutContent);
