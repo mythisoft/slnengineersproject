@@ -2199,7 +2199,7 @@ export default function Home() {
               </p>
 
               {/* Minimalist Project Context Card */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/90 border border-slate-200/90 shadow-2xs space-y-2 card-interactive-3d hover:border-sky-300 scroll-reveal-fade-up stagger-1">
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/90 border border-slate-200/90 shadow-2xs space-y-2 card-interactive-3d hover:border-sky-300">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold tracking-wider uppercase bg-sky-100 text-sky-900 border border-sky-200 shadow-2xs">
@@ -2239,8 +2239,8 @@ export default function Home() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    {displayDisciplinePillars.map((pillar, idx) => {
+                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                    {displayDisciplinePillars.map((pillar) => {
                       const isSelected = (selectedDisciplinePillar || 'waterproofing') === pillar.id;
                       const Icon = pillar.icon;
                       return (
@@ -2248,26 +2248,26 @@ export default function Home() {
                           key={pillar.id}
                           type="button"
                           onClick={() => setSelectedDisciplinePillar(pillar.id)}
-                          className={`p-2.5 rounded-xl text-left transition-all cursor-pointer relative overflow-hidden flex items-center gap-2.5 border hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 duration-200 scroll-reveal-pop stagger-${(idx % 4) + 1} ${
+                          className={`p-2.5 sm:p-3 rounded-xl text-left transition-all cursor-pointer relative overflow-hidden flex items-center gap-2.5 sm:gap-3 border duration-200 shadow-xs ${
                             isSelected
-                              ? `bg-gradient-to-r ${pillar.activeGradient} text-white ${pillar.activeBorder} shadow-md`
-                              : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs'
+                              ? `bg-gradient-to-r ${pillar.activeGradient} text-white ${pillar.activeBorder} shadow-md scale-[1.02]`
+                              : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200 hover:border-slate-300'
                           }`}
                         >
                           <div
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                               isSelected
                                 ? 'bg-white/20 text-white shadow-2xs'
                                 : 'bg-slate-100 text-slate-700'
                             }`}
                           >
-                            <Icon size={14} />
+                            <Icon size={16} />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <span className={`block text-[11px] font-black truncate leading-tight ${isSelected ? 'text-white' : 'text-slate-800'}`}>
-                              {pillar.name}
+                            <span className={`block text-xs sm:text-[12.5px] font-extrabold leading-tight ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                              {pillar.shortName || pillar.name}
                             </span>
-                            <span className={`text-[9.5px] font-semibold block truncate mt-0.5 ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
+                            <span className={`text-[10px] font-semibold block mt-0.5 ${isSelected ? 'text-white/85' : 'text-slate-500'}`}>
                               {isSelected ? '● Active Showcase' : pillar.tag}
                             </span>
                           </div>
@@ -2584,18 +2584,18 @@ export default function Home() {
                 e.stopPropagation();
                 openInspectionModal();
               }}
-              className="btn btn-primary btn-lg font-bold shadow-lg btn-ripple w-full sm:w-auto justify-center cursor-pointer scroll-reveal-pop stagger-1"
+              className="btn btn-primary btn-lg font-bold shadow-lg btn-ripple w-full sm:w-auto justify-center cursor-pointer"
             >
               <span>{bottomCtaContent.primaryCtaText || 'Book Site Visit'}</span> <ArrowRight size={17} />
             </button>
-            <a href={`tel:${phone.replace(/\s+/g, '')}`} className="btn btn-outline-light btn-lg font-semibold btn-ripple w-full sm:w-auto justify-center scroll-reveal-pop stagger-2">
+            <a href={`tel:${phone.replace(/\s+/g, '')}`} className="btn btn-outline-light btn-lg font-semibold btn-ripple w-full sm:w-auto justify-center">
               <Phone size={17} /> {(bottomCtaContent.phoneCtaText || 'Call {phone}').replace('{phone}', phone)}
             </a>
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-whatsapp btn-lg font-semibold btn-ripple w-full sm:w-auto justify-center scroll-reveal-pop stagger-3"
+              className="btn btn-whatsapp btn-lg font-semibold btn-ripple w-full sm:w-auto justify-center"
             >
               <MessageCircle size={17} /> {bottomCtaContent.whatsappCtaText || 'WhatsApp'}
             </a>
