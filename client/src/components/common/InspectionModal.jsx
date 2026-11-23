@@ -8,7 +8,6 @@ import {
   ArrowRight,
   MessageCircle,
   Calendar,
-  Layers,
   FileText,
   ShieldCheck,
   Check,
@@ -49,7 +48,7 @@ export default function InspectionModal({ settings }) {
     customerName: '',
     phone: '',
     location: '',
-    serviceRequired: 'All 4 Specializations / Civil Inspection',
+    serviceRequired: 'On-Site Civil Inspection',
     problemDescription: '',
   });
 
@@ -415,30 +414,6 @@ export default function InspectionModal({ settings }) {
                 {formErrors.location && (
                   <p className="text-[11px] text-rose-600 mt-1 font-medium">{formErrors.location}</p>
                 )}
-              </div>
-
-              {/* 4. Service Selection Dropdown */}
-              <div>
-                <label htmlFor="modal-service" className="block text-xs font-bold text-slate-700 mb-1">
-                  Service / Inspection Focus
-                </label>
-                <div className="relative flex items-center rounded-xl bg-slate-50/90 hover:bg-white border border-slate-200/90 hover:border-slate-300 focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/15 shadow-2xs">
-                  <span className="pl-3.5 pr-1.5 flex items-center pointer-events-none shrink-0" style={{ color: logoNameColor }}>
-                    <Layers size={15} />
-                  </span>
-                  <select
-                    id="modal-service"
-                    value={formData.serviceRequired}
-                    onChange={(e) => setFormData({ ...formData, serviceRequired: e.target.value })}
-                    className="w-full pr-3.5 py-2.5 bg-transparent text-slate-900 text-base sm:text-xs md:text-sm focus:outline-hidden cursor-pointer"
-                  >
-                    {INSPECTION_SERVICES.map((s, idx) => (
-                      <option key={idx} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
 
               {/* Submit Button */}
