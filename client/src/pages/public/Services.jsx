@@ -182,6 +182,13 @@ export default function Services() {
     const disciplineParam = searchParams.get('discipline');
     const idParam = searchParams.get('id');
 
+    // Case 1: All Specializations explicitly selected or no query params
+    if (disciplineParam === 'all' || (!disciplineParam && !categoryParam && !idParam)) {
+      setActiveDiscipline('all');
+      return;
+    }
+
+    // Case 2: Specific discipline parameter in URL
     if (disciplineParam) {
       const discKey = disciplineParam.toLowerCase().trim();
       const foundDisc = disciplines.find(
@@ -205,6 +212,7 @@ export default function Services() {
       }
     }
 
+    // Case 3: Category or ID lookup
     if (categoryParam || idParam) {
       const match = findMatchingService(categoryParam, idParam, publishedServices);
       if (match) {
@@ -215,12 +223,10 @@ export default function Services() {
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }, 150);
+        return;
       }
-    } else if (location.pathname === '/services' && !categoryParam && !idParam && !disciplineParam && prevSearchRef.current) {
-      setActiveDiscipline('all');
     }
-    prevSearchRef.current = location.search;
-  }, [searchParams, location.search, location.pathname, publishedServices, disciplines]);
+  }, [searchParams, publishedServices, disciplines]);
 
   // Scroll progress and back-to-top tracking
   useEffect(() => {
@@ -289,15 +295,19 @@ export default function Services() {
 
   // Get dynamic filtered disciplines from state (reflects admin changes in real time)
   const activeDisciplinesList = useMemo(() => {
-    return activeDiscipline === 'all'
-      ? activeDisciplines
-      : activeDisciplines.filter(
-          (d) =>
-            (d.slug || d.id) === activeDiscipline ||
-            d.id === activeDiscipline ||
-            d.slug === activeDiscipline
-        );
-  }, [activeDisciplines, activeDiscipline]);
+    if (activeDiscipline === 'all') {
+      const withServices = activeDisciplines.filter((d) =>
+        publishedServices.some((s) => matchesDiscipline(s, d))
+      );
+      return withServices.length > 0 ? withServices : activeDisciplines;
+    }
+    return activeDisciplines.filter(
+      (d) =>
+        (d.slug || d.id) === activeDiscipline ||
+        d.id === activeDiscipline ||
+        d.slug === activeDiscipline
+    );
+  }, [activeDisciplines, activeDiscipline, publishedServices]);
 
   // Find any orphan services that don't match active discipline pillars
   const orphanServices = useMemo(() => {
@@ -427,6 +437,16 @@ export default function Services() {
                     } else {
                       setSearchParams({ discipline: targetSlug }, { replace: true });
                     }
+                    setTimeout(() => {
+                      const target =
+                        targetSlug === 'all'
+                          ? document.getElementById('services-grid')
+                          : document.getElementById(`discipline-section-${targetSlug}`) ||
+                            document.getElementById('services-grid');
+                      if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }, 50);
                   }}
                   className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer active:scale-95 ${
                     isSelected
@@ -449,84 +469,93 @@ export default function Services() {
 
       {/* 4. DISCIPLINE SERVICES SECTIONS */}
       <div id="services-grid" className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-14">
-        {activeDisciplinesList.map((discipline, discIdx) => {
-          const targetSlug = discipline.slug || discipline.id;
-          const disciplineServices = publishedServices.filter((s) => matchesDiscipline(s, discipline));
-          const bannerAnim = discIdx % 2 === 0 ? 'scroll-reveal-left' : 'scroll-reveal-right';
-
-          return (
-            <div key={targetSlug} id={`discipline-section-${targetSlug}`} className="space-y-4 sm:space-y-6 scroll-mt-28">
-              {/* Discipline Header Banner */}
-              <div className={`bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 ${bannerAnim}`}>
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <div
-                    style={{ backgroundColor: discipline.accentColor || '#0284c7' }}
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5 group-hover:scale-110 transition-transform"
-                  >
-                    {renderDisciplineIcon(discipline.icon, 20)}
-                  </div>
-
-                  <div>
-                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
-                      <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
-                        {discipline.eyebrow || 'Specialized Discipline'}
-                      </span>
-                      {discipline.tag && (
-                        <span
-                          style={{ color: discipline.accentColor }}
-                          className="px-2 py-0.5 rounded-md text-[9.5px] sm:text-[10px] font-extrabold bg-slate-100 uppercase"
-                        >
-                          {discipline.tag}
-                        </span>
-                      )}
-                    </div>
-
-                    <h3 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                      {discipline.name}
-                    </h3>
-                    <p className="text-xs text-slate-600 leading-relaxed max-w-2xl mt-1">
-                      {discipline.description}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="w-full sm:w-auto flex items-center gap-2 self-start md:self-center shrink-0 mt-1 sm:mt-0">
-                  <Link
-                    to={discipline.ctaLink || `/contact?service=${encodeURIComponent(discipline.name)}#inspection-form`}
-                    className="w-full sm:w-auto justify-center btn btn-primary btn-sm text-xs flex items-center gap-1.5 shadow-sm py-2 sm:py-1.5 cursor-pointer"
-                  >
-                    <Calendar size={13} />
-                    <span>{discipline.ctaText || 'Book Inspection'}</span>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Service Cards Grid for this Discipline */}
-              {loadingServices ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
-                  {[1, 2, 3].map((n) => (
-                    <div
-                      key={n}
-                      className="w-full h-[430px] rounded-2xl bg-slate-100/80 animate-pulse border border-slate-200"
-                    />
-                  ))}
-                </div>
-              ) : disciplineServices.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
-                  {disciplineServices.map((service, cardIdx) => (
-                    <div key={service.id || service._id} id={`service-${service.id}`} className="scroll-mt-32">
-                      <ServiceCard service={service} whatsapp={whatsapp} index={cardIdx} />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-slate-100/70 border border-dashed border-slate-300 rounded-2xl p-6 sm:p-8 text-center text-xs text-slate-500">
-                  No services currently published under {discipline.name}. Add or enable services in the Admin Portal.
-                </div>
-              )}
+        {loadingServices ? (
+          <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
+            <div className="w-9 h-9 border-3 border-sky-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs font-semibold text-slate-500">Loading verified engineering services...</span>
+          </div>
+        ) : publishedServices.length === 0 ? (
+          <div className="bg-white border border-dashed border-slate-300 rounded-3xl p-12 text-center max-w-lg mx-auto shadow-xs">
+            <Layers size={36} className="mx-auto text-slate-400 mb-3" />
+            <h3 className="text-base font-bold text-slate-800">No Services Currently Listed</h3>
+            <p className="text-xs text-slate-500 mt-1">Our engineering scopes are being updated. Contact our civil engineers directly for an on-site diagnosis and custom quote.</p>
+            <div className="mt-5">
+              <Link to="/contact#inspection-form" className="btn btn-primary btn-sm text-xs">
+                Schedule On-Site Inspection
+              </Link>
             </div>
-          );
-        })}
+          </div>
+        ) : (
+          activeDisciplinesList.map((discipline, discIdx) => {
+            const targetSlug = discipline.slug || discipline.id;
+            const disciplineServices = publishedServices.filter((s) => matchesDiscipline(s, discipline));
+            const bannerAnim = discIdx % 2 === 0 ? 'scroll-reveal-left' : 'scroll-reveal-right';
+
+            return (
+              <div key={targetSlug} id={`discipline-section-${targetSlug}`} className="space-y-4 sm:space-y-6 scroll-mt-28">
+                {/* Discipline Header Banner */}
+                <div className={`bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 ${bannerAnim}`}>
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div
+                      style={{ backgroundColor: discipline.accentColor || '#0284c7' }}
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5 group-hover:scale-110 transition-transform"
+                    >
+                      {renderDisciplineIcon(discipline.icon, 20)}
+                    </div>
+
+                    <div>
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                        <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
+                          {discipline.eyebrow || 'Specialized Discipline'}
+                        </span>
+                        {discipline.tag && (
+                          <span
+                            style={{ color: discipline.accentColor }}
+                            className="px-2 py-0.5 rounded-md text-[9.5px] sm:text-[10px] font-extrabold bg-slate-100 uppercase"
+                          >
+                            {discipline.tag}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                        {discipline.name}
+                      </h3>
+                      <p className="text-xs text-slate-600 leading-relaxed max-w-2xl mt-1">
+                        {discipline.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="w-full sm:w-auto flex items-center gap-2 self-start md:self-center shrink-0 mt-1 sm:mt-0">
+                    <Link
+                      to={discipline.ctaLink || `/contact?service=${encodeURIComponent(discipline.name)}#inspection-form`}
+                      className="w-full sm:w-auto justify-center btn btn-primary btn-sm text-xs flex items-center gap-1.5 shadow-sm py-2 sm:py-1.5 cursor-pointer"
+                    >
+                      <Calendar size={13} />
+                      <span>{discipline.ctaText || 'Book Inspection'}</span>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Service Cards Grid for this Discipline */}
+                {disciplineServices.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
+                    {disciplineServices.map((service, cardIdx) => (
+                      <div key={service.id || service._id} id={`service-${service.id}`} className="scroll-mt-32">
+                        <ServiceCard service={service} whatsapp={whatsapp} index={cardIdx} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-6 sm:p-8 text-center text-xs text-slate-500">
+                    Specialized engineering packages for {discipline.name} are currently being updated. Contact our civil engineering team for customized inspection and quote.
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
 
         {/* Additional Specializations (if any services exist outside active discipline slugs) */}
         {orphanServices.length > 0 && activeDiscipline === 'all' && (
