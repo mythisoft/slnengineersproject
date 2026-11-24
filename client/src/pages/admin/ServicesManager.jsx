@@ -41,7 +41,6 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import BeforeAfterSlider from '../../components/common/BeforeAfterSlider';
 import { fetchApi } from '../../utils/api';
 import FooterServicesManager from '../../components/admin/FooterServicesManager';
 import {
@@ -140,17 +139,15 @@ export default function ServicesManager() {
     order: 1,
     publicationStatus: true,
     isFeatured: false,
-    beforeMediaUrl: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=1000&q=80',
-    beforeMediaCaption: 'Before Treatment',
-    afterMediaUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1000&q=80',
-    afterMediaCaption: 'After Restoration',
+    beforeMediaUrl: '',
+    beforeMediaCaption: '',
+    afterMediaUrl: '',
+    afterMediaCaption: '',
   };
   const [serviceFormData, setServiceFormData] = useState(initialServiceForm);
   const [imageSourceTab, setImageSourceTab] = useState('upload'); // 'upload' | 'url' | 'curated'
   const [uploadingImage, setUploadingImage] = useState(false);
   const coverFileInputRef = useRef(null);
-  const beforeFileInputRef = useRef(null);
-  const afterFileInputRef = useRef(null);
 
   const uploadImageFile = async (file) => {
     if (!file) return null;
@@ -200,43 +197,6 @@ export default function ServicesManager() {
     }
   };
 
-  const handleBeforeFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingImage(true);
-    try {
-      const uploadedUrl = await uploadImageFile(file);
-      if (uploadedUrl) {
-        setServiceFormData((prev) => ({ ...prev, beforeMediaUrl: uploadedUrl }));
-        showToast('Before image uploaded from device!');
-      }
-    } catch (err) {
-      console.error('Failed to upload before image:', err);
-      showToast('Could not upload before image.', 'error');
-    } finally {
-      setUploadingImage(false);
-      if (e.target) e.target.value = '';
-    }
-  };
-
-  const handleAfterFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingImage(true);
-    try {
-      const uploadedUrl = await uploadImageFile(file);
-      if (uploadedUrl) {
-        setServiceFormData((prev) => ({ ...prev, afterMediaUrl: uploadedUrl }));
-        showToast('After image uploaded from device!');
-      }
-    } catch (err) {
-      console.error('Failed to upload after image:', err);
-      showToast('Could not upload after image.', 'error');
-    } finally {
-      setUploadingImage(false);
-      if (e.target) e.target.value = '';
-    }
-  };
 
   // Discipline Modal state (FOR FULL CRUD ON PRIMARY PILLARS)
   const [showDisciplineModal, setShowDisciplineModal] = useState(false);
@@ -2839,160 +2799,6 @@ export default function ServicesManager() {
                           />
                         </div>
                       </div>
-                    </div>
-
-                    {/* Before & After Showcase Images for Homepage */}
-                    <div className="bg-slate-50 p-4.5 rounded-2xl border border-slate-200/90 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <label className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                            <Sparkles size={14} className="text-amber-500" />
-                            <span>Homepage Before &amp; After Comparison Media</span>
-                          </label>
-                          <p className="text-[11px] text-slate-500 mt-0.5">
-                            These images power the interactive drag slider on the homepage service card.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Before Column */}
-                        <div className="p-3.5 bg-white rounded-xl border border-slate-200 space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider block">
-                              Before Treatment Image
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => beforeFileInputRef.current?.click()}
-                              className="text-[10.5px] font-bold text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 px-2.5 py-1 rounded-lg border border-sky-200 flex items-center gap-1 transition-colors cursor-pointer"
-                            >
-                              <Upload size={11} />
-                              <span>Upload File</span>
-                            </button>
-                            <input
-                              type="file"
-                              ref={beforeFileInputRef}
-                              accept="image/*"
-                              onChange={handleBeforeFileUpload}
-                              className="hidden"
-                            />
-                          </div>
-                          <input
-                            type="url"
-                            placeholder="Or paste Before image URL..."
-                            className="form-input text-xs py-2 rounded-xl w-full border border-slate-200"
-                            value={serviceFormData.beforeMediaUrl}
-                            onChange={(e) => setServiceFormData({ ...serviceFormData, beforeMediaUrl: e.target.value })}
-                          />
-                          <input
-                            type="text"
-                            placeholder="Before caption (e.g. Saturated screed & joint leakage)..."
-                            className="form-input text-xs py-1.5 rounded-lg text-slate-600 w-full border border-slate-200"
-                            value={serviceFormData.beforeMediaCaption}
-                            onChange={(e) => setServiceFormData({ ...serviceFormData, beforeMediaCaption: e.target.value })}
-                          />
-                          {serviceFormData.beforeMediaUrl && (
-                            <div className="relative group/preview mt-2">
-                              <img
-                                src={serviceFormData.beforeMediaUrl}
-                                alt="Before Preview"
-                                className="w-full h-28 object-cover rounded-xl border border-slate-200"
-                                onError={(e) => {
-                                  e.currentTarget.src = 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80';
-                                }}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setServiceFormData({ ...serviceFormData, beforeMediaUrl: '' })}
-                                className="absolute top-1.5 right-1.5 p-1 bg-slate-900/80 text-white rounded-md hover:bg-rose-600 opacity-0 group-hover/preview:opacity-100 transition-opacity"
-                                title="Clear Before Photo"
-                              >
-                                <X size={13} />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* After Column */}
-                        <div className="p-3.5 bg-white rounded-xl border border-slate-200 space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider block">
-                              After Restoration Image
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => afterFileInputRef.current?.click()}
-                              className="text-[10.5px] font-bold text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 px-2.5 py-1 rounded-lg border border-sky-200 flex items-center gap-1 transition-colors cursor-pointer"
-                            >
-                              <Upload size={11} />
-                              <span>Upload File</span>
-                            </button>
-                            <input
-                              type="file"
-                              ref={afterFileInputRef}
-                              accept="image/*"
-                              onChange={handleAfterFileUpload}
-                              className="hidden"
-                            />
-                          </div>
-                          <input
-                            type="url"
-                            placeholder="Or paste After image URL..."
-                            className="form-input text-xs py-2 rounded-xl w-full border border-slate-200"
-                            value={serviceFormData.afterMediaUrl}
-                            onChange={(e) => setServiceFormData({ ...serviceFormData, afterMediaUrl: e.target.value })}
-                          />
-                          <input
-                            type="text"
-                            placeholder="After caption (e.g. Monolithic UV-shield polyurethane barrier)..."
-                            className="form-input text-xs py-1.5 rounded-lg text-slate-600 w-full border border-slate-200"
-                            value={serviceFormData.afterMediaCaption}
-                            onChange={(e) => setServiceFormData({ ...serviceFormData, afterMediaCaption: e.target.value })}
-                          />
-                          {serviceFormData.afterMediaUrl && (
-                            <div className="relative group/preview mt-2">
-                              <img
-                                src={serviceFormData.afterMediaUrl}
-                                alt="After Preview"
-                                className="w-full h-28 object-cover rounded-xl border border-slate-200"
-                                onError={(e) => {
-                                  e.currentTarget.src = 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80';
-                                }}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setServiceFormData({ ...serviceFormData, afterMediaUrl: '' })}
-                                className="absolute top-1.5 right-1.5 p-1 bg-slate-900/80 text-white rounded-md hover:bg-rose-600 opacity-0 group-hover/preview:opacity-100 transition-opacity"
-                                title="Clear After Photo"
-                              >
-                                <X size={13} />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Interactive Simulator */}
-                      {serviceFormData.beforeMediaUrl && serviceFormData.afterMediaUrl && (
-                        <div className="max-w-md mx-auto pt-3 border-t border-slate-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                              <Sparkles size={13} className="text-amber-500" />
-                              <span>Live Before &amp; After Slider Preview</span>
-                            </span>
-                          </div>
-                          <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                            <BeforeAfterSlider
-                              beforeImage={serviceFormData.beforeMediaUrl}
-                              afterImage={serviceFormData.afterMediaUrl}
-                              beforeLabel={serviceFormData.beforeMediaCaption || 'Before Treatment'}
-                              afterLabel={serviceFormData.afterMediaCaption || 'After Restoration'}
-                              aspectRatio="16/10"
-                            />
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
