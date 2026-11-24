@@ -629,6 +629,13 @@ export const updateProject = async (req, res, next) => {
       updateData.image = updateData.coverImage;
     }
 
+    if (!updateData.serviceCategory) {
+      updateData.serviceCategory = updateData.serviceTitle || updateData.disciplineName || 'Waterproofing Solutions';
+    }
+    if (!updateData.serviceTitle) {
+      updateData.serviceTitle = updateData.serviceCategory || updateData.disciplineName || updateData.title || '';
+    }
+
     if (updateData.showOnHome === true) {
       updateData.isPublished = true;
       const existingProject = mongoose.Types.ObjectId.isValid(req.params.id)

@@ -208,8 +208,8 @@ export default function ProjectsManager() {
     title: '',
     disciplineId: 'waterproofing',
     disciplineName: 'Waterproofing Solutions',
-    serviceCategory: 'Terrace and roof waterproofing',
-    serviceTitle: 'Terrace & Roof Waterproofing',
+    serviceCategory: 'Waterproofing Solutions',
+    serviceTitle: 'Waterproofing Solutions',
     serviceId: '',
     location: 'Hyderabad, Telangana',
     clientReference: '',
@@ -218,7 +218,7 @@ export default function ProjectsManager() {
     inspectionFindings: '',
     workPerformed: '',
     materialsUsed: '',
-    formulation: ['Dr. Fixit Fastflex Elastomeric Membrane', 'Fosroc Nitoseal PU40'],
+    formulation: [],
     isPublished: true,
     showOnHome: false,
     isFeatured: false,
@@ -447,16 +447,16 @@ export default function ProjectsManager() {
     setEditingProject(null);
     setModalTab('overview');
     const firstDisc = disciplines[0] || DEFAULT_DISCIPLINES[0];
-    const matchingServices = services.filter((s) => matchesDiscipline(s, firstDisc));
-    const firstService = matchingServices[0] || services[0] || null;
 
     setFormData({
       ...initialFormState,
       disciplineId: firstDisc.slug || firstDisc.id,
       disciplineName: firstDisc.name,
-      serviceCategory: firstService ? (firstService.category || firstService.title) : '',
-      serviceTitle: firstService ? firstService.title : '',
-      serviceId: firstService ? (firstService._id || firstService.id) : '',
+      serviceCategory: firstDisc.name || 'Waterproofing Solutions',
+      serviceTitle: firstDisc.name || 'Waterproofing Solutions',
+      serviceId: '',
+      materialsUsed: '',
+      formulation: [],
     });
     setShowModal(true);
   };
@@ -523,6 +523,8 @@ export default function ProjectsManager() {
 
     const payload = {
       ...formData,
+      serviceCategory: formData.serviceCategory || (targetDisc ? targetDisc.name : 'Waterproofing Solutions'),
+      serviceTitle: formData.serviceTitle || formData.serviceCategory || (targetDisc ? targetDisc.name : 'Waterproofing Solutions'),
       disciplineId: targetDisc ? (targetDisc.slug || targetDisc.id) : formData.disciplineId,
       disciplineName: targetDisc ? targetDisc.name : formData.disciplineName,
       materialsUsed: finalMaterialsUsed,
@@ -1273,7 +1275,7 @@ export default function ProjectsManager() {
                 <th className="py-3 px-4">Project Title & Location</th>
                 <th className="py-3 px-4">Discipline Pillar</th>
                 <th className="py-3 px-3 text-center">Homepage Showcase (Radio)</th>
-                <th className="py-3 px-4">Linked Service</th>
+                <th className="py-3 px-4">Chemical / Formulation</th>
                 <th className="py-3 px-4">Client Reference</th>
                 <th className="py-3 px-3 text-center">Live on Web</th>
                 <th className="py-3 px-4 text-right">Actions</th>
@@ -1372,10 +1374,13 @@ export default function ProjectsManager() {
                         </label>
                       </td>
 
-                      {/* Linked Service */}
+                      {/* Chemical / Formulation */}
                       <td className="py-3 px-4 max-w-[200px]">
-                        <span className="badge badge-blue text-[11px] truncate block max-w-full">
-                          {proj.serviceTitle || proj.serviceCategory}
+                        <span
+                          className="badge badge-blue text-[11px] truncate block max-w-full"
+                          title={proj.materialsUsed || proj.serviceTitle || proj.serviceCategory}
+                        >
+                          {proj.materialsUsed || proj.serviceTitle || proj.serviceCategory || '—'}
                         </span>
                       </td>
 
@@ -1798,15 +1803,12 @@ export default function ProjectsManager() {
                             key={disc.id || disc.slug}
                             type="button"
                             onClick={() => {
-                              const matchingServices = services.filter((s) => matchesDiscipline(s, disc));
-                              const firstSrv = matchingServices[0] || null;
                               setFormData({
                                 ...formData,
                                 disciplineId: disc.slug || disc.id,
                                 disciplineName: disc.name,
-                                serviceCategory: firstSrv ? (firstSrv.category || firstSrv.title) : '',
-                                serviceTitle: firstSrv ? firstSrv.title : '',
-                                serviceId: firstSrv ? (firstSrv._id || firstSrv.id) : '',
+                                serviceCategory: disc.name,
+                                serviceTitle: disc.name,
                               });
                             }}
                             className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
@@ -1840,33 +1842,47 @@ export default function ProjectsManager() {
                     </div>
                   </div>
 
-                  {/* Specific Service Dropdown & Client Reference */}
+                  {/* Chemical Name / Formulation Systems & Client Reference */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="form-label text-xs font-bold text-slate-800">
-                        Linked Service Solution *
+                        Chemical Name / Formulation Systems *
                       </label>
-                      <select
-                        className="form-select text-xs py-2 rounded-xl"
-                        value={formData.serviceTitle || formData.serviceCategory}
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Dr. Fixit Fastflex, Fosroc Nitoseal PU40, SikaTop Seal-107"
+                        className="form-input text-xs py-2 rounded-xl"
+                        value={formData.materialsUsed}
                         onChange={(e) => {
-                          const chosen = availableServicesForDiscipline.find(
-                            (s) => s.title === e.target.value || s.category === e.target.value
-                          );
+                          const val = e.target.value;
+                          const splitFormulation = val
+                            .split(/[,•\n]+/)
+                            .map((s) => s.trim())
+                            .filter(Boolean);
                           setFormData({
                             ...formData,
-                            serviceCategory: chosen ? (chosen.category || chosen.title) : e.target.value,
-                            serviceTitle: chosen ? chosen.title : e.target.value,
-                            serviceId: chosen ? (chosen._id || chosen.id) : '',
+                            materialsUsed: val,
+                            formulation: splitFormulation,
                           });
                         }}
-                      >
-                        {availableServicesForDiscipline.map((s) => (
-                          <option key={s.id || s._id} value={s.title}>
-                            {s.title} ({s.disciplineName || s.disciplineId})
-                          </option>
+                      />
+                      <p className="text-[10px] text-slate-500 mt-1">
+                        Type chemical names or formulations used (separate with commas).
+                      </p>
+                      {/* 1-Click Chemical Presets */}
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {FORMULATION_PRESETS.slice(0, 5).map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => handleAddFormulationSuggestion(preset)}
+                            className="text-[10px] bg-slate-100 hover:bg-sky-100 text-slate-600 hover:text-sky-800 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                          >
+                            + {preset.split(' ')[0]} {preset.split(' ')[1] || ''}
+                          </button>
                         ))}
-                      </select>
+                      </div>
                     </div>
 
                     <div>
@@ -2093,7 +2109,18 @@ export default function ProjectsManager() {
                       placeholder="e.g. Dr. Fixit Fastflex, Fosroc Nitoseal PU40, SikaTop Seal-107, 200 GSM Fiberglass Mesh"
                       className="form-input text-xs py-2 rounded-xl"
                       value={formData.materialsUsed}
-                      onChange={(e) => setFormData({ ...formData, materialsUsed: e.target.value })}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const splitFormulation = val
+                          .split(/[,•\n]+/)
+                          .map((s) => s.trim())
+                          .filter(Boolean);
+                        setFormData({
+                          ...formData,
+                          materialsUsed: val,
+                          formulation: splitFormulation,
+                        });
+                      }}
                     />
 
                     {/* Quick suggestion tags */}
