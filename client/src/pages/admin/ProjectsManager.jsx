@@ -12,6 +12,8 @@ import {
   CheckCircle,
   XCircle,
   ExternalLink,
+  MoveUp,
+  MoveDown,
   Search,
   Filter,
   Layers,
@@ -222,6 +224,7 @@ export default function ProjectsManager() {
     isPublished: true,
     showOnHome: false,
     isFeatured: false,
+    order: 0,
     customerConsentPublished: true,
     image: '',
     coverImage: '',
@@ -344,11 +347,66 @@ export default function ProjectsManager() {
   // Commit projects to state
   const commitProjectsState = (newList) => {
     const normalized = newList.map((p, idx) => normalizeProject(p, idx));
+    normalized.sort((a, b) => {
+      const orderA = typeof a.order === 'number' && a.order > 0 ? a.order : 999999;
+      const orderB = typeof b.order === 'number' && b.order > 0 ? b.order : 999999;
+      if (orderA !== orderB) return orderA - orderB;
+      return new Date(b.completionDate || b.createdAt || 0) - new Date(a.completionDate || a.createdAt || 0);
+    });
     setProjects(normalized);
     window.dispatchEvent(new Event('sln_projects_updated'));
     try {
       localStorage.setItem('sln_projects_sync', Date.now().toString());
     } catch (_) {}
+  };
+
+  // Handle Move Project Up / Down
+  const handleMoveProject = async (index, direction) => {
+    const newIdx = direction === 'up' ? index - 1 : index + 1;
+    if (newIdx < 0 || newIdx >= filteredProjects.length) return;
+
+    const targetList = [...filteredProjects];
+    const [moved] = targetList.splice(index, 1);
+    targetList.splice(newIdx, 0, moved);
+
+    // Assign sequential orders 1, 2, 3...
+    const reordered = targetList.map((item, i) => ({ ...item, order: i + 1 }));
+
+    // Map new orders back to the full projects list
+    const updatedAll = projects.map((p) => {
+      const match = reordered.find(
+        (r) => (r._id && r._id === p._id) || (r.id && r.id === p.id) || (r.slug && r.slug === p.slug)
+      );
+      return match ? { ...p, order: match.order } : p;
+    });
+
+    commitProjectsState(updatedAll);
+    showToast(`Project moved ${direction === 'up' ? 'up ↑' : 'down ↓'}!`);
+
+    // Persist reorder to database
+    try {
+      await fetchApi('/admin/projects/reorder', {
+        method: 'PUT',
+        body: JSON.stringify({
+          items: reordered.map((item) => ({
+            _id: item._id,
+            id: item.id,
+            order: item.order,
+          })),
+        }),
+      });
+    } catch (err) {
+      console.warn('Reorder endpoint fallback to individual updates:', err);
+      reordered.forEach((item) => {
+        const id = item._id || item.id;
+        if (id) {
+          fetchApi(`/admin/projects/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ order: item.order }),
+          }).catch(() => {});
+        }
+      });
+    }
   };
 
   // Load Projects, Services, and Disciplines from database
@@ -466,6 +524,7 @@ export default function ProjectsManager() {
       serviceId: '',
       materialsUsed: '',
       formulation: [],
+      order: projects.length + 1,
     });
     setShowModal(true);
   };
@@ -498,6 +557,7 @@ export default function ProjectsManager() {
       isPublished: project.isPublished !== undefined ? project.isPublished : true,
       showOnHome: Boolean(project.isPublished !== false && project.showOnHome),
       isFeatured: Boolean(project.isFeatured),
+      order: project.order || 0,
       customerConsentPublished: project.customerConsentPublished !== undefined ? project.customerConsentPublished : true,
       image: project.image || project.coverImage || '',
       coverImage: project.coverImage || project.image || '',
@@ -561,6 +621,7 @@ export default function ProjectsManager() {
       formulation: formulationClean,
       image: finalImage,
       coverImage: finalImage,
+      order: Number(formData.order) || 0,
       isPublished: isLive,
       showOnHome: showOnHome,
       isFeatured: isFeatured,
@@ -1313,6 +1374,7 @@ export default function ProjectsManager() {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[11px]">
               <tr>
+                <th className="py-3 px-3 text-center w-24">Order</th>
                 <th className="py-3 px-4">Project Title & Location</th>
                 <th className="py-3 px-4">Discipline Pillar</th>
                 <th className="py-3 px-3 text-center">Homepage Showcase (Radio)</th>
@@ -1325,7 +1387,7 @@ export default function ProjectsManager() {
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {loading ? (
                 <tr>
-                  <td colSpan="7" className="py-14 text-center text-slate-400">
+                  <td colSpan="8" className="py-14 text-center text-slate-400">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <div className="w-6 h-6 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
                       <span>Loading project records...</span>
@@ -1334,19 +1396,46 @@ export default function ProjectsManager() {
                 </tr>
               ) : filteredProjects.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="py-14 text-center text-slate-400">
+                  <td colSpan="8" className="py-14 text-center text-slate-400">
                     <Briefcase size={28} className="mx-auto text-slate-300 mb-2" />
                     <div className="font-bold text-slate-600">No project records match your filter.</div>
                     <div className="text-[11px] text-slate-400 mt-1">Try clearing filters or search query.</div>
                   </td>
                 </tr>
               ) : (
-                filteredProjects.map((proj) => {
+                filteredProjects.map((proj, index) => {
                   const targetDisc = disciplines.find((d) => matchesProjectDiscipline(proj, d));
                   const accentColor = targetDisc?.accentColor || '#0284c7';
 
                   return (
                     <tr key={proj._id || proj.id} className="hover:bg-slate-50/80 transition-colors">
+                      {/* Display Order Controls */}
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        <div className="inline-flex items-center gap-1 bg-slate-50 border border-slate-200/90 rounded-lg p-0.5 shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveProject(index, 'up')}
+                            disabled={index === 0}
+                            title="Move Project Up (Display earlier)"
+                            className="p-1 rounded text-slate-500 hover:text-sky-700 hover:bg-white disabled:opacity-20 disabled:hover:text-slate-500 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                          >
+                            <MoveUp size={13} />
+                          </button>
+                          <span className="font-mono text-[11px] font-bold text-slate-700 min-w-[1.4rem] text-center px-1">
+                            {proj.order || index + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveProject(index, 'down')}
+                            disabled={index === filteredProjects.length - 1}
+                            title="Move Project Down (Display later)"
+                            className="p-1 rounded text-slate-500 hover:text-sky-700 hover:bg-white disabled:opacity-20 disabled:hover:text-slate-500 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                          >
+                            <MoveDown size={13} />
+                          </button>
+                        </div>
+                      </td>
+
                       {/* Project Title & Location */}
                       <td className="py-3 px-4 max-w-xs">
                         <div className="flex items-start gap-3">
@@ -2039,6 +2128,35 @@ export default function ProjectsManager() {
                       <Star size={13} className={formData.isFeatured ? 'fill-white' : ''} />
                       <span>{formData.isFeatured ? 'Featured ⭐' : 'Star as Featured'}</span>
                     </button>
+                  </div>
+
+                  {/* Control 4: Display Order Priority */}
+                  <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 gap-3">
+                    <div className="text-xs min-w-0">
+                      <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                        <MoveUp size={14} className="text-sky-600" />
+                        Display Order Priority
+                      </span>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Controls card sequence on public portfolio and admin table. Lower numbers appear first.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <label className="text-xs text-slate-500 font-semibold">Position #</label>
+                      <input
+                        type="number"
+                        min="1"
+                        className="form-input text-xs font-mono font-bold py-1.5 px-3 rounded-lg w-20 text-center border-slate-300"
+                        value={formData.order || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            order: Math.max(1, parseInt(e.target.value, 10) || 1),
+                          })
+                        }
+                        placeholder="1"
+                      />
+                    </div>
                   </div>
                 </div>
               )}

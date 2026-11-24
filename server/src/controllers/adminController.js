@@ -477,7 +477,7 @@ export const getAllProjects = async (req, res, next) => {
 
     const total = await Project.countDocuments(query);
     const projects = await Project.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ order: 1, createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit))
       .lean();
@@ -560,9 +560,16 @@ export const createProject = async (req, res, next) => {
       ? serviceTitle
       : (finalServiceCategory || finalDisciplineName);
 
+    let projectOrder = req.body.order !== undefined && req.body.order !== '' ? Number(req.body.order) : 0;
+    if (!projectOrder) {
+      const maxOrderDoc = await Project.findOne().sort({ order: -1 }).select('order').lean();
+      projectOrder = (maxOrderDoc?.order || 0) + 1;
+    }
+
     const project = await Project.create({
       title,
       slug,
+      order: projectOrder,
       serviceCategory: finalServiceCategory,
       serviceTitle: finalServiceTitle,
       serviceId: serviceId && mongoose.Types.ObjectId.isValid(serviceId) ? serviceId : null,
@@ -671,6 +678,10 @@ export const updateProject = async (req, res, next) => {
       if (existingSlug) {
         updateData.slug = `${updateData.slug}-${Date.now().toString().slice(-4)}`;
       }
+    }
+
+    if (updateData.order !== undefined && updateData.order !== '') {
+      updateData.order = Number(updateData.order) || 0;
     }
 
     if (updateData.materialsUsed && (!updateData.formulation || updateData.formulation.length === 0)) {
@@ -816,6 +827,50 @@ export const initDefaultProjects = async (req, res, next) => {
       message: `Reset portfolio to ${created.length} verified engineering case studies.`,
       count: created.length,
       data: created,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// PUT /api/admin/projects/reorder
+export const reorderProjects = async (req, res, next) => {
+  try {
+    const { items } = req.body; // array of { _id, order } or { id, order }
+    if (!Array.isArray(items)) {
+      return res.status(400).json({ success: false, message: 'items array is required' });
+    }
+
+    const updates = items.map((item, index) => {
+      const projId = item._id || item.id;
+      const newOrder = typeof item.order === 'number' ? item.order : index + 1;
+      if (!projId) return Promise.resolve(null);
+      if (mongoose.Types.ObjectId.isValid(projId)) {
+        return Project.findByIdAndUpdate(projId, { order: newOrder }, { new: true });
+      } else {
+        return Project.findOneAndUpdate(
+          { $or: [{ slug: projId }, { id: projId }, { title: projId }] },
+          { order: newOrder },
+          { new: true }
+        );
+      }
+    });
+
+    await Promise.all(updates);
+
+    await logAuditEvent({
+      userId: req.user?._id,
+      userEmail: req.user?.email || 'admin@slnengineers.com',
+      action: 'UPDATE',
+      resourceType: 'Project',
+      resourceId: 'reorder',
+      description: `Reordered ${items.length} projects`,
+      req,
+    });
+
+    res.json({
+      success: true,
+      message: 'Projects reordered successfully',
     });
   } catch (error) {
     next(error);

@@ -811,6 +811,7 @@ export function normalizeProject(raw = {}, index = 0) {
     showOnHome: Boolean(raw.showOnHome),
     isFeatured: Boolean(raw.isFeatured),
     featuredUpdatedAt: Number(raw.featuredUpdatedAt) || 0,
+    order: typeof raw.order === 'number' && raw.order > 0 ? raw.order : (typeof raw.displayOrder === 'number' && raw.displayOrder > 0 ? raw.displayOrder : (index + 1)),
     customerConsentPublished: raw.customerConsentPublished !== undefined ? Boolean(raw.customerConsentPublished) : true,
   };
 }

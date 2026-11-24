@@ -141,6 +141,12 @@ export default function Portfolio() {
         .then((res) => {
           if (res.success && Array.isArray(res.data)) {
             const apiProjects = res.data.map((p, idx) => normalizeProject(p, idx));
+            apiProjects.sort((a, b) => {
+              const orderA = typeof a.order === 'number' && a.order > 0 ? a.order : 999999;
+              const orderB = typeof b.order === 'number' && b.order > 0 ? b.order : 999999;
+              if (orderA !== orderB) return orderA - orderB;
+              return new Date(b.completionDate || b.createdAt || 0) - new Date(a.completionDate || a.createdAt || 0);
+            });
             setProjects(apiProjects);
           } else {
             setProjects([]);
@@ -188,9 +194,16 @@ export default function Portfolio() {
     }
   }, [searchParams]);
 
-  // Only published projects are visible on public portfolio
+  // Only published projects are visible on public portfolio, sorted by admin order priority
   const publishedProjects = useMemo(() => {
-    return projects.filter((p) => p.isPublished);
+    return [...projects]
+      .filter((p) => p.isPublished)
+      .sort((a, b) => {
+        const orderA = typeof a.order === 'number' && a.order > 0 ? a.order : 999999;
+        const orderB = typeof b.order === 'number' && b.order > 0 ? b.order : 999999;
+        if (orderA !== orderB) return orderA - orderB;
+        return new Date(b.completionDate || b.createdAt || 0) - new Date(a.completionDate || a.createdAt || 0);
+      });
   }, [projects]);
 
   // Active Disciplines with 'All Specializations'

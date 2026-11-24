@@ -532,8 +532,14 @@ export default function Home() {
           setServices(servicesRes.data);
         }
         if (projectsRes.success && Array.isArray(projectsRes.data)) {
-          setFeaturedProjects(projectsRes.data);
-          setAllProjects(projectsRes.data);
+          const sorted = [...projectsRes.data].sort((a, b) => {
+            const orderA = typeof a.order === 'number' && a.order > 0 ? a.order : 999999;
+            const orderB = typeof b.order === 'number' && b.order > 0 ? b.order : 999999;
+            if (orderA !== orderB) return orderA - orderB;
+            return new Date(b.completionDate || b.createdAt || 0) - new Date(a.completionDate || a.createdAt || 0);
+          });
+          setFeaturedProjects(sorted);
+          setAllProjects(sorted);
         }
         if (reviewsRes.success && reviewsRes.data?.reviews) {
           setReviews(reviewsRes.data.reviews.slice(0, 3));
@@ -588,8 +594,14 @@ export default function Home() {
       fetchApi('/projects?limit=50')
         .then((res) => {
           if (res.success && Array.isArray(res.data)) {
-            setFeaturedProjects(res.data);
-            setAllProjects(res.data);
+            const sorted = [...res.data].sort((a, b) => {
+              const orderA = typeof a.order === 'number' && a.order > 0 ? a.order : 999999;
+              const orderB = typeof b.order === 'number' && b.order > 0 ? b.order : 999999;
+              if (orderA !== orderB) return orderA - orderB;
+              return new Date(b.completionDate || b.createdAt || 0) - new Date(a.completionDate || a.createdAt || 0);
+            });
+            setFeaturedProjects(sorted);
+            setAllProjects(sorted);
           }
         })
         .catch(() => {});

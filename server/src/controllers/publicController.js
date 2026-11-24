@@ -132,7 +132,7 @@ export const getPublicProjects = async (req, res, next) => {
 
     const total = await Project.countDocuments(query);
     const projects = await Project.find(query)
-      .sort({ isFeatured: -1, completionDate: -1, createdAt: -1 })
+      .sort({ order: 1, isFeatured: -1, completionDate: -1, createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
       .lean();
