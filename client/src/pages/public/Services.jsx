@@ -6,7 +6,6 @@ import {
   Building2,
   Shield,
   ShieldCheck,
-  Award,
   MessageCircle,
   Check,
   ChevronRight,
@@ -769,17 +768,15 @@ function ServiceCard({ service, whatsapp, index = 0 }) {
                 {service.description}
               </p>
 
-              {/* Badges: Standard Protocol & Compliant System */}
-              <div className="mt-2 sm:mt-2.5 flex flex-wrap items-center gap-1.5 sm:gap-2 text-[9.5px] sm:text-[10px] text-slate-500 font-medium">
-                <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-slate-600">
-                  <Check size={11} className="text-emerald-600" />
-                  {service.protocol}
-                </span>
-                <span className="inline-flex items-center gap-1 bg-sky-50 px-2 py-0.5 rounded text-sky-700 font-semibold truncate max-w-[150px] sm:max-w-none">
-                  <Award size={11} className="text-sky-600 shrink-0" />
-                  {service.standard}
-                </span>
-              </div>
+              {/* Badges: Standard Protocol */}
+              {service.protocol && (
+                <div className="mt-2 sm:mt-2.5 flex flex-wrap items-center gap-1.5 sm:gap-2 text-[9.5px] sm:text-[10px] text-slate-500 font-medium">
+                  <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-slate-600">
+                    <Check size={11} className="text-emerald-600" />
+                    {service.protocol}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Bottom "View Details" Clickable Button */}
@@ -877,13 +874,14 @@ function ServiceCard({ service, whatsapp, index = 0 }) {
                 <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed line-clamp-5">
                   {service.description}
                 </p>
-                <div className="bg-sky-50/80 border border-sky-100 rounded-lg p-2 text-[10px] flex items-center justify-between text-sky-950 font-medium">
-                  <span className="flex items-center gap-1">
-                    <ShieldCheck size={13} className="text-sky-600 shrink-0" />
-                    {service.protocol}
-                  </span>
-                  <span className="font-bold text-sky-700 truncate max-w-[50%]">{service.standard}</span>
-                </div>
+                {service.protocol && (
+                  <div className="bg-sky-50/80 border border-sky-100 rounded-lg p-2 text-[10px] flex items-center text-sky-950 font-medium">
+                    <span className="flex items-center gap-1">
+                      <ShieldCheck size={13} className="text-sky-600 shrink-0" />
+                      {service.protocol}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 
