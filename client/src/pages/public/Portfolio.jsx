@@ -67,6 +67,7 @@ export default function Portfolio() {
   const [activeModalProject, setActiveModalProject] = useState(null);
   const [activeMediaTab, setActiveMediaTab] = useState('slider'); // 'slider' | 'cover' | 'before' | 'after'
   const [lightboxImage, setLightboxImage] = useState(null); // { url, title, caption, badge }
+  const [cardMediaTab, setCardMediaTab] = useState({}); // { [projectId]: 'cover' | 'before' | 'after' }
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
@@ -725,48 +726,158 @@ export default function Portfolio() {
                     className="h-1 w-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
                   />
 
-                  {/* Top Media Area */}
-                  <div
-                    onClick={() => handleOpenProjectModal(project)}
-                    className="relative h-[210px] sm:h-[235px] w-full overflow-hidden bg-slate-900 shrink-0 cursor-pointer group/img"
-                  >
-                    <img
-                      src={project.image || project.coverImage}
-                      alt={project.title}
-                      className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500 ease-out"
-                      loading="lazy"
-                    />
+                  {/* Top Media Area with Clean HD Viewing & Multi-Photo Switching */}
+                  {(() => {
+                    const projectId = project._id || project.id;
+                    const activeTab = cardMediaTab[projectId] || 'cover';
+                    const beforeUrl = project.beforeMedia?.[0]?.url;
+                    const afterUrl = project.afterMedia?.[0]?.url;
+                    const coverUrl = project.image || project.coverImage;
 
-                    {/* Subtle Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/15 pointer-events-none" />
+                    const activeImgUrl =
+                      activeTab === 'before' && beforeUrl
+                        ? beforeUrl
+                        : activeTab === 'after' && afterUrl
+                        ? afterUrl
+                        : (coverUrl || afterUrl || beforeUrl);
 
-                    {/* Discipline Pill: Top Left */}
-                    <div className="absolute top-2.5 left-2.5 bg-slate-950/85 backdrop-blur-xs text-white text-[9px] sm:text-[9.5px] font-bold px-2 py-0.5 rounded shadow-xs uppercase tracking-wider border border-white/10 flex items-center gap-1 z-10">
-                      <span style={{ backgroundColor: accentColor }} className="w-1.5 h-1.5 rounded-full" />
-                      <span>{project.disciplineName}</span>
-                    </div>
+                    const activeCaption =
+                      activeTab === 'before'
+                        ? (project.beforeMedia?.[0]?.caption || 'Pre-treatment diagnostic evidence')
+                        : activeTab === 'after'
+                        ? (project.afterMedia?.[0]?.caption || 'Post-restoration completed outcome')
+                        : (project.materialsUsed || project.title);
 
-                    {/* Clean View Zoom Indicator on Hover */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
-                      <span className="bg-slate-950/90 text-white border border-sky-400/50 text-[11px] font-bold px-3 py-1.5 rounded-full shadow-xl flex items-center gap-1.5 backdrop-blur-xs transform translate-y-1 group-hover/img:translate-y-0 transition-transform">
-                        <Eye size={13} className="text-sky-400" />
-                        <span>View Clean Photo</span>
-                      </span>
-                    </div>
+                    const activeBadge =
+                      activeTab === 'before' ? 'BEFORE' : activeTab === 'after' ? 'AFTER' : 'COVER PHOTO';
 
-                    {/* Service Badge: Bottom Left */}
-                    {project.serviceTitle && project.serviceTitle !== project.disciplineName && (
+                    return (
                       <div
-                        style={{ backgroundColor: accentColor }}
-                        className="absolute bottom-2.5 left-2.5 text-white text-[9.5px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 rounded shadow-xs flex items-center gap-1 max-w-[85%] z-10"
+                        onClick={() => {
+                          setLightboxImage({
+                            url: activeImgUrl,
+                            title: project.title,
+                            caption: activeCaption,
+                            badge: activeBadge,
+                          });
+                        }}
+                        className="relative h-[225px] sm:h-[250px] w-full overflow-hidden bg-slate-950 shrink-0 cursor-pointer group/img select-none border-b border-slate-100"
+                        title="Click to view clean full-size photo"
                       >
-                        <ShieldCheck size={12} className="shrink-0" />
-                        <span className="truncate">
-                          {project.serviceTitle}
-                        </span>
+                        <img
+                          src={activeImgUrl}
+                          alt={project.title}
+                          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500 ease-out"
+                          loading="lazy"
+                        />
+
+                        {/* Top-Right: Quick Enlarge HD Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setLightboxImage({
+                              url: activeImgUrl,
+                              title: project.title,
+                              caption: activeCaption,
+                              badge: activeBadge,
+                            });
+                          }}
+                          className="absolute top-2.5 right-2.5 p-2 rounded-xl bg-slate-950/80 hover:bg-sky-600 text-white border border-white/20 shadow-md backdrop-blur-xs transition-colors z-20 cursor-pointer group/btn"
+                          title="View clean uncropped HD photo"
+                        >
+                          <Maximize2 size={13} className="group-hover/btn:scale-110 transition-transform" />
+                        </button>
+
+                        {/* Discipline Pill: Top Left */}
+                        <div className="absolute top-2.5 left-2.5 bg-slate-950/85 backdrop-blur-xs text-white text-[9px] sm:text-[9.5px] font-bold px-2 py-0.5 rounded shadow-xs uppercase tracking-wider border border-white/10 flex items-center gap-1 z-10 pointer-events-none">
+                          <span style={{ backgroundColor: accentColor }} className="w-1.5 h-1.5 rounded-full" />
+                          <span>{project.disciplineName}</span>
+                        </div>
+
+                        {/* Clean View Center Indicator on Hover */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity duration-200 z-10 pointer-events-none bg-black/30 backdrop-blur-[1px]">
+                          <span className="bg-slate-950/95 text-white border border-sky-400/60 text-xs font-bold px-3.5 py-1.5 rounded-full shadow-2xl flex items-center gap-1.5 transform translate-y-1 group-hover/img:translate-y-0 transition-transform">
+                            <Maximize2 size={13} className="text-sky-400" />
+                            <span>View Clean HD Photo</span>
+                          </span>
+                        </div>
+
+                        {/* Bottom Bar: Service Badge + Quick Media Switcher Tabs (Cover / Before / After) */}
+                        <div className="absolute bottom-2.5 inset-x-2.5 flex items-center justify-between gap-1.5 z-10">
+                          {project.serviceTitle && project.serviceTitle !== project.disciplineName ? (
+                            <div
+                              style={{ backgroundColor: accentColor }}
+                              className="text-white text-[9.5px] font-bold px-2 py-0.5 rounded shadow-xs flex items-center gap-1 max-w-[55%] truncate pointer-events-none"
+                            >
+                              <ShieldCheck size={11} className="shrink-0" />
+                              <span className="truncate">{project.serviceTitle}</span>
+                            </div>
+                          ) : (
+                            <div />
+                          )}
+
+                          {/* Quick switcher pills if Before or After photo exists */}
+                          {(beforeUrl || afterUrl) && (
+                            <div
+                              className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-slate-950/85 border border-white/15 backdrop-blur-xs"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCardMediaTab((prev) => ({ ...prev, [projectId]: 'cover' }));
+                                }}
+                                className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase transition-colors cursor-pointer ${
+                                  activeTab === 'cover'
+                                    ? 'bg-sky-600 text-white shadow-xs'
+                                    : 'text-slate-300 hover:text-white'
+                                }`}
+                                title="View Cover Photo"
+                              >
+                                Cover
+                              </button>
+                              {beforeUrl && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCardMediaTab((prev) => ({ ...prev, [projectId]: 'before' }));
+                                  }}
+                                  className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase transition-colors cursor-pointer ${
+                                    activeTab === 'before'
+                                      ? 'bg-rose-600 text-white shadow-xs'
+                                      : 'text-slate-300 hover:text-white'
+                                  }`}
+                                  title="View Before Photo"
+                                >
+                                  Before
+                                </button>
+                              )}
+                              {afterUrl && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCardMediaTab((prev) => ({ ...prev, [projectId]: 'after' }));
+                                  }}
+                                  className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase transition-colors cursor-pointer ${
+                                    activeTab === 'after'
+                                      ? 'bg-emerald-600 text-white shadow-xs'
+                                      : 'text-slate-300 hover:text-white'
+                                  }`}
+                                  title="View After Photo"
+                                >
+                                  After
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()}
 
                   {/* Card Body */}
                   <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">

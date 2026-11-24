@@ -39,6 +39,7 @@ import {
   Play,
   Pause,
   ArrowUp,
+  Maximize2,
 } from 'lucide-react';
 import BeforeAfterSlider from '../../components/common/BeforeAfterSlider';
 import { openInspectionModal } from '../../components/common/InspectionModal';
@@ -289,6 +290,32 @@ export default function Home() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [contentReady, setContentReady] = useState(false);
   const [activeModalProject, setActiveModalProject] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
+  const [cardMediaTab, setCardMediaTab] = useState({});
+
+  // Prevent background scroll when modal or lightbox is active
+  useEffect(() => {
+    if (activeModalProject || lightboxImage) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [activeModalProject, lightboxImage]);
+
+  // Escape key to close modal or lightbox
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (lightboxImage) setLightboxImage(null);
+        else if (activeModalProject) setActiveModalProject(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxImage, activeModalProject]);
 
   // Dynamic Horizontal Discipline Pillar Cards (Managed via Admin > Pillar Cards)
   const [pillarCards, setPillarCards] = useState(DEFAULT_PILLAR_CARDS);
@@ -2356,30 +2383,135 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {displayFeaturedProjects.map((project, idx) => {
-              const projectImg =
-                project.image ||
-                project.coverImage ||
-                project.afterMedia?.[0]?.url ||
-                'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80';
+              const projectId = project._id || project.id || idx;
+              const activeTab = cardMediaTab[projectId] || 'cover';
+              const beforeUrl = project.beforeMedia?.[0]?.url;
+              const afterUrl = project.afterMedia?.[0]?.url;
+              const coverUrl = project.image || project.coverImage;
+
+              const activeImgUrl =
+                activeTab === 'before' && beforeUrl
+                  ? beforeUrl
+                  : activeTab === 'after' && afterUrl
+                  ? afterUrl
+                  : (coverUrl || afterUrl || beforeUrl || 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80');
+
+              const activeCaption =
+                activeTab === 'before'
+                  ? (project.beforeMedia?.[0]?.caption || 'Before Restoration Treatment')
+                  : activeTab === 'after'
+                  ? (project.afterMedia?.[0]?.caption || 'After Engineering Restoration')
+                  : (project.materialsUsed || project.title);
+
+              const activeBadge =
+                activeTab === 'before' ? 'BEFORE' : activeTab === 'after' ? 'AFTER' : 'COVER PHOTO';
 
               return (
                 <div
-                  key={project._id || project.id || idx}
+                  key={projectId}
                   className={`bg-white rounded-xl border border-slate-200/90 shadow-xs hover:shadow-xl transition-all flex flex-col justify-between overflow-hidden card-interactive-3d scroll-reveal-card stagger-${(idx % 3) + 1}`}
                 >
                   <div
-                    onClick={() => setActiveModalProject(project)}
-                    className="relative aspect-[16/10] bg-slate-100 overflow-hidden img-zoom-container cursor-pointer group"
-                    title="Click to view technical case study"
+                    onClick={() => {
+                      setLightboxImage({
+                        url: activeImgUrl,
+                        title: project.title,
+                        caption: activeCaption,
+                        badge: activeBadge,
+                      });
+                    }}
+                    className="relative aspect-[16/10] bg-slate-950 overflow-hidden cursor-pointer group/img select-none"
+                    title="Click to view clean full-size photo"
                   >
                     <img
-                      src={projectImg}
+                      src={activeImgUrl}
                       alt={project.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-105"
+                      loading="lazy"
                     />
-                    <div className="absolute top-2.5 left-2.5 bg-slate-900/85 backdrop-blur-xs border border-white/20 rounded px-2 py-0.5 text-[9.5px] font-bold text-white shadow-xs uppercase tracking-wider">
+
+                    {/* Top-Right: Quick Enlarge HD Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLightboxImage({
+                          url: activeImgUrl,
+                          title: project.title,
+                          caption: activeCaption,
+                          badge: activeBadge,
+                        });
+                      }}
+                      className="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-slate-950/80 hover:bg-sky-600 text-white border border-white/20 shadow-md backdrop-blur-xs transition-colors z-20 cursor-pointer"
+                      title="View clean uncropped HD photo"
+                    >
+                      <Maximize2 size={12} />
+                    </button>
+
+                    {/* Discipline Pill: Top Left */}
+                    <div className="absolute top-2.5 left-2.5 bg-slate-950/85 backdrop-blur-xs border border-white/20 rounded px-2 py-0.5 text-[9.5px] font-bold text-white shadow-xs uppercase tracking-wider z-10 pointer-events-none">
                       {project.disciplineName || project.disciplineId || 'Waterproofing Solutions'}
                     </div>
+
+                    {/* Clean View Center Indicator on Hover */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity duration-200 z-10 pointer-events-none bg-black/30 backdrop-blur-[1px]">
+                      <span className="bg-slate-950/95 text-white border border-sky-400/60 text-[11px] font-bold px-3 py-1.5 rounded-full shadow-2xl flex items-center gap-1.5">
+                        <Maximize2 size={12} className="text-sky-400" />
+                        <span>View Clean HD Photo</span>
+                      </span>
+                    </div>
+
+                    {/* Bottom Media Switcher if Before / After exists */}
+                    {(beforeUrl || afterUrl) && (
+                      <div
+                        className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1 p-0.5 rounded-lg bg-slate-950/85 border border-white/15 backdrop-blur-xs z-10"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCardMediaTab((prev) => ({ ...prev, [projectId]: 'cover' }));
+                          }}
+                          className={`px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase transition-colors cursor-pointer ${
+                            activeTab === 'cover' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-300 hover:text-white'
+                          }`}
+                          title="View Cover Photo"
+                        >
+                          Cover
+                        </button>
+                        {beforeUrl && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCardMediaTab((prev) => ({ ...prev, [projectId]: 'before' }));
+                            }}
+                            className={`px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase transition-colors cursor-pointer ${
+                              activeTab === 'before' ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-300 hover:text-white'
+                            }`}
+                            title="View Before Photo"
+                          >
+                            Before
+                          </button>
+                        )}
+                        {afterUrl && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCardMediaTab((prev) => ({ ...prev, [projectId]: 'after' }));
+                            }}
+                            className={`px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase transition-colors cursor-pointer ${
+                              activeTab === 'after' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-300 hover:text-white'
+                            }`}
+                            title="View After Photo"
+                          >
+                            After
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
                     <div onClick={() => setActiveModalProject(project)} className="cursor-pointer">
@@ -2813,6 +2945,82 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* FULLSCREEN PRISTINE CLEAN LIGHTBOX */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6 animate-in fade-in duration-200"
+          onClick={() => setLightboxImage(null)}
+        >
+          {/* Top Bar */}
+          <div
+            className="flex items-center justify-between text-white max-w-7xl mx-auto w-full z-10 shrink-0 mb-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 truncate pr-4">
+              {lightboxImage.badge && (
+                <span
+                  className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                    lightboxImage.badge === 'BEFORE'
+                      ? 'bg-rose-600 text-white'
+                      : lightboxImage.badge === 'AFTER'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-sky-600 text-white'
+                  }`}
+                >
+                  {lightboxImage.badge}
+                </span>
+              )}
+              <span className="font-bold text-sm sm:text-base text-slate-100 truncate">
+                {lightboxImage.title}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href={lightboxImage.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Open raw image in new tab"
+              >
+                <ExternalLink size={15} />
+                <span className="hidden sm:inline">Open Original</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setLightboxImage(null)}
+                className="p-2 rounded-full bg-white/10 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                title="Close Lightbox (Esc)"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Clean Uncropped Image Center */}
+          <div
+            className="flex-1 flex items-center justify-center min-h-0 w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={lightboxImage.url}
+              alt={lightboxImage.caption || lightboxImage.title}
+              className="max-h-[82vh] max-w-[96vw] object-contain rounded-xl shadow-2xl select-none"
+            />
+          </div>
+
+          {/* Bottom Caption Bar */}
+          {lightboxImage.caption && (
+            <div
+              className="max-w-2xl mx-auto w-full text-center text-xs sm:text-sm text-slate-300 bg-slate-900/80 border border-white/10 px-4 py-2 rounded-full backdrop-blur-sm z-10 shrink-0 mt-2 truncate"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {lightboxImage.caption}
+            </div>
+          )}
         </div>
       )}
 
