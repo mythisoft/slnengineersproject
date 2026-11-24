@@ -696,15 +696,17 @@ export default function Portfolio() {
                     </div>
 
                     {/* Service Badge: Bottom Left */}
-                    <div
-                      style={{ backgroundColor: accentColor }}
-                      className="absolute bottom-2.5 left-2.5 text-white text-[9.5px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 rounded shadow-xs flex items-center gap-1 max-w-[85%]"
-                    >
-                      <ShieldCheck size={12} className="shrink-0" />
-                      <span className="truncate">
-                        {project.serviceTitle || project.serviceCategory}
-                      </span>
-                    </div>
+                    {project.serviceTitle && project.serviceTitle !== project.disciplineName && (
+                      <div
+                        style={{ backgroundColor: accentColor }}
+                        className="absolute bottom-2.5 left-2.5 text-white text-[9.5px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 rounded shadow-xs flex items-center gap-1 max-w-[85%]"
+                      >
+                        <ShieldCheck size={12} className="shrink-0" />
+                        <span className="truncate">
+                          {project.serviceTitle}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Card Body */}
@@ -863,10 +865,14 @@ export default function Portfolio() {
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider bg-sky-100 text-sky-800">
                   {activeModalProject.disciplineName}
                 </span>
-                <span className="text-slate-300">•</span>
-                <span className="text-xs font-bold text-slate-600 truncate max-w-[240px]">
-                  {activeModalProject.serviceTitle || activeModalProject.serviceCategory}
-                </span>
+                {activeModalProject.serviceTitle && activeModalProject.serviceTitle !== activeModalProject.disciplineName && (
+                  <>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-xs font-bold text-slate-600 truncate max-w-[240px]">
+                      {activeModalProject.serviceTitle}
+                    </span>
+                  </>
+                )}
               </div>
 
               <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">

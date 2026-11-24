@@ -717,7 +717,13 @@ export function normalizeProject(raw = {}, index = 0) {
 
   const disciplineId =
     raw.disciplineId ||
-    (raw.serviceCategory && String(raw.serviceCategory).toLowerCase().includes('paint')
+    (raw.disciplineName && String(raw.disciplineName).toLowerCase().includes('paint')
+      ? 'painting'
+      : raw.disciplineName && String(raw.disciplineName).toLowerCase().includes('repair')
+      ? 'repairs'
+      : raw.disciplineName && String(raw.disciplineName).toLowerCase().includes('ceil')
+      ? 'false-ceiling'
+      : raw.serviceCategory && String(raw.serviceCategory).toLowerCase().includes('paint')
       ? 'painting'
       : raw.serviceCategory && String(raw.serviceCategory).toLowerCase().includes('repair')
       ? 'repairs'
@@ -734,6 +740,16 @@ export function normalizeProject(raw = {}, index = 0) {
       : disciplineId === 'false-ceiling'
       ? 'False Ceiling & Interior Work'
       : 'Waterproofing Solutions');
+
+  const serviceCategory =
+    (raw.serviceCategory && (disciplineId === 'waterproofing' || !String(raw.serviceCategory).toLowerCase().includes('waterproof')))
+      ? raw.serviceCategory
+      : disciplineName;
+
+  const serviceTitle =
+    (raw.serviceTitle && (disciplineId === 'waterproofing' || !String(raw.serviceTitle).toLowerCase().includes('waterproof')))
+      ? raw.serviceTitle
+      : (serviceCategory || disciplineName);
 
   const image =
     raw.image ||
@@ -771,8 +787,8 @@ export function normalizeProject(raw = {}, index = 0) {
     title,
     disciplineId,
     disciplineName,
-    serviceCategory: raw.serviceCategory || raw.serviceTitle || 'Civil Engineering Service',
-    serviceTitle: raw.serviceTitle || raw.serviceCategory || title,
+    serviceCategory,
+    serviceTitle,
     location: raw.location || 'Hyderabad, Telangana',
     clientReference: raw.clientReference || 'Commercial / Residential Property',
     completionDate: raw.completionDate || new Date().toISOString(),

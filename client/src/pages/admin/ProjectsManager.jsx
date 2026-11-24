@@ -208,8 +208,8 @@ export default function ProjectsManager() {
     title: '',
     disciplineId: 'waterproofing',
     disciplineName: 'Waterproofing Solutions',
-    serviceCategory: 'Waterproofing Solutions',
-    serviceTitle: 'Waterproofing Solutions',
+    serviceCategory: '',
+    serviceTitle: '',
     serviceId: '',
     location: 'Hyderabad, Telangana',
     clientReference: '',
@@ -521,12 +521,27 @@ export default function ProjectsManager() {
     const showOnHome = isLive ? Boolean(formData.showOnHome) : false;
     const isFeatured = isLive ? Boolean(formData.isFeatured) : false;
 
+    const activeDiscName = targetDisc ? targetDisc.name : (formData.disciplineName || 'Waterproofing Solutions');
+    const activeDiscId = targetDisc ? (targetDisc.slug || targetDisc.id) : (formData.disciplineId || 'waterproofing');
+
+    const cleanServiceCategory =
+      formData.serviceCategory &&
+      (activeDiscId === 'waterproofing' || !String(formData.serviceCategory).toLowerCase().includes('waterproof'))
+        ? formData.serviceCategory
+        : activeDiscName;
+
+    const cleanServiceTitle =
+      formData.serviceTitle &&
+      (activeDiscId === 'waterproofing' || !String(formData.serviceTitle).toLowerCase().includes('waterproof'))
+        ? formData.serviceTitle
+        : activeDiscName;
+
     const payload = {
       ...formData,
-      serviceCategory: formData.serviceCategory || (targetDisc ? targetDisc.name : 'Waterproofing Solutions'),
-      serviceTitle: formData.serviceTitle || formData.serviceCategory || (targetDisc ? targetDisc.name : 'Waterproofing Solutions'),
-      disciplineId: targetDisc ? (targetDisc.slug || targetDisc.id) : formData.disciplineId,
-      disciplineName: targetDisc ? targetDisc.name : formData.disciplineName,
+      serviceCategory: cleanServiceCategory,
+      serviceTitle: cleanServiceTitle,
+      disciplineId: activeDiscId,
+      disciplineName: activeDiscName,
       materialsUsed: finalMaterialsUsed,
       formulation: formulationClean,
       image: finalImage,

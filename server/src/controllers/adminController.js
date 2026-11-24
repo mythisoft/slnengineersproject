@@ -543,14 +543,30 @@ export const createProject = async (req, res, next) => {
       ? materialsUsed.split(/[,•\n]+/).map((s) => s.trim()).filter(Boolean)
       : [];
 
+    const finalDisciplineId = disciplineId || 'waterproofing';
+    const finalDisciplineName = disciplineName || (
+      finalDisciplineId === 'painting' ? 'Interior & Exterior Painting' :
+      finalDisciplineId === 'repairs' ? 'Building Repairs & Restoration' :
+      finalDisciplineId === 'false-ceiling' ? 'False Ceiling & Interior Work' :
+      'Waterproofing Solutions'
+    );
+
+    const finalServiceCategory = (serviceCategory && (finalDisciplineId === 'waterproofing' || !String(serviceCategory).toLowerCase().includes('waterproof')))
+      ? serviceCategory
+      : finalDisciplineName;
+
+    const finalServiceTitle = (serviceTitle && (finalDisciplineId === 'waterproofing' || !String(serviceTitle).toLowerCase().includes('waterproof')))
+      ? serviceTitle
+      : (finalServiceCategory || finalDisciplineName);
+
     const project = await Project.create({
       title,
       slug,
-      serviceCategory: serviceCategory || serviceTitle || 'Terrace and roof waterproofing',
-      serviceTitle: serviceTitle || serviceCategory || title,
+      serviceCategory: finalServiceCategory,
+      serviceTitle: finalServiceTitle,
       serviceId: serviceId || null,
-      disciplineId: disciplineId || 'waterproofing',
-      disciplineName: disciplineName || 'Waterproofing Solutions',
+      disciplineId: finalDisciplineId,
+      disciplineName: finalDisciplineName,
       location: location || 'Hyderabad, Telangana',
       clientReference: clientReference || 'Commercial / Residential Property',
       problemDescription: problemDescription || '',
@@ -629,11 +645,19 @@ export const updateProject = async (req, res, next) => {
       updateData.image = updateData.coverImage;
     }
 
-    if (!updateData.serviceCategory) {
-      updateData.serviceCategory = updateData.serviceTitle || updateData.disciplineName || 'Waterproofing Solutions';
+    const discId = updateData.disciplineId || 'waterproofing';
+    const discName = updateData.disciplineName || (
+      discId === 'painting' ? 'Interior & Exterior Painting' :
+      discId === 'repairs' ? 'Building Repairs & Restoration' :
+      discId === 'false-ceiling' ? 'False Ceiling & Interior Work' :
+      'Waterproofing Solutions'
+    );
+
+    if (!updateData.serviceCategory || (discId !== 'waterproofing' && String(updateData.serviceCategory).toLowerCase().includes('waterproof'))) {
+      updateData.serviceCategory = discName;
     }
-    if (!updateData.serviceTitle) {
-      updateData.serviceTitle = updateData.serviceCategory || updateData.disciplineName || updateData.title || '';
+    if (!updateData.serviceTitle || (discId !== 'waterproofing' && String(updateData.serviceTitle).toLowerCase().includes('waterproof'))) {
+      updateData.serviceTitle = updateData.serviceCategory || discName;
     }
 
     if (updateData.showOnHome === true) {
