@@ -273,7 +273,14 @@ export default function Services() {
 
     const observeNew = () => {
       document.querySelectorAll(revealSelectors).forEach((el) => {
-        if (!el.classList.contains('is-revealed')) observer.observe(el);
+        if (!el.classList.contains('is-revealed')) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top < window.innerHeight + 100) {
+            el.classList.add('is-revealed');
+          } else {
+            observer.observe(el);
+          }
+        }
       });
     };
 
@@ -284,7 +291,7 @@ export default function Services() {
       window.cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, [activeDiscipline]);
+  }, [activeDiscipline, loadingServices, publishedServices]);
 
   const phone = settings?.phone || '+91 8977668776';
   const whatsapp = settings?.whatsappNumber || '+918977668776';
@@ -296,10 +303,7 @@ export default function Services() {
   // Get dynamic filtered disciplines from state (reflects admin changes in real time)
   const activeDisciplinesList = useMemo(() => {
     if (activeDiscipline === 'all') {
-      const withServices = activeDisciplines.filter((d) =>
-        publishedServices.some((s) => matchesDiscipline(s, d))
-      );
-      return withServices.length > 0 ? withServices : activeDisciplines;
+      return activeDisciplines;
     }
     return activeDisciplines.filter(
       (d) =>
@@ -307,7 +311,7 @@ export default function Services() {
         d.id === activeDiscipline ||
         d.slug === activeDiscipline
     );
-  }, [activeDisciplines, activeDiscipline, publishedServices]);
+  }, [activeDisciplines, activeDiscipline]);
 
   // Find any orphan services that don't match active discipline pillars
   const orphanServices = useMemo(() => {

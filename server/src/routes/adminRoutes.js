@@ -11,6 +11,7 @@ import {
   createProject,
   updateProject,
   deleteProject,
+  initDefaultProjects,
   getAllEnquiries,
   updateEnquiry,
   deleteEnquiry,
@@ -206,6 +207,7 @@ router.post('/projects/upload', protect, authorize('superadmin', 'admin'), image
   res.status(201).json({ success: true, data: { url } });
 }));
 router.post('/projects', protect, authorize('superadmin', 'admin'), createProject);
+router.post('/projects/init-defaults', protect, authorize('superadmin', 'admin'), initDefaultProjects);
 router.put('/projects/:id', protect, authorize('superadmin', 'admin'), updateProject);
 router.delete('/projects/:id', protect, authorize('superadmin', 'admin'), deleteProject);
 

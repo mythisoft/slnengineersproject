@@ -36,6 +36,7 @@ import {
   DEFAULT_PROJECTS_HERO,
   renderDisciplineIcon,
   matchesDiscipline,
+  normalizeDiscipline,
 } from '../../utils/servicesData';
 import {
   DEFAULT_PROJECTS,
@@ -52,8 +53,10 @@ export default function Portfolio() {
 
   const [heroContent, setHeroContent] = useState(DEFAULT_PROJECTS_HERO);
 
-  // Projects State from MongoDB API
-  const [projects, setProjects] = useState([]);
+  // Projects State from MongoDB API with instant verified default fallback
+  const [projects, setProjects] = useState(() =>
+    DEFAULT_PROJECTS.map((p, idx) => normalizeProject(p, idx))
+  );
 
   // Filters State
   const [selectedDiscipline, setSelectedDiscipline] = useState('all');
@@ -96,7 +99,7 @@ export default function Portfolio() {
     fetchApi('/disciplines')
       .then((res) => {
         if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-          setDisciplines(res.data);
+          setDisciplines(res.data.map((d, idx) => normalizeDiscipline(d, idx)));
         }
       })
       .catch(() => {});
@@ -114,12 +117,17 @@ export default function Portfolio() {
     const loadProjects = () => {
       fetchApi('/projects?limit=100')
         .then((res) => {
-          if (res.success && Array.isArray(res.data)) {
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
             const apiProjects = res.data.map((p, idx) => normalizeProject(p, idx));
             setProjects(apiProjects);
+          } else {
+            setProjects(DEFAULT_PROJECTS.map((p, idx) => normalizeProject(p, idx)));
           }
         })
-        .catch((e) => console.error('Projects fetch error:', e));
+        .catch((e) => {
+          console.error('Projects fetch error:', e);
+          setProjects(DEFAULT_PROJECTS.map((p, idx) => normalizeProject(p, idx)));
+        });
     };
 
     loadProjects();
@@ -138,11 +146,15 @@ export default function Portfolio() {
     const disciplineParam = searchParams.get('discipline');
     const serviceParam = searchParams.get('service') || searchParams.get('category');
 
-    if (disciplineParam) {
+    if (disciplineParam && disciplineParam !== 'all') {
       setSelectedDiscipline(disciplineParam.toLowerCase().trim());
+    } else {
+      setSelectedDiscipline('all');
     }
-    if (serviceParam) {
+    if (serviceParam && serviceParam !== 'all') {
       setSelectedService(serviceParam.trim());
+    } else {
+      setSelectedService('all');
     }
   }, [searchParams]);
 
@@ -162,7 +174,7 @@ export default function Portfolio() {
         icon: 'Grid',
         accentColor: '#0284c7',
       },
-      ...disciplines,
+      ...disciplines.filter((d) => d.isActive !== false),
     ];
   }, [disciplines]);
 
@@ -242,7 +254,14 @@ export default function Portfolio() {
 
     const observeNew = () => {
       document.querySelectorAll(revealSelectors).forEach((el) => {
-        if (!el.classList.contains('is-revealed')) observer.observe(el);
+        if (!el.classList.contains('is-revealed')) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top < window.innerHeight + 100) {
+            el.classList.add('is-revealed');
+          } else {
+            observer.observe(el);
+          }
+        }
       });
     };
 
@@ -253,7 +272,7 @@ export default function Portfolio() {
       window.cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, [selectedDiscipline, selectedService, searchQuery]);
+  }, [selectedDiscipline, selectedService, searchQuery, projects]);
 
   const phone = settings?.phone || '+91 8977668776';
   const whatsapp = settings?.whatsappNumber || '+918977668776';
@@ -432,9 +451,14 @@ export default function Portfolio() {
                 <div
                   key={disc.id || disc.slug}
                   onClick={() => {
-                    const targetSlug = disc.slug || disc.id;
-                    setSelectedDiscipline(isSelected ? 'all' : targetSlug);
+                    const targetSlug = isSelected ? 'all' : (disc.slug || disc.id);
+                    setSelectedDiscipline(targetSlug);
                     setSelectedService('all');
+                    if (targetSlug === 'all') {
+                      setSearchParams({}, { replace: true });
+                    } else {
+                      setSearchParams({ discipline: targetSlug }, { replace: true });
+                    }
                     const el = document.getElementById('projects-grid');
                     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }}

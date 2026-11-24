@@ -762,6 +762,21 @@ export const deleteProject = async (req, res, next) => {
   }
 };
 
+export const initDefaultProjects = async (req, res, next) => {
+  try {
+    await Project.deleteMany({});
+    const created = await Project.insertMany(DEFAULT_PROJECTS);
+    res.json({
+      success: true,
+      message: `Reset portfolio to ${created.length} verified engineering case studies.`,
+      count: created.length,
+      data: created,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ==================== ENQUIRIES CRUD ====================
 export const getAllEnquiries = async (req, res, next) => {
   try {

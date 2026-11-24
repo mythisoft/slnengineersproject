@@ -744,12 +744,25 @@ export default function ProjectsManager() {
   };
 
   // Reset to default verified projects
-  const handleResetDefaults = () => {
+  const handleResetDefaults = async () => {
     if (!window.confirm('Reset portfolio to the 12 standard SLN verified engineering case studies?')) return;
     setResetting(true);
-    commitProjectsState(DEFAULT_PROJECTS);
-    showToast('Portfolio reset to 12 verified engineering case studies!');
-    setResetting(false);
+    try {
+      const res = await fetchApi('/admin/projects/init-defaults', { method: 'POST' });
+      if (res.success) {
+        showToast('Portfolio reset to 12 verified engineering case studies!');
+        loadProjects();
+        window.dispatchEvent(new CustomEvent('sln_projects_updated'));
+      } else {
+        commitProjectsState(DEFAULT_PROJECTS);
+        showToast('Portfolio reset to 12 verified engineering case studies!');
+      }
+    } catch (e) {
+      commitProjectsState(DEFAULT_PROJECTS);
+      showToast('Portfolio reset to 12 verified engineering case studies!');
+    } finally {
+      setResetting(false);
+    }
   };
 
   // Generate QR Code for Review

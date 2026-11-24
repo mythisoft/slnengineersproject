@@ -250,6 +250,11 @@ export function matchesDiscipline(service, discipline) {
   if (dName && (sDiscName === dName || norm(sDiscName) === norm(dName))) return true;
   if (sDiscName && (sDiscName === dSlug || sDiscName === dId || norm(sDiscName) === norm(dSlug) || norm(sDiscName) === norm(dId))) return true;
 
+  if (targetId === 'waterproofing' && (sDiscId.includes('waterproof') || sDiscName.includes('waterproof'))) return true;
+  if (targetId === 'painting' && (sDiscId.includes('paint') || sDiscName.includes('paint'))) return true;
+  if (targetId === 'repairs' && (sDiscId.includes('repair') || sDiscId.includes('restor') || sDiscName.includes('repair') || sDiscName.includes('restor'))) return true;
+  if ((targetId === 'false-ceiling' || targetId === 'ceiling') && (sDiscId.includes('ceil') || sDiscName.includes('ceil'))) return true;
+
   return false;
 }
 
