@@ -19,6 +19,7 @@ import {
 import { InstagramIcon, FacebookIcon, YoutubeIcon } from './SocialIcons';
 import { fetchApi } from '../../utils/api';
 import { DEFAULT_PILLAR_CARDS } from '../../utils/pillarCardData';
+import { DEFAULT_FOOTER_SPECIALIZED_SERVICES } from '../admin/FooterServicesManager';
 
 export const DEFAULT_DEVELOPER_CREDIT = {
   isEnabled: true,
@@ -45,6 +46,14 @@ export default function Footer() {
     ...DEFAULT_DEVELOPER_CREDIT,
     ...(settings?.footerDeveloperCredit || {}),
   };
+
+  const footerServicesConfig = settings?.footerSpecializedServices || DEFAULT_FOOTER_SPECIALIZED_SERVICES;
+  const footerServicesHeading = footerServicesConfig.heading || 'Specialized Services';
+  const footerServicesLinks = (footerServicesConfig.links || DEFAULT_FOOTER_SPECIALIZED_SERVICES.links).filter(
+    (l) => l.isActive !== false
+  );
+  const footerViewAllText = footerServicesConfig.viewAllText !== undefined ? footerServicesConfig.viewAllText : 'View All 14+ Specialized Services';
+  const footerViewAllLink = footerServicesConfig.viewAllLink || '/services';
 
   // Close logo modal on Escape key press
   useEffect(() => {
@@ -338,34 +347,37 @@ export default function Footer() {
             {/* Specialized Engineering Solutions list with clean, aligned bullets */}
             <div className="pt-3 border-t border-slate-800">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2.5">
-                Specialized Services
+                {footerServicesHeading}
               </span>
               <ul className="space-y-2 text-xs text-slate-400">
-                {[
-                  { name: 'Terrace & Roof Waterproofing', disc: 'waterproofing' },
-                  { name: 'Basement & Deep Tanking', disc: 'waterproofing' },
-                  { name: 'Structural Crack Stitching & Grouting', disc: 'repairs' },
-                  { name: 'Concrete Spalling Rehabilitation', disc: 'repairs' },
-                  { name: 'Exterior Monsoon Weather-Shield Painting', disc: 'painting' },
-                ].map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      to={`/services?discipline=${encodeURIComponent(item.disc)}&category=${encodeURIComponent(item.name)}`}
-                      className="group flex items-start gap-2.5 text-slate-400 hover:text-sky-300 transition-colors py-0.5"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-500 group-hover:bg-sky-400 transition-colors shrink-0 mt-1.5" />
-                      <span className="leading-snug text-slate-300 group-hover:text-sky-300">{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
+                {footerServicesLinks.map((item) => {
+                  const targetUrl =
+                    item.url ||
+                    `/services?discipline=${encodeURIComponent(item.disc || 'waterproofing')}&category=${encodeURIComponent(
+                      item.category || item.name
+                    )}`;
+                  return (
+                    <li key={item.id || item.name}>
+                      <Link
+                        to={targetUrl}
+                        className="group flex items-start gap-2.5 text-slate-400 hover:text-sky-300 transition-colors py-0.5"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500 group-hover:bg-sky-400 transition-colors shrink-0 mt-1.5" />
+                        <span className="leading-snug text-slate-300 group-hover:text-sky-300">{item.name}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
-              <Link
-                to="/services"
-                className="group inline-flex items-center gap-1.5 text-xs font-bold text-sky-400 hover:text-sky-300 transition-colors mt-3"
-              >
-                <span>View All 14+ Specialized Services</span>
-                <ChevronRight size={13} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
+              {footerViewAllText && (
+                <Link
+                  to={footerViewAllLink}
+                  className="group inline-flex items-center gap-1.5 text-xs font-bold text-sky-400 hover:text-sky-300 transition-colors mt-3"
+                >
+                  <span>{footerViewAllText}</span>
+                  <ChevronRight size={13} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+              )}
             </div>
           </div>
 

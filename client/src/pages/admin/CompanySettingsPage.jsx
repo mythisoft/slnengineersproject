@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Settings, Save, CheckCircle, Shield, ShieldCheck, Upload, Palette, RotateCcw, Eye, ArrowRight, Menu, PhoneCall, Code2, Trash2, ExternalLink } from 'lucide-react';
 import { fetchApi } from '../../utils/api';
+import FooterServicesManager from '../../components/admin/FooterServicesManager';
 
 const COLOR_PRESETS = [
   { label: 'SLN Green', value: '#029746' },
@@ -186,6 +187,28 @@ export default function CompanySettingsPage() {
           className="btn btn-secondary btn-sm text-xs flex items-center gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer font-bold"
         >
           <span>Configure Credit</span>
+          <ArrowRight size={13} />
+        </a>
+      </div>
+
+      {/* Quick Jump to Footer Specialized Services Links (CRUD) */}
+      <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#029746] text-white flex items-center justify-center shrink-0 shadow-xs">
+            <ExternalLink size={20} />
+          </div>
+          <div>
+            <div className="font-bold text-slate-900 text-xs">Footer Specialized Services Links (CRUD)</div>
+            <div className="text-[11px] text-slate-600 mt-0.5">
+              Manage the 5 Specialized Services links, custom URLs, active toggles, and "View All 14+ Specialized Services" CTA in the public footer.
+            </div>
+          </div>
+        </div>
+        <a
+          href="#footer-specialized-services"
+          className="btn btn-primary btn-sm text-xs flex items-center gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer font-bold"
+        >
+          <span>Manage Footer Links</span>
           <ArrowRight size={13} />
         </a>
       </div>
@@ -791,6 +814,11 @@ export default function CompanySettingsPage() {
           </button>
         </div>
       </form>
+
+      {/* Footer Specialized Services Links Manager (Full CRUD) */}
+      <div id="footer-specialized-services" className="space-y-4 pt-4">
+        <FooterServicesManager />
+      </div>
     </div>
   );
 }

@@ -43,6 +43,7 @@ import {
 import { Link } from 'react-router-dom';
 import BeforeAfterSlider from '../../components/common/BeforeAfterSlider';
 import { fetchApi } from '../../utils/api';
+import FooterServicesManager from '../../components/admin/FooterServicesManager';
 import {
   DEFAULT_DISCIPLINES,
   DEFAULT_SERVICES,
@@ -918,7 +919,9 @@ export default function ServicesManager() {
                 ? `${services.length} Services`
                 : activeTab === 'disciplines'
                 ? `${disciplines.length} Disciplines`
-                : 'Hero & Copy'}
+                : activeTab === 'page-content'
+                ? 'Hero & Copy'
+                : 'Footer Links'}
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1 max-w-2xl">
@@ -926,7 +929,9 @@ export default function ServicesManager() {
               ? 'Manage and customize individual engineering services, names, technical specs, and deliverables.'
               : activeTab === 'disciplines'
               ? 'Add, rename, reorder, or customize the Specialized Disciplines (the core section banners, certified tags, and descriptions on /services).'
-              : 'Manage the hero banner badge, main headline, engineering description, call-to-actions, and catalog headings for the public Services page.'}
+              : activeTab === 'page-content'
+              ? 'Manage the hero banner badge, main headline, engineering description, call-to-actions, and catalog headings for the public Services page.'
+              : 'Add, edit, reorder, and configure the Specialized Services quick links displayed in the public website footer.'}
           </p>
         </div>
 
@@ -1058,6 +1063,19 @@ export default function ServicesManager() {
         >
           <Sparkles size={15} />
           <span>Page Header & Copy</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('footer-links')}
+          className={`py-2.5 px-4 text-xs font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+            activeTab === 'footer-links'
+              ? 'border-sky-600 text-sky-800'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <ExternalLink size={15} />
+          <span>Footer Specialized Services (CRUD)</span>
         </button>
       </div>
 
@@ -1804,6 +1822,15 @@ export default function ServicesManager() {
               </div>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* VIEW D: FOOTER SPECIALIZED SERVICES CRUD                              */}
+      {/* ===================================================================== */}
+      {activeTab === 'footer-links' && (
+        <div className="space-y-6">
+          <FooterServicesManager />
         </div>
       )}
 
