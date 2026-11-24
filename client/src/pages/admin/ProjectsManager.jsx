@@ -8,7 +8,6 @@ import {
   QrCode,
   Shield,
   ShieldCheck,
-  Eye,
   CheckCircle,
   XCircle,
   ExternalLink,
@@ -1560,16 +1559,6 @@ export default function ProjectsManager() {
                             <Star size={13} className={proj.isFeatured ? 'fill-amber-500 text-amber-500' : ''} />
                           </button>
 
-                          <a
-                            href={`/projects/${proj.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-sky-700 hover:bg-sky-50 transition-colors"
-                            title="View public case study"
-                          >
-                            <Eye size={13} />
-                          </a>
-
                           <button
                             type="button"
                             onClick={() => handleOpenEdit(proj)}
@@ -1647,7 +1636,7 @@ export default function ProjectsManager() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                <Eye size={13} />
+                <Sparkles size={13} className="text-sky-600" />
                 <span>Live Hero Preview (As seen on /projects)</span>
               </span>
               <span className="text-[11px] text-slate-400">
@@ -1865,7 +1854,7 @@ export default function ProjectsManager() {
                 { id: 'overview', label: '1. Project Overview & Client', icon: Grid },
                 { id: 'technical', label: '2. Diagnostics & Materials', icon: FlaskConical },
                 { id: 'media', label: '3. Before & After Media', icon: ImageIcon },
-                { id: 'preview', label: '4. Live Card Preview', icon: Eye },
+                { id: 'preview', label: '4. Live Card Preview', icon: Sparkles },
               ].map((tab) => {
                 const Icon = tab.icon;
                 const isActive = modalTab === tab.id;
