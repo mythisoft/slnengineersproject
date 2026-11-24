@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 
 /**
@@ -35,13 +35,14 @@ function scrollToHashElement(targetHash) {
 
 /**
  * ScrollToTop component
- * Automatically scrolls window to top (0, 0) on every route navigation,
+ * Automatically scrolls window to top (0, 0) on every route navigation (when pathname changes),
  * or smoothly to an in-page anchor (#id) when a hash target is specified.
+ * Does NOT scroll to top when only query search parameters change on the same page.
  */
 export default function ScrollToTop() {
-  const { pathname, search, hash, key } = useLocation();
+  const { pathname, hash } = useLocation();
+  const prevPathRef = useRef(pathname);
 
-  // Scroll to hash anchor or top whenever route or location key changes
   useEffect(() => {
     if (hash) {
       let settleTimer;
@@ -56,21 +57,26 @@ export default function ScrollToTop() {
       };
     }
 
-    // Instantly jump to top of document when no hash is targeted
-    const htmlEl = document.documentElement;
-    const originalBehavior = htmlEl.style.scrollBehavior;
-    htmlEl.style.scrollBehavior = 'auto';
+    // Only scroll to top if the pathname actually changed (different page navigation)
+    // Do NOT scroll to top when filtering query parameters on the same page
+    if (prevPathRef.current !== pathname) {
+      prevPathRef.current = pathname;
 
-    window.scrollTo(0, 0);
-    htmlEl.scrollTop = 0;
-    if (document.body) {
-      document.body.scrollTop = 0;
+      const htmlEl = document.documentElement;
+      const originalBehavior = htmlEl.style.scrollBehavior;
+      htmlEl.style.scrollBehavior = 'auto';
+
+      window.scrollTo(0, 0);
+      htmlEl.scrollTop = 0;
+      if (document.body) {
+        document.body.scrollTop = 0;
+      }
+
+      requestAnimationFrame(() => {
+        htmlEl.style.scrollBehavior = originalBehavior;
+      });
     }
-
-    requestAnimationFrame(() => {
-      htmlEl.style.scrollBehavior = originalBehavior;
-    });
-  }, [pathname, search, hash, key]);
+  }, [pathname, hash]);
 
   // Handle clicking a link pointing to the current page (top-of-page or same-page hash)
   useEffect(() => {
