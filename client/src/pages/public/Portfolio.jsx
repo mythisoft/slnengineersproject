@@ -48,14 +48,12 @@ import BeforeAfterSlider from '../../components/common/BeforeAfterSlider';
 export default function Portfolio() {
   const [settings, setSettings] = useState(null);
   const [disciplines, setDisciplines] = useState(DEFAULT_DISCIPLINES);
-  const [services, setServices] = useState(DEFAULT_SERVICES);
+  const [services, setServices] = useState([]);
 
   const [heroContent, setHeroContent] = useState(DEFAULT_PROJECTS_HERO);
 
   // Projects State from MongoDB API
-  const [projects, setProjects] = useState(() =>
-    DEFAULT_PROJECTS.map((p, idx) => normalizeProject(p, idx))
-  );
+  const [projects, setProjects] = useState([]);
 
   // Filters State
   const [selectedDiscipline, setSelectedDiscipline] = useState('all');
@@ -106,7 +104,7 @@ export default function Portfolio() {
     // 3. Services
     fetchApi('/services')
       .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (res.success && Array.isArray(res.data)) {
           setServices(res.data);
         }
       })
@@ -116,21 +114,9 @@ export default function Portfolio() {
     const loadProjects = () => {
       fetchApi('/projects?limit=100')
         .then((res) => {
-          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          if (res.success && Array.isArray(res.data)) {
             const apiProjects = res.data.map((p, idx) => normalizeProject(p, idx));
-            const finalProjects = [...apiProjects];
-
-            // Ensure default verified projects across all disciplines are present
-            DEFAULT_PROJECTS.forEach((def) => {
-              const exists = finalProjects.some(
-                (p) => p.slug === def.slug || (p.title && p.title.toLowerCase() === def.title.toLowerCase())
-              );
-              if (!exists) {
-                finalProjects.push(normalizeProject(def, finalProjects.length));
-              }
-            });
-
-            setProjects(finalProjects);
+            setProjects(apiProjects);
           }
         })
         .catch((e) => console.error('Projects fetch error:', e));
@@ -183,13 +169,9 @@ export default function Portfolio() {
   // Available Services for the selected discipline
   const availableServicesForDiscipline = useMemo(() => {
     if (!selectedDiscipline || selectedDiscipline === 'all') {
-      return services.length > 0 ? services : DEFAULT_SERVICES;
+      return services;
     }
-    const filtered = services.filter((s) => matchesDiscipline(s, selectedDiscipline));
-    if (filtered.length > 0) return filtered;
-
-    const defFiltered = DEFAULT_SERVICES.filter((s) => matchesDiscipline(s, selectedDiscipline));
-    return defFiltered.length > 0 ? defFiltered : [];
+    return services.filter((s) => matchesDiscipline(s, selectedDiscipline));
   }, [services, selectedDiscipline]);
 
   // Filter projects by active discipline, service, and search query

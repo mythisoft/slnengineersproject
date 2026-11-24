@@ -275,10 +275,10 @@ export default function Home() {
   const location = useLocation();
   const [settings, setSettings] = useState(null);
   const [homeContent, setHomeContent] = useState(DEFAULT_HOME_CONTENT);
-  const [services, setServices] = useState(DEFAULT_SERVICES);
+  const [services, setServices] = useState([]);
   const [featuredProjects, setFeaturedProjects] = useState([]);
   const [reviews, setReviews] = useState([]);
-  const [allProjects, setAllProjects] = useState(DEFAULT_PROJECTS);
+  const [allProjects, setAllProjects] = useState([]);
   const [banners, setBanners] = useState([]);
   const [trustMetrics, setTrustMetrics] = useState(DEFAULT_TRUST_METRICS);
   const [adminTransformations, setAdminTransformations] = useState([]);
@@ -1062,7 +1062,7 @@ export default function Home() {
     }
 
     // ── 2. Fallback: match from active services by discipline ──
-    const list = Array.isArray(services) && services.length > 0 ? services : DEFAULT_SERVICES;
+    const list = Array.isArray(services) ? services : [];
     const match = list.find(
       (s) => matchesDiscipline(s, activePillarId) && s.publicationStatus !== false && s.isActive !== false
     );
@@ -1114,7 +1114,7 @@ export default function Home() {
 
   // Dynamic Services list (all active/published)
   const displayServices = useMemo(() => {
-    const list = Array.isArray(services) && services.length > 0 ? services : DEFAULT_SERVICES;
+    const list = Array.isArray(services) ? services : [];
     const featured = list
       .filter((s) => s.isFeatured && s.publicationStatus !== false && s.isActive !== false)
       .sort((a, b) => (b.featuredUpdatedAt || 0) - (a.featuredUpdatedAt || 0));
@@ -1142,7 +1142,7 @@ export default function Home() {
 
   // Dynamic Featured Projects for Section 7 (Up to 3 cards on homepage, 1 per Discipline Pillar)
   const displayFeaturedProjects = useMemo(() => {
-    const list = Array.isArray(allProjects) && allProjects.length > 0 ? allProjects : DEFAULT_PROJECTS;
+    const list = Array.isArray(allProjects) ? allProjects : [];
 
     const pillarKeys = ['waterproofing', 'painting', 'repairs', 'false-ceiling'];
 
@@ -1200,7 +1200,7 @@ export default function Home() {
       }
     }
 
-    return selectedProjects.length > 0 ? selectedProjects.slice(0, 3) : DEFAULT_PROJECTS.slice(0, 3);
+    return selectedProjects.slice(0, 3);
   }, [allProjects]);
 
   const combinedHomeReviews = useMemo(() => {

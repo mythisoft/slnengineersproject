@@ -298,10 +298,10 @@ export default function ServicesManager() {
       if (srvRes.success && Array.isArray(srvRes.data)) {
         commitServicesState(srvRes.data);
       } else {
-        commitServicesState(DEFAULT_SERVICES);
+        commitServicesState([]);
       }
     } catch (err) {
-      commitServicesState(DEFAULT_SERVICES);
+      commitServicesState([]);
     }
 
     // 3. Load Services Page Header Content (from backend settings)

@@ -23,16 +23,15 @@ export const ensureProjectsSeed = async () => {
       return;
     }
 
+    // Mark as initialized first to prevent concurrent requests from re-seeding
+    await ProjectInitialization.create({ _id: initId }).catch(() => {});
+
     const count = await Project.countDocuments();
     if (count === 0) {
       console.log('Seeding initial projects into MongoDB...');
-      for (const proj of DEFAULT_PROJECTS) {
-        await Project.create(proj);
-      }
+      await Project.insertMany(DEFAULT_PROJECTS).catch(() => {});
       console.log('Projects seeded successfully.');
     }
-
-    await ProjectInitialization.create({ _id: initId }).catch(() => {});
   } catch (err) {
     console.warn('Auto-seed projects notice:', err.message);
   }
@@ -45,14 +44,15 @@ export const ensureServicesSeed = async () => {
       return;
     }
 
+    // Mark as initialized first to prevent concurrent requests from re-seeding
+    await ServiceInitialization.create({ _id: initId }).catch(() => {});
+
     const count = await Service.countDocuments();
     if (count === 0) {
       console.log('Seeding initial 14 default services into MongoDB...');
-      await Service.insertMany(DEFAULT_SERVICES);
+      await Service.insertMany(DEFAULT_SERVICES).catch(() => {});
       console.log('Default services seeded successfully.');
     }
-
-    await ServiceInitialization.create({ _id: initId }).catch(() => {});
   } catch (err) {
     console.warn('Auto-seed services notice:', err.message);
   }

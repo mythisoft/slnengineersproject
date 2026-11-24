@@ -349,13 +349,13 @@ export default function ProjectsManager() {
     // 1. Load Services
     try {
       const servRes = await fetchApi('/admin/services');
-      if (servRes.success && Array.isArray(servRes.data) && servRes.data.length > 0) {
+      if (servRes.success && Array.isArray(servRes.data)) {
         setServices(servRes.data);
       } else {
-        setServices(DEFAULT_SERVICES);
+        setServices([]);
       }
     } catch (e) {
-      setServices(DEFAULT_SERVICES);
+      setServices([]);
     }
 
     // 2. Load Disciplines
@@ -410,13 +410,9 @@ export default function ProjectsManager() {
   // Filter available services by selected discipline in the form
   const availableServicesForDiscipline = useMemo(() => {
     if (!formData.disciplineId || formData.disciplineId === 'all') {
-      return services.length > 0 ? services : DEFAULT_SERVICES;
+      return services;
     }
-    const filtered = services.filter((s) => matchesDiscipline(s, formData.disciplineId));
-    if (filtered.length > 0) return filtered;
-
-    const defFiltered = DEFAULT_SERVICES.filter((s) => matchesDiscipline(s, formData.disciplineId));
-    return defFiltered.length > 0 ? defFiltered : DEFAULT_SERVICES;
+    return services.filter((s) => matchesDiscipline(s, formData.disciplineId));
   }, [services, formData.disciplineId]);
 
   // Filtered Projects List based on selected discipline, service, search query, and status
@@ -452,15 +448,15 @@ export default function ProjectsManager() {
     setModalTab('overview');
     const firstDisc = disciplines[0] || DEFAULT_DISCIPLINES[0];
     const matchingServices = services.filter((s) => matchesDiscipline(s, firstDisc));
-    const firstService = matchingServices[0] || services[0] || DEFAULT_SERVICES[0];
+    const firstService = matchingServices[0] || services[0] || null;
 
     setFormData({
       ...initialFormState,
       disciplineId: firstDisc.slug || firstDisc.id,
       disciplineName: firstDisc.name,
-      serviceCategory: firstService.category || firstService.title,
-      serviceTitle: firstService.title,
-      serviceId: firstService._id || firstService.id,
+      serviceCategory: firstService ? (firstService.category || firstService.title) : '',
+      serviceTitle: firstService ? firstService.title : '',
+      serviceId: firstService ? (firstService._id || firstService.id) : '',
     });
     setShowModal(true);
   };
@@ -1790,15 +1786,14 @@ export default function ProjectsManager() {
                             type="button"
                             onClick={() => {
                               const matchingServices = services.filter((s) => matchesDiscipline(s, disc));
-                              const defMatching = DEFAULT_SERVICES.filter((s) => matchesDiscipline(s, disc));
-                              const firstSrv = matchingServices[0] || defMatching[0] || DEFAULT_SERVICES[0];
+                              const firstSrv = matchingServices[0] || null;
                               setFormData({
                                 ...formData,
                                 disciplineId: disc.slug || disc.id,
                                 disciplineName: disc.name,
-                                serviceCategory: firstSrv.category || firstSrv.title,
-                                serviceTitle: firstSrv.title,
-                                serviceId: firstSrv._id || firstSrv.id,
+                                serviceCategory: firstSrv ? (firstSrv.category || firstSrv.title) : '',
+                                serviceTitle: firstSrv ? firstSrv.title : '',
+                                serviceId: firstSrv ? (firstSrv._id || firstSrv.id) : '',
                               });
                             }}
                             className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${

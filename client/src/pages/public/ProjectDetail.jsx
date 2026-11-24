@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import BeforeAfterSlider from '../../components/common/BeforeAfterSlider';
 import { fetchApi } from '../../utils/api';
-import { DEFAULT_PROJECTS } from '../../utils/projectsData';
 
 export default function ProjectDetail() {
   const { slug } = useParams();
@@ -32,10 +31,6 @@ export default function ProjectDetail() {
   const [activeMediaTab, setActiveMediaTab] = useState('all');
 
   useEffect(() => {
-    const resolveFallbackProject = (targetSlug) => {
-      return DEFAULT_PROJECTS.find((p) => p.slug === targetSlug || p._id === targetSlug || p.id === targetSlug) || null;
-    };
-
     Promise.all([
       fetchApi(`/projects/${slug}`),
       fetchApi('/settings'),
@@ -45,24 +40,12 @@ export default function ProjectDetail() {
           setProject(projectRes.data);
           setError('');
         } else {
-          const fallback = resolveFallbackProject(slug);
-          if (fallback) {
-            setProject(fallback);
-            setError('');
-          } else {
-            setError('Project not found');
-          }
+          setError('Project not found');
         }
         if (settingsRes?.success) setSettings(settingsRes.data);
       })
       .catch((err) => {
-        const fallback = resolveFallbackProject(slug);
-        if (fallback) {
-          setProject(fallback);
-          setError('');
-        } else {
-          setError(err.message || 'Project not found');
-        }
+        setError(err.message || 'Project not found');
       })
       .finally(() => setLoading(false));
   }, [slug]);

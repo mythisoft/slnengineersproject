@@ -39,10 +39,10 @@ import {
 } from '../../utils/servicesData';
 
 export { CORE_DISCIPLINES, DEFAULT_DISCIPLINES };
-export const SERVICES_DATA = DEFAULT_SERVICES;
+export const SERVICES_DATA = [];
 
 // Helper to resolve query parameter (category or discipline) to the correct service
-function findMatchingService(categoryParam, idParam, list = DEFAULT_SERVICES) {
+function findMatchingService(categoryParam, idParam, list = []) {
   if (!categoryParam && !idParam) return null;
   const p = (categoryParam || '').toLowerCase().trim();
   const id = (idParam || '').trim();
@@ -98,7 +98,8 @@ function findMatchingService(categoryParam, idParam, list = DEFAULT_SERVICES) {
 export default function Services() {
   const [settings, setSettings] = useState(null);
   const [disciplines, setDisciplines] = useState(DEFAULT_DISCIPLINES);
-  const [services, setServices] = useState(DEFAULT_SERVICES);
+  const [services, setServices] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(true);
   const [activeDiscipline, setActiveDiscipline] = useState('all');
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -132,11 +133,12 @@ export default function Services() {
       // Dynamic Services Load
       fetchApi('/services')
         .then((res) => {
-          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          if (res.success && Array.isArray(res.data)) {
             setServices(res.data.map((s, idx) => normalizeService(s, idx)));
           }
         })
-        .catch((e) => console.warn('Public services fetch error, using defaults:', e));
+        .catch((e) => console.warn('Public services fetch error:', e))
+        .finally(() => setLoadingServices(false));
     };
 
     loadAllServicesData();
@@ -500,7 +502,16 @@ export default function Services() {
               </div>
 
               {/* Service Cards Grid for this Discipline */}
-              {disciplineServices.length > 0 ? (
+              {loadingServices ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
+                  {[1, 2, 3].map((n) => (
+                    <div
+                      key={n}
+                      className="w-full h-[430px] rounded-2xl bg-slate-100/80 animate-pulse border border-slate-200"
+                    />
+                  ))}
+                </div>
+              ) : disciplineServices.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
                   {disciplineServices.map((service, cardIdx) => (
                     <div key={service.id || service._id} id={`service-${service.id}`} className="scroll-mt-32">
