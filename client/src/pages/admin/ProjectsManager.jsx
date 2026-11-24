@@ -223,17 +223,19 @@ export default function ProjectsManager() {
     showOnHome: false,
     isFeatured: false,
     customerConsentPublished: true,
-    image: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=1000&q=80',
-    coverImage: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=1000&q=80',
-    beforeMediaUrl: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=1000&q=80',
-    beforeMediaCaption: 'Before: Deteriorated substrate showing moisture infiltration',
-    afterMediaUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1000&q=80',
-    afterMediaCaption: 'After: Restored monolithic engineering barrier',
+    image: '',
+    coverImage: '',
+    beforeMediaUrl: '',
+    beforeMediaCaption: 'Before Restoration Treatment',
+    afterMediaUrl: '',
+    afterMediaCaption: 'After Engineering Restoration',
   };
 
   const [formData, setFormData] = useState(initialFormState);
   const [projectImageSourceTab, setProjectImageSourceTab] = useState('upload'); // 'upload' | 'url' | 'curated'
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingBefore, setUploadingBefore] = useState(false);
+  const [uploadingAfter, setUploadingAfter] = useState(false);
   const coverFileInputRef = useRef(null);
   const beforeFileInputRef = useRef(null);
   const afterFileInputRef = useRef(null);
@@ -270,7 +272,7 @@ export default function ProjectsManager() {
   const handleCoverFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadingImage(true);
+    setUploadingCover(true);
     try {
       const uploadedUrl = await uploadProjectImage(file);
       if (uploadedUrl) {
@@ -278,7 +280,6 @@ export default function ProjectsManager() {
           ...prev,
           image: uploadedUrl,
           coverImage: uploadedUrl,
-          afterMediaUrl: prev.afterMediaUrl || uploadedUrl,
         }));
         showToast('Project cover photo uploaded from device!');
       }
@@ -286,7 +287,7 @@ export default function ProjectsManager() {
       console.error('Failed to upload project photo:', err);
       showToast('Could not upload photo. Please try again or use URL.');
     } finally {
-      setUploadingImage(false);
+      setUploadingCover(false);
       if (e.target) e.target.value = '';
     }
   };
@@ -294,7 +295,7 @@ export default function ProjectsManager() {
   const handleBeforeFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadingImage(true);
+    setUploadingBefore(true);
     try {
       const uploadedUrl = await uploadProjectImage(file);
       if (uploadedUrl) {
@@ -305,7 +306,7 @@ export default function ProjectsManager() {
       console.error('Failed to upload before photo:', err);
       showToast('Could not upload photo.');
     } finally {
-      setUploadingImage(false);
+      setUploadingBefore(false);
       if (e.target) e.target.value = '';
     }
   };
@@ -313,18 +314,23 @@ export default function ProjectsManager() {
   const handleAfterFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadingImage(true);
+    setUploadingAfter(true);
     try {
       const uploadedUrl = await uploadProjectImage(file);
       if (uploadedUrl) {
-        setFormData((prev) => ({ ...prev, afterMediaUrl: uploadedUrl }));
+        setFormData((prev) => ({
+          ...prev,
+          afterMediaUrl: uploadedUrl,
+          image: prev.image || uploadedUrl,
+          coverImage: prev.coverImage || uploadedUrl,
+        }));
         showToast('After photo uploaded from device!');
       }
     } catch (err) {
       console.error('Failed to upload after photo:', err);
       showToast('Could not upload photo.');
     } finally {
-      setUploadingImage(false);
+      setUploadingAfter(false);
       if (e.target) e.target.value = '';
     }
   };
@@ -492,9 +498,9 @@ export default function ProjectsManager() {
       customerConsentPublished: project.customerConsentPublished !== undefined ? project.customerConsentPublished : true,
       image: project.image || project.coverImage || '',
       coverImage: project.coverImage || project.image || '',
-      beforeMediaUrl: project.beforeMedia?.[0]?.url || project.image || '',
+      beforeMediaUrl: project.beforeMedia?.[0]?.url || '',
       beforeMediaCaption: project.beforeMedia?.[0]?.caption || 'Before Restoration Treatment',
-      afterMediaUrl: project.afterMedia?.[0]?.url || project.image || '',
+      afterMediaUrl: project.afterMedia?.[0]?.url || '',
       afterMediaCaption: project.afterMedia?.[0]?.caption || 'After Engineering Restoration',
     });
     setShowModal(true);
@@ -503,6 +509,10 @@ export default function ProjectsManager() {
   // Submit Project (Create or Edit)
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    if (uploadingCover || uploadingBefore || uploadingAfter) {
+      alert('Please wait for the media files to finish uploading before saving.');
+      return;
+    }
     if (!formData.title.trim()) {
       alert('Please enter a project title.');
       return;
@@ -1327,11 +1337,7 @@ export default function ProjectsManager() {
                           <img
                             src={proj.image || proj.coverImage}
                             alt={proj.title}
-                            className="w-11 h-11 rounded-lg object-cover shrink-0 border border-slate-200 shadow-2xs mt-0.5"
-                            onError={(e) => {
-                              e.currentTarget.src =
-                                'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=200&q=80';
-                            }}
+                            className="w-11 h-11 rounded-lg object-cover shrink-0 border border-slate-200 shadow-2xs mt-0.5 bg-slate-100"
                           />
                           <div className="min-w-0">
                             <div className="font-bold text-slate-900 text-sm hover:text-sky-700 flex items-center gap-1.5 leading-snug">
@@ -2177,14 +2183,14 @@ export default function ProjectsManager() {
                           className="border-2 border-dashed border-sky-300 hover:border-sky-500 bg-sky-50/60 hover:bg-sky-50/90 rounded-2xl p-6 text-center cursor-pointer transition-all duration-200 group"
                         >
                           <div className="w-12 h-12 rounded-2xl bg-white border border-sky-200 text-sky-600 flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform">
-                            {uploadingImage ? (
+                            {uploadingCover ? (
                               <RotateCw size={22} className="animate-spin text-sky-600" />
                             ) : (
                               <Upload size={22} className="group-hover:-translate-y-0.5 transition-transform" />
                             )}
                           </div>
                           <div className="text-xs font-bold text-slate-800">
-                            {uploadingImage ? 'Uploading photo from device...' : 'Click to browse or drag & drop photo from device'}
+                            {uploadingCover ? 'Uploading photo from device...' : 'Click to browse or drag & drop photo from device'}
                           </div>
                           <p className="text-[11px] text-slate-500 mt-1">
                             Supports JPG, PNG, WEBP, or SVG images (up to 15MB)
@@ -2266,9 +2272,6 @@ export default function ProjectsManager() {
                                 src={formData.image}
                                 alt="URL Preview"
                                 className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.currentTarget.src = 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=400&q=80';
-                                }}
                               />
                             </div>
                             <div className="text-xs text-slate-600 truncate flex-1 font-mono">
@@ -2346,10 +2349,11 @@ export default function ProjectsManager() {
                           <button
                             type="button"
                             onClick={() => beforeFileInputRef.current?.click()}
-                            className="text-[10.5px] font-bold text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 px-2.5 py-1 rounded-lg border border-sky-200 flex items-center gap-1 transition-colors cursor-pointer"
+                            disabled={uploadingBefore}
+                            className="text-[10.5px] font-bold text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 px-2.5 py-1 rounded-lg border border-sky-200 flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                           >
-                            <Upload size={11} />
-                            <span>Upload File</span>
+                            {uploadingBefore ? <RotateCw size={11} className="animate-spin" /> : <Upload size={11} />}
+                            <span>{uploadingBefore ? 'Uploading...' : 'Upload File'}</span>
                           </button>
                           <input
                             type="file"
@@ -2379,10 +2383,7 @@ export default function ProjectsManager() {
                             <img
                               src={formData.beforeMediaUrl}
                               alt="Before Preview"
-                              className="w-full h-32 object-cover rounded-xl border border-slate-200"
-                              onError={(e) => {
-                                e.currentTarget.src = 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80';
-                              }}
+                              className="w-full h-32 object-cover rounded-xl border border-slate-200 bg-slate-100"
                             />
                             <button
                               type="button"
@@ -2406,10 +2407,11 @@ export default function ProjectsManager() {
                           <button
                             type="button"
                             onClick={() => afterFileInputRef.current?.click()}
-                            className="text-[10.5px] font-bold text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 px-2.5 py-1 rounded-lg border border-sky-200 flex items-center gap-1 transition-colors cursor-pointer"
+                            disabled={uploadingAfter}
+                            className="text-[10.5px] font-bold text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 px-2.5 py-1 rounded-lg border border-sky-200 flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                           >
-                            <Upload size={11} />
-                            <span>Upload File</span>
+                            {uploadingAfter ? <RotateCw size={11} className="animate-spin" /> : <Upload size={11} />}
+                            <span>{uploadingAfter ? 'Uploading...' : 'Upload File'}</span>
                           </button>
                           <input
                             type="file"
@@ -2439,10 +2441,7 @@ export default function ProjectsManager() {
                             <img
                               src={formData.afterMediaUrl}
                               alt="After Preview"
-                              className="w-full h-32 object-cover rounded-xl border border-slate-200"
-                              onError={(e) => {
-                                e.currentTarget.src = 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80';
-                              }}
+                              className="w-full h-32 object-cover rounded-xl border border-slate-200 bg-slate-100"
                             />
                             <button
                               type="button"
@@ -2596,11 +2595,23 @@ export default function ProjectsManager() {
                 <button
                   type="button"
                   onClick={handleFormSubmit}
-                  disabled={saving}
-                  className="btn btn-primary btn-sm text-xs flex items-center gap-2 shadow-sm cursor-pointer"
+                  disabled={saving || uploadingCover || uploadingBefore || uploadingAfter}
+                  className="btn btn-primary btn-sm text-xs flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Save size={14} />
-                  <span>{saving ? 'Saving...' : editingProject ? 'Update Project' : 'Save Project'}</span>
+                  {saving || uploadingCover || uploadingBefore || uploadingAfter ? (
+                    <RotateCw size={14} className="animate-spin" />
+                  ) : (
+                    <Save size={14} />
+                  )}
+                  <span>
+                    {saving
+                      ? 'Saving...'
+                      : uploadingCover || uploadingBefore || uploadingAfter
+                      ? 'Uploading Media...'
+                      : editingProject
+                      ? 'Update Project'
+                      : 'Save Project'}
+                  </span>
                 </button>
               </div>
             </div>

@@ -536,7 +536,7 @@ export const createProject = async (req, res, next) => {
       counter++;
     }
 
-    const finalImage = image || coverImage || afterMedia?.[0]?.url || 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=800&q=80';
+    const finalImage = image || coverImage || afterMedia?.[0]?.url || beforeMedia?.[0]?.url || '';
     const finalFormulation = Array.isArray(formulation) && formulation.length > 0
       ? formulation
       : typeof materialsUsed === 'string'

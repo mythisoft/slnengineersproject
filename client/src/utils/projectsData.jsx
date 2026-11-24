@@ -756,7 +756,7 @@ export function normalizeProject(raw = {}, index = 0) {
     raw.coverImage ||
     raw.afterMedia?.[0]?.url ||
     raw.beforeMedia?.[0]?.url ||
-    'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=1000&q=80';
+    '';
 
   let formulation = [];
   if (Array.isArray(raw.formulation) && raw.formulation.length > 0) {
@@ -771,13 +771,13 @@ export function normalizeProject(raw = {}, index = 0) {
     ];
   }
 
-  const beforeMedia = Array.isArray(raw.beforeMedia) && raw.beforeMedia.length > 0
-    ? raw.beforeMedia
-    : [{ url: image, caption: 'Before Treatment', type: 'image' }];
+  const beforeMedia = Array.isArray(raw.beforeMedia)
+    ? raw.beforeMedia.filter((m) => m && (m.url || typeof m === 'string'))
+    : [];
 
-  const afterMedia = Array.isArray(raw.afterMedia) && raw.afterMedia.length > 0
-    ? raw.afterMedia
-    : [{ url: image, caption: 'After Engineering Restoration', type: 'image' }];
+  const afterMedia = Array.isArray(raw.afterMedia)
+    ? raw.afterMedia.filter((m) => m && (m.url || typeof m === 'string'))
+    : [];
 
   return {
     ...raw,
