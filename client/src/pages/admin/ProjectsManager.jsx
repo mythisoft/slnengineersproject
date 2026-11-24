@@ -1870,19 +1870,6 @@ export default function ProjectsManager() {
                       <p className="text-[10px] text-slate-500 mt-1">
                         Type chemical names or formulations used (separate with commas).
                       </p>
-                      {/* 1-Click Chemical Presets */}
-                      <div className="flex flex-wrap gap-1 mt-1.5">
-                        {FORMULATION_PRESETS.slice(0, 5).map((preset) => (
-                          <button
-                            key={preset}
-                            type="button"
-                            onClick={() => handleAddFormulationSuggestion(preset)}
-                            className="text-[10px] bg-slate-100 hover:bg-sky-100 text-slate-600 hover:text-sky-800 px-2 py-0.5 rounded transition-colors cursor-pointer"
-                          >
-                            + {preset.split(' ')[0]} {preset.split(' ')[1] || ''}
-                          </button>
-                        ))}
-                      </div>
                     </div>
 
                     <div>
@@ -2122,25 +2109,6 @@ export default function ProjectsManager() {
                         });
                       }}
                     />
-
-                    {/* Quick suggestion tags */}
-                    <div className="mt-2">
-                      <span className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                        1-Click Industrial Chemical Presets:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {FORMULATION_PRESETS.map((preset) => (
-                          <button
-                            key={preset}
-                            type="button"
-                            onClick={() => handleAddFormulationSuggestion(preset)}
-                            className="text-[10.5px] bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-800 px-2 py-0.5 rounded-md border border-slate-200 transition-colors cursor-pointer"
-                          >
-                            + {preset}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                   </div>
                 </div>
               )}
