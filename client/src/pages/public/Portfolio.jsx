@@ -53,10 +53,8 @@ export default function Portfolio() {
 
   const [heroContent, setHeroContent] = useState(DEFAULT_PROJECTS_HERO);
 
-  // Projects State from MongoDB API with instant verified default fallback
-  const [projects, setProjects] = useState(() =>
-    DEFAULT_PROJECTS.map((p, idx) => normalizeProject(p, idx))
-  );
+  // Projects State from MongoDB API (strictly dynamic - no seed fallback)
+  const [projects, setProjects] = useState([]);
 
   // Filters State
   const [selectedDiscipline, setSelectedDiscipline] = useState('all');
@@ -117,16 +115,16 @@ export default function Portfolio() {
     const loadProjects = () => {
       fetchApi('/projects?limit=100')
         .then((res) => {
-          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          if (res.success && Array.isArray(res.data)) {
             const apiProjects = res.data.map((p, idx) => normalizeProject(p, idx));
             setProjects(apiProjects);
           } else {
-            setProjects(DEFAULT_PROJECTS.map((p, idx) => normalizeProject(p, idx)));
+            setProjects([]);
           }
         })
         .catch((e) => {
           console.error('Projects fetch error:', e);
-          setProjects(DEFAULT_PROJECTS.map((p, idx) => normalizeProject(p, idx)));
+          setProjects([]);
         });
     };
 

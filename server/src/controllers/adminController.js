@@ -17,45 +17,13 @@ import { DEFAULT_SERVICES } from '../utils/defaultServices.js';
 import { DEFAULT_PROJECTS } from '../utils/defaultProjects.js';
 
 export const ensureProjectsSeed = async () => {
-  try {
-    const initId = 'initial-projects-v1';
-    if (await ProjectInitialization.exists({ _id: initId })) {
-      return;
-    }
-
-    // Mark as initialized first to prevent concurrent requests from re-seeding
-    await ProjectInitialization.create({ _id: initId }).catch(() => {});
-
-    const count = await Project.countDocuments();
-    if (count === 0) {
-      console.log('Seeding initial projects into MongoDB...');
-      await Project.insertMany(DEFAULT_PROJECTS).catch(() => {});
-      console.log('Projects seeded successfully.');
-    }
-  } catch (err) {
-    console.warn('Auto-seed projects notice:', err.message);
-  }
+  // Auto-seed disabled so user/admin data is never overwritten or seeded
+  return;
 };
 
 export const ensureServicesSeed = async () => {
-  try {
-    const initId = 'initial-services-v1';
-    if (await ServiceInitialization.exists({ _id: initId })) {
-      return;
-    }
-
-    // Mark as initialized first to prevent concurrent requests from re-seeding
-    await ServiceInitialization.create({ _id: initId }).catch(() => {});
-
-    const count = await Service.countDocuments();
-    if (count === 0) {
-      console.log('Seeding initial 14 default services into MongoDB...');
-      await Service.insertMany(DEFAULT_SERVICES).catch(() => {});
-      console.log('Default services seeded successfully.');
-    }
-  } catch (err) {
-    console.warn('Auto-seed services notice:', err.message);
-  }
+  // Auto-seed disabled so user/admin data is never overwritten or seeded
+  return;
 };
 
 // ==================== DASHBOARD & ANALYTICS ====================
