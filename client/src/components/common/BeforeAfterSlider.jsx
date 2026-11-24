@@ -145,13 +145,10 @@ export default function BeforeAfterSlider({
         draggable={false}
       />
       {/* After Label Badge */}
-      <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-slate-950/85 text-white border border-emerald-500/40 text-xs font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-xl backdrop-blur-md z-10 flex items-center gap-2 pointer-events-none transition-transform duration-200">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-        </span>
-        <span className="font-extrabold uppercase tracking-wider text-[9px] sm:text-[10px] text-white bg-emerald-600 px-2 py-0.5 rounded-full shadow-xs">AFTER</span>
-        <span className="hidden sm:inline text-slate-100 font-medium text-xs max-w-[190px] md:max-w-xs truncate">{afterLabel}</span>
+      <div className="absolute top-2.5 right-2.5 bg-slate-950/80 text-white border border-emerald-400/40 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md z-10 flex items-center gap-1.5 pointer-events-none">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        <span className="uppercase tracking-wider font-extrabold text-[9px] text-emerald-300">AFTER</span>
+        {afterLabel && <span className="hidden sm:inline text-slate-200 font-medium text-[11px] max-w-[160px] truncate">{afterLabel}</span>}
       </div>
 
       {/* Before Image (Clipped overlay) */}
@@ -168,13 +165,10 @@ export default function BeforeAfterSlider({
           draggable={false}
         />
         {/* Before Label Badge */}
-        <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-slate-950/85 text-white border border-rose-500/40 text-xs font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-xl backdrop-blur-md z-10 flex items-center gap-2 pointer-events-none transition-transform duration-200">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-          </span>
-          <span className="font-extrabold uppercase tracking-wider text-[9px] sm:text-[10px] text-white bg-rose-600 px-2 py-0.5 rounded-full shadow-xs">BEFORE</span>
-          <span className="hidden sm:inline text-slate-100 font-medium text-xs max-w-[190px] md:max-w-xs truncate">{beforeLabel}</span>
+        <div className="absolute top-2.5 left-2.5 bg-slate-950/80 text-white border border-rose-400/40 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md z-10 flex items-center gap-1.5 pointer-events-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+          <span className="uppercase tracking-wider font-extrabold text-[9px] text-rose-300">BEFORE</span>
+          {beforeLabel && <span className="hidden sm:inline text-slate-200 font-medium text-[11px] max-w-[160px] truncate">{beforeLabel}</span>}
         </div>
       </div>
 

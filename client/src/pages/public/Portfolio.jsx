@@ -27,6 +27,10 @@ import {
   CheckCircle2,
   ChevronRight,
   ArrowUp,
+  Eye,
+  Maximize2,
+  Image as ImageIcon,
+  Sparkles,
 } from 'lucide-react';
 import { fetchApi } from '../../utils/api';
 import {
@@ -61,15 +65,23 @@ export default function Portfolio() {
   const [selectedService, setSelectedService] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeModalProject, setActiveModalProject] = useState(null);
+  const [activeMediaTab, setActiveMediaTab] = useState('slider'); // 'slider' | 'cover' | 'before' | 'after'
+  const [lightboxImage, setLightboxImage] = useState(null); // { url, title, caption, badge }
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
 
-  // Prevent background scroll when Case Study Modal is open on mobile/desktop
+  const handleOpenProjectModal = (proj) => {
+    setActiveModalProject(proj);
+    const hasSlider = Boolean(proj.beforeMedia?.[0]?.url && proj.afterMedia?.[0]?.url);
+    setActiveMediaTab(hasSlider ? 'slider' : 'cover');
+  };
+
+  // Prevent background scroll when Case Study Modal or Lightbox is open
   useEffect(() => {
-    if (activeModalProject) {
+    if (activeModalProject || lightboxImage) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -77,7 +89,19 @@ export default function Portfolio() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [activeModalProject]);
+  }, [activeModalProject, lightboxImage]);
+
+  // Handle Escape key to close Lightbox or Modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (lightboxImage) setLightboxImage(null);
+        else if (activeModalProject) setActiveModalProject(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxImage, activeModalProject]);
 
   // Load Settings, Disciplines, Services, and Projects
   useEffect(() => {
@@ -689,25 +713,39 @@ export default function Portfolio() {
                   />
 
                   {/* Top Media Area */}
-                  <div className="relative h-[190px] sm:h-[220px] w-full overflow-hidden bg-slate-100 shrink-0">
+                  <div
+                    onClick={() => handleOpenProjectModal(project)}
+                    className="relative h-[210px] sm:h-[235px] w-full overflow-hidden bg-slate-900 shrink-0 cursor-pointer group/img"
+                  >
                     <img
                       src={project.image || project.coverImage}
                       alt={project.title}
-                      className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-700 ease-out"
+                      className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500 ease-out"
                       loading="lazy"
                     />
 
+                    {/* Subtle Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/15 pointer-events-none" />
+
                     {/* Discipline Pill: Top Left */}
-                    <div className="absolute top-2.5 left-2.5 bg-slate-900/85 backdrop-blur-xs text-white text-[9px] sm:text-[9.5px] font-bold px-2 py-0.5 rounded shadow-xs uppercase tracking-wider border border-white/10 flex items-center gap-1">
+                    <div className="absolute top-2.5 left-2.5 bg-slate-950/85 backdrop-blur-xs text-white text-[9px] sm:text-[9.5px] font-bold px-2 py-0.5 rounded shadow-xs uppercase tracking-wider border border-white/10 flex items-center gap-1 z-10">
                       <span style={{ backgroundColor: accentColor }} className="w-1.5 h-1.5 rounded-full" />
                       <span>{project.disciplineName}</span>
+                    </div>
+
+                    {/* Clean View Zoom Indicator on Hover */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
+                      <span className="bg-slate-950/90 text-white border border-sky-400/50 text-[11px] font-bold px-3 py-1.5 rounded-full shadow-xl flex items-center gap-1.5 backdrop-blur-xs transform translate-y-1 group-hover/img:translate-y-0 transition-transform">
+                        <Eye size={13} className="text-sky-400" />
+                        <span>View Clean Photo</span>
+                      </span>
                     </div>
 
                     {/* Service Badge: Bottom Left */}
                     {project.serviceTitle && project.serviceTitle !== project.disciplineName && (
                       <div
                         style={{ backgroundColor: accentColor }}
-                        className="absolute bottom-2.5 left-2.5 text-white text-[9.5px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 rounded shadow-xs flex items-center gap-1 max-w-[85%]"
+                        className="absolute bottom-2.5 left-2.5 text-white text-[9.5px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 rounded shadow-xs flex items-center gap-1 max-w-[85%] z-10"
                       >
                         <ShieldCheck size={12} className="shrink-0" />
                         <span className="truncate">
@@ -765,7 +803,7 @@ export default function Portfolio() {
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                       <button
                         type="button"
-                        onClick={() => setActiveModalProject(project)}
+                        onClick={() => handleOpenProjectModal(project)}
                         className="text-xs font-bold text-sky-700 hover:text-sky-900 flex items-center gap-1 group/btn cursor-pointer py-1.5 transition-colors truncate"
                       >
                         <span className="hidden xs:inline">View Case Study</span>
@@ -899,26 +937,174 @@ export default function Portfolio() {
               </div>
             </div>
 
-            {/* Before / After Comparison Slider */}
-            {activeModalProject.beforeMedia?.[0]?.url && activeModalProject.afterMedia?.[0]?.url ? (
-              <div className="rounded-xl sm:rounded-2xl overflow-hidden border border-slate-200 shadow-md">
-                <BeforeAfterSlider
-                  beforeImage={activeModalProject.beforeMedia[0].url}
-                  afterImage={activeModalProject.afterMedia[0].url}
-                  beforeLabel={activeModalProject.beforeMedia[0].caption || 'Before Treatment'}
-                  afterLabel={activeModalProject.afterMedia[0].caption || 'After Restoration'}
-                  aspectRatio="16/9"
-                />
-              </div>
-            ) : (
-              <div className="rounded-xl sm:rounded-2xl overflow-hidden border border-slate-200 shadow-md h-56 sm:h-72">
-                <img
-                  src={activeModalProject.image || activeModalProject.coverImage}
-                  alt={activeModalProject.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
+            {/* Media Area: Tabs & Clean Viewing */}
+            {(() => {
+              const hasSlider = Boolean(activeModalProject.beforeMedia?.[0]?.url && activeModalProject.afterMedia?.[0]?.url);
+              const hasBefore = Boolean(activeModalProject.beforeMedia?.[0]?.url);
+              const hasAfter = Boolean(activeModalProject.afterMedia?.[0]?.url);
+              const hasCover = Boolean(activeModalProject.image || activeModalProject.coverImage);
+
+              const currentImgUrl =
+                activeMediaTab === 'before'
+                  ? activeModalProject.beforeMedia?.[0]?.url
+                  : activeMediaTab === 'after'
+                  ? activeModalProject.afterMedia?.[0]?.url
+                  : (activeModalProject.image || activeModalProject.coverImage);
+
+              const currentCaption =
+                activeMediaTab === 'before'
+                  ? (activeModalProject.beforeMedia?.[0]?.caption || 'Before Restoration Treatment')
+                  : activeMediaTab === 'after'
+                  ? (activeModalProject.afterMedia?.[0]?.caption || 'After Engineering Restoration')
+                  : activeModalProject.title;
+
+              const currentBadge =
+                activeMediaTab === 'before' ? 'BEFORE' : activeMediaTab === 'after' ? 'AFTER' : 'SHOWCASE';
+
+              return (
+                <div className="space-y-2.5">
+                  {/* Media View Selector Tabs & Fullscreen Trigger */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      {hasSlider && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveMediaTab('slider')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            activeMediaTab === 'slider'
+                              ? 'bg-sky-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          <Layers size={13} />
+                          <span>Interactive Slider</span>
+                        </button>
+                      )}
+                      {hasCover && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveMediaTab('cover')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            activeMediaTab === 'cover'
+                              ? 'bg-sky-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          <ImageIcon size={13} />
+                          <span>Cover Photo</span>
+                        </button>
+                      )}
+                      {hasBefore && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveMediaTab('before')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            activeMediaTab === 'before'
+                              ? 'bg-rose-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                          <span>Before Photo</span>
+                        </button>
+                      )}
+                      {hasAfter && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveMediaTab('after')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            activeMediaTab === 'after'
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span>After Photo</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* View Clean HD Button */}
+                    {currentImgUrl && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setLightboxImage({
+                            url: currentImgUrl,
+                            caption: currentCaption,
+                            title: activeModalProject.title,
+                            badge: currentBadge,
+                          })
+                        }
+                        className="text-slate-600 hover:text-sky-700 bg-slate-100 hover:bg-sky-50 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition-colors cursor-pointer shrink-0"
+                        title="Click to view clean uncropped photo in full screen"
+                      >
+                        <Maximize2 size={13} className="text-sky-600" />
+                        <span>View Clean HD</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Media Frame */}
+                  <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-slate-950 relative group/frame">
+                    {activeMediaTab === 'slider' && hasSlider ? (
+                      <BeforeAfterSlider
+                        beforeImage={activeModalProject.beforeMedia[0].url}
+                        afterImage={activeModalProject.afterMedia[0].url}
+                        beforeLabel={activeModalProject.beforeMedia[0].caption || 'Before Treatment'}
+                        afterLabel={activeModalProject.afterMedia[0].caption || 'After Restoration'}
+                        aspectRatio="16/9"
+                      />
+                    ) : (
+                      <div
+                        onClick={() =>
+                          setLightboxImage({
+                            url: currentImgUrl,
+                            caption: currentCaption,
+                            title: activeModalProject.title,
+                            badge: currentBadge,
+                          })
+                        }
+                        className="h-64 sm:h-80 md:h-96 w-full flex items-center justify-center bg-slate-950 cursor-zoom-in relative"
+                        title="Click to expand full screen"
+                      >
+                        <img
+                          src={currentImgUrl}
+                          alt={currentCaption}
+                          className="w-full h-full object-contain select-none"
+                        />
+
+                        {/* Top Badge */}
+                        <div className="absolute top-3 left-3 bg-slate-950/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-xs flex items-center gap-1.5 border border-white/10 pointer-events-none">
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              currentBadge === 'BEFORE'
+                                ? 'bg-rose-400'
+                                : currentBadge === 'AFTER'
+                                ? 'bg-emerald-400'
+                                : 'bg-sky-400'
+                            }`}
+                          />
+                          <span>{currentBadge} PHOTO</span>
+                        </div>
+
+                        {/* Bottom Caption Pill */}
+                        {currentCaption && (
+                          <div className="absolute bottom-3 left-3 right-12 bg-slate-950/85 text-slate-200 text-xs font-medium px-3.5 py-1.5 rounded-full backdrop-blur-xs border border-white/10 truncate pointer-events-none">
+                            {currentCaption}
+                          </div>
+                        )}
+
+                        {/* Bottom Right Zoom Hint */}
+                        <div className="absolute bottom-3 right-3 bg-sky-600 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-lg flex items-center gap-1 opacity-90 group-hover/frame:opacity-100 transition-opacity">
+                          <Maximize2 size={12} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Diagnostic Findings & Scope */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
@@ -1007,7 +1193,83 @@ export default function Portfolio() {
         </div>
       )}
 
-      {/* Floating Smooth Scroll to Top Button */}
+      {/* ===================================================================== */}
+      {/* 7. FULLSCREEN PRISTINE CLEAN LIGHTBOX */}
+      {/* ===================================================================== */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6 animate-in fade-in duration-200"
+          onClick={() => setLightboxImage(null)}
+        >
+          {/* Top Bar */}
+          <div
+            className="flex items-center justify-between text-white max-w-7xl mx-auto w-full z-10 shrink-0 mb-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 truncate pr-4">
+              {lightboxImage.badge && (
+                <span
+                  className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                    lightboxImage.badge === 'BEFORE'
+                      ? 'bg-rose-600 text-white'
+                      : lightboxImage.badge === 'AFTER'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-sky-600 text-white'
+                  }`}
+                >
+                  {lightboxImage.badge}
+                </span>
+              )}
+              <span className="font-bold text-sm sm:text-base text-slate-100 truncate">
+                {lightboxImage.title}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href={lightboxImage.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Open raw image in new tab"
+              >
+                <ExternalLink size={15} />
+                <span className="hidden sm:inline">Open Original</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setLightboxImage(null)}
+                className="p-2 rounded-full bg-white/10 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                title="Close Lightbox (Esc)"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Clean Uncropped Image Center */}
+          <div
+            className="flex-1 flex items-center justify-center min-h-0 w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={lightboxImage.url}
+              alt={lightboxImage.caption || lightboxImage.title}
+              className="max-h-[82vh] max-w-[96vw] object-contain rounded-xl shadow-2xl select-none"
+            />
+          </div>
+
+          {/* Bottom Caption Bar */}
+          {lightboxImage.caption && (
+            <div
+              className="max-w-2xl mx-auto w-full text-center text-xs sm:text-sm text-slate-300 bg-slate-900/80 border border-white/10 px-4 py-2 rounded-full backdrop-blur-sm z-10 shrink-0 mt-2 truncate"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {lightboxImage.caption}
+            </div>
+          )}
+        </div>
+      )}
       <button
         type="button"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

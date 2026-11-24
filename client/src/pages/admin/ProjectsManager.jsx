@@ -2233,6 +2233,16 @@ export default function ProjectsManager() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
+                              <a
+                                href={formData.image}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-1 text-xs font-semibold text-slate-700 hover:text-sky-700 bg-slate-50 hover:bg-sky-50 rounded-lg border border-slate-200 transition-colors cursor-pointer flex items-center gap-1"
+                                title="Open full raw photo in new tab"
+                              >
+                                <ExternalLink size={12} />
+                                <span>Preview HD</span>
+                              </a>
                               <button
                                 type="button"
                                 onClick={() => coverFileInputRef.current?.click()}
@@ -2395,20 +2405,32 @@ export default function ProjectsManager() {
                           onChange={(e) => setFormData({ ...formData, beforeMediaCaption: e.target.value })}
                         />
                         {formData.beforeMediaUrl && (
-                          <div className="relative group/preview mt-2">
+                          <div className="relative group/preview mt-2 bg-slate-900 rounded-xl overflow-hidden border border-slate-200">
                             <img
                               src={formData.beforeMediaUrl}
                               alt="Before Preview"
-                              className="w-full h-32 object-cover rounded-xl border border-slate-200 bg-slate-100"
+                              className="w-full h-40 object-contain mx-auto"
                             />
-                            <button
-                              type="button"
-                              onClick={() => setFormData({ ...formData, beforeMediaUrl: '' })}
-                              className="absolute top-1.5 right-1.5 p-1 bg-slate-900/80 text-white rounded-md hover:bg-rose-600 opacity-0 group-hover/preview:opacity-100 transition-opacity"
-                              title="Clear Before Photo"
-                            >
-                              <X size={13} />
-                            </button>
+                            <div className="absolute top-2 right-2 flex items-center gap-1">
+                              <a
+                                href={formData.beforeMediaUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2 py-0.5 text-[10px] font-semibold bg-slate-900/90 text-white hover:bg-sky-600 rounded-md transition-colors flex items-center gap-1 shadow-xs"
+                                title="Open full raw photo in new tab"
+                              >
+                                <ExternalLink size={10} />
+                                <span>Preview HD</span>
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, beforeMediaUrl: '' })}
+                                className="p-1 bg-slate-900/90 text-white rounded-md hover:bg-rose-600 transition-colors shadow-xs"
+                                title="Clear Before Photo"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -2453,20 +2475,32 @@ export default function ProjectsManager() {
                           onChange={(e) => setFormData({ ...formData, afterMediaCaption: e.target.value })}
                         />
                         {formData.afterMediaUrl && (
-                          <div className="relative group/preview mt-2">
+                          <div className="relative group/preview mt-2 bg-slate-900 rounded-xl overflow-hidden border border-slate-200">
                             <img
                               src={formData.afterMediaUrl}
                               alt="After Preview"
-                              className="w-full h-32 object-cover rounded-xl border border-slate-200 bg-slate-100"
+                              className="w-full h-40 object-contain mx-auto"
                             />
-                            <button
-                              type="button"
-                              onClick={() => setFormData({ ...formData, afterMediaUrl: '' })}
-                              className="absolute top-1.5 right-1.5 p-1 bg-slate-900/80 text-white rounded-md hover:bg-rose-600 opacity-0 group-hover/preview:opacity-100 transition-opacity"
-                              title="Clear After Photo"
-                            >
-                              <X size={13} />
-                            </button>
+                            <div className="absolute top-2 right-2 flex items-center gap-1">
+                              <a
+                                href={formData.afterMediaUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2 py-0.5 text-[10px] font-semibold bg-slate-900/90 text-white hover:bg-sky-600 rounded-md transition-colors flex items-center gap-1 shadow-xs"
+                                title="Open full raw photo in new tab"
+                              >
+                                <ExternalLink size={10} />
+                                <span>Preview HD</span>
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, afterMediaUrl: '' })}
+                                className="p-1 bg-slate-900/90 text-white rounded-md hover:bg-rose-600 transition-colors shadow-xs"
+                                title="Clear After Photo"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>

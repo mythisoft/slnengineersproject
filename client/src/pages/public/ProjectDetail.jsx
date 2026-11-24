@@ -17,6 +17,10 @@ import {
   AlertTriangle,
   Phone,
   Sparkles,
+  Maximize2,
+  Eye,
+  X,
+  Image as ImageIcon,
 } from 'lucide-react';
 import BeforeAfterSlider from '../../components/common/BeforeAfterSlider';
 import { fetchApi } from '../../utils/api';
@@ -29,6 +33,31 @@ export default function ProjectDetail() {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [activeMediaTab, setActiveMediaTab] = useState('all');
+  const [detailMediaTab, setDetailMediaTab] = useState('slider'); // 'slider' | 'cover' | 'before' | 'after'
+  const [lightboxImage, setLightboxImage] = useState(null); // { url, title, caption, badge }
+
+  // Prevent background scroll when Lightbox is open
+  useEffect(() => {
+    if (lightboxImage) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [lightboxImage]);
+
+  // Handle Escape key to close Lightbox
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && lightboxImage) {
+        setLightboxImage(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxImage]);
 
   useEffect(() => {
     Promise.all([
@@ -140,24 +169,183 @@ export default function ProjectDetail() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {/* Left 8 Cols: Technical Case Study */}
             <div className="lg:col-span-8 space-y-8">
-              {/* Interactive Before & After Slider (if both images exist) */}
-              {beforeImg && afterImg && (
-                <div className="card p-4 sm:p-6 bg-white">
-                  <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
-                    <Layers size={18} className="text-sky-700" /> Interactive Before / After Comparison
-                  </h3>
-                  <p className="text-xs text-slate-500 mb-4">
-                    Slide divider to inspect substrate condition before treatment versus finished waterproof system.
-                  </p>
-                  <BeforeAfterSlider
-                    beforeImage={beforeImg}
-                    afterImage={afterImg}
-                    beforeLabel="Before Treatment"
-                    afterLabel="After SLN Restoration"
-                    aspectRatio="16/9"
-                  />
-                </div>
-              )}
+              {/* Interactive Before & After / Clean Photos View */}
+              {(() => {
+                const hasSlider = Boolean(beforeImg && afterImg);
+                const hasBefore = Boolean(beforeImg);
+                const hasAfter = Boolean(afterImg);
+                const hasCover = Boolean(project.image || project.coverImage);
+
+                const currentImgUrl =
+                  detailMediaTab === 'before'
+                    ? beforeImg
+                    : detailMediaTab === 'after'
+                    ? afterImg
+                    : (project.image || project.coverImage || afterImg || beforeImg);
+
+                const currentCaption =
+                  detailMediaTab === 'before'
+                    ? (project.beforeMedia?.[0]?.caption || 'Before Restoration Treatment')
+                    : detailMediaTab === 'after'
+                    ? (project.afterMedia?.[0]?.caption || 'After Engineering Restoration')
+                    : project.title;
+
+                const currentBadge =
+                  detailMediaTab === 'before' ? 'BEFORE' : detailMediaTab === 'after' ? 'AFTER' : 'SHOWCASE';
+
+                return (
+                  <div className="card p-4 sm:p-6 bg-white space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                          <Layers size={18} className="text-sky-700" /> Engineering Photographic Verification
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Inspect high-resolution evidence of substrate defects, chemical application, and completed treatment.
+                        </p>
+                      </div>
+
+                      {/* View Clean HD Button */}
+                      {currentImgUrl && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setLightboxImage({
+                              url: currentImgUrl,
+                              caption: currentCaption,
+                              title: project.title,
+                              badge: currentBadge,
+                            })
+                          }
+                          className="text-slate-600 hover:text-sky-700 bg-slate-100 hover:bg-sky-50 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition-colors cursor-pointer shrink-0"
+                          title="Click to view clean uncropped photo in full screen"
+                        >
+                          <Maximize2 size={13} className="text-sky-600" />
+                          <span>View Clean HD</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* View Switcher Tabs */}
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      {hasSlider && (
+                        <button
+                          type="button"
+                          onClick={() => setDetailMediaTab('slider')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            detailMediaTab === 'slider'
+                              ? 'bg-sky-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          <Layers size={13} />
+                          <span>Interactive Slider</span>
+                        </button>
+                      )}
+                      {hasCover && (
+                        <button
+                          type="button"
+                          onClick={() => setDetailMediaTab('cover')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            detailMediaTab === 'cover'
+                              ? 'bg-sky-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          <ImageIcon size={13} />
+                          <span>Cover Photo</span>
+                        </button>
+                      )}
+                      {hasBefore && (
+                        <button
+                          type="button"
+                          onClick={() => setDetailMediaTab('before')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            detailMediaTab === 'before'
+                              ? 'bg-rose-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                          <span>Before Treatment</span>
+                        </button>
+                      )}
+                      {hasAfter && (
+                        <button
+                          type="button"
+                          onClick={() => setDetailMediaTab('after')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            detailMediaTab === 'after'
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span>After Treatment</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Media Frame */}
+                    <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-slate-950 relative group/frame">
+                      {detailMediaTab === 'slider' && hasSlider ? (
+                        <BeforeAfterSlider
+                          beforeImage={beforeImg}
+                          afterImage={afterImg}
+                          beforeLabel="Before Treatment"
+                          afterLabel="After SLN Restoration"
+                          aspectRatio="16/9"
+                        />
+                      ) : (
+                        <div
+                          onClick={() =>
+                            setLightboxImage({
+                              url: currentImgUrl,
+                              caption: currentCaption,
+                              title: project.title,
+                              badge: currentBadge,
+                            })
+                          }
+                          className="h-72 sm:h-96 md:h-[420px] w-full flex items-center justify-center bg-slate-950 cursor-zoom-in relative"
+                          title="Click to expand full screen"
+                        >
+                          <img
+                            src={currentImgUrl}
+                            alt={currentCaption}
+                            className="w-full h-full object-contain select-none"
+                          />
+
+                          {/* Top Badge */}
+                          <div className="absolute top-3 left-3 bg-slate-950/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-xs flex items-center gap-1.5 border border-white/10 pointer-events-none">
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                currentBadge === 'BEFORE'
+                                  ? 'bg-rose-400'
+                                  : currentBadge === 'AFTER'
+                                  ? 'bg-emerald-400'
+                                  : 'bg-sky-400'
+                              }`}
+                            />
+                            <span>{currentBadge} PHOTO</span>
+                          </div>
+
+                          {/* Bottom Caption Pill */}
+                          {currentCaption && (
+                            <div className="absolute bottom-3 left-3 right-12 bg-slate-950/85 text-slate-200 text-xs font-medium px-3.5 py-1.5 rounded-full backdrop-blur-xs border border-white/10 truncate pointer-events-none">
+                              {currentCaption}
+                            </div>
+                          )}
+
+                          {/* Bottom Right Zoom Hint */}
+                          <div className="absolute bottom-3 right-3 bg-sky-600 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-lg flex items-center gap-1 opacity-90 group-hover/frame:opacity-100 transition-opacity">
+                            <Maximize2 size={12} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Problem Description */}
               <div className="card p-6 bg-white">
@@ -201,31 +389,115 @@ export default function ProjectDetail() {
 
               {/* Full Media Gallery */}
               <div className="card p-6 bg-white">
-                <h3 className="text-lg font-bold text-slate-900 mb-4">Complete Photographic Evidence</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-slate-900">Complete Photographic Evidence</h3>
+                  <span className="text-xs text-slate-500 font-medium">Click any photo to view clean HD</span>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {project.beforeMedia?.map((m, i) => (
-                    <div key={`before-${i}`} className="rounded-xl overflow-hidden border border-slate-200">
-                      <img src={m.url} alt={m.caption || 'Before work'} className="w-full h-48 object-cover" />
-                      <div className="p-2.5 bg-slate-100 text-xs text-slate-600 font-medium">
-                        <span className="badge badge-amber mr-2">Before</span> {m.caption || 'Initial substrate condition'}
+                    <div
+                      key={`before-${i}`}
+                      onClick={() =>
+                        setLightboxImage({
+                          url: m.url,
+                          caption: m.caption || 'Before Restoration Treatment',
+                          badge: 'BEFORE',
+                          title: project.title,
+                        })
+                      }
+                      className="rounded-xl overflow-hidden border border-slate-200 cursor-zoom-in group/img bg-slate-900 relative shadow-2xs hover:shadow-md transition-shadow"
+                    >
+                      <div className="relative h-52 sm:h-56 overflow-hidden">
+                        <img
+                          src={m.url}
+                          alt={m.caption || 'Before work'}
+                          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                          <span className="bg-slate-950/80 text-white text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-xs">
+                            <Maximize2 size={12} className="text-sky-400" />
+                            <span>View Full Image</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-2.5 bg-slate-100 text-xs text-slate-700 font-medium flex items-center justify-between">
+                        <div className="truncate pr-2">
+                          <span className="badge badge-amber mr-2 font-bold">Before</span>{' '}
+                          {m.caption || 'Initial substrate condition'}
+                        </div>
+                        <Eye size={13} className="text-slate-400 shrink-0" />
                       </div>
                     </div>
                   ))}
 
                   {project.duringMedia?.map((m, i) => (
-                    <div key={`during-${i}`} className="rounded-xl overflow-hidden border border-slate-200">
-                      <img src={m.url} alt={m.caption || 'During work'} className="w-full h-48 object-cover" />
-                      <div className="p-2.5 bg-slate-100 text-xs text-slate-600 font-medium">
-                        <span className="badge badge-blue mr-2">During</span> {m.caption || 'Chemical application in progress'}
+                    <div
+                      key={`during-${i}`}
+                      onClick={() =>
+                        setLightboxImage({
+                          url: m.url,
+                          caption: m.caption || 'During Chemical Application',
+                          badge: 'DURING',
+                          title: project.title,
+                        })
+                      }
+                      className="rounded-xl overflow-hidden border border-slate-200 cursor-zoom-in group/img bg-slate-900 relative shadow-2xs hover:shadow-md transition-shadow"
+                    >
+                      <div className="relative h-52 sm:h-56 overflow-hidden">
+                        <img
+                          src={m.url}
+                          alt={m.caption || 'During work'}
+                          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                          <span className="bg-slate-950/80 text-white text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-xs">
+                            <Maximize2 size={12} className="text-sky-400" />
+                            <span>View Full Image</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-2.5 bg-slate-100 text-xs text-slate-700 font-medium flex items-center justify-between">
+                        <div className="truncate pr-2">
+                          <span className="badge badge-blue mr-2 font-bold">During</span>{' '}
+                          {m.caption || 'Chemical application in progress'}
+                        </div>
+                        <Eye size={13} className="text-slate-400 shrink-0" />
                       </div>
                     </div>
                   ))}
 
                   {project.afterMedia?.map((m, i) => (
-                    <div key={`after-${i}`} className="rounded-xl overflow-hidden border border-slate-200">
-                      <img src={m.url} alt={m.caption || 'After restoration'} className="w-full h-48 object-cover" />
-                      <div className="p-2.5 bg-emerald-50 text-xs text-emerald-800 font-medium border-t border-emerald-100">
-                        <span className="badge badge-green mr-2">After</span> {m.caption || 'Final cured waterproof membrane'}
+                    <div
+                      key={`after-${i}`}
+                      onClick={() =>
+                        setLightboxImage({
+                          url: m.url,
+                          caption: m.caption || 'After Engineering Restoration',
+                          badge: 'AFTER',
+                          title: project.title,
+                        })
+                      }
+                      className="rounded-xl overflow-hidden border border-slate-200 cursor-zoom-in group/img bg-slate-900 relative shadow-2xs hover:shadow-md transition-shadow"
+                    >
+                      <div className="relative h-52 sm:h-56 overflow-hidden">
+                        <img
+                          src={m.url}
+                          alt={m.caption || 'After restoration'}
+                          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                          <span className="bg-slate-950/80 text-white text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 backdrop-blur-xs">
+                            <Maximize2 size={12} className="text-sky-400" />
+                            <span>View Full Image</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-2.5 bg-emerald-50 text-xs text-emerald-800 font-medium border-t border-emerald-100 flex items-center justify-between">
+                        <div className="truncate pr-2">
+                          <span className="badge badge-green mr-2 font-bold">After</span>{' '}
+                          {m.caption || 'Final cured waterproof membrane'}
+                        </div>
+                        <Eye size={13} className="text-emerald-600 shrink-0" />
                       </div>
                     </div>
                   ))}
@@ -333,6 +605,81 @@ export default function ProjectDetail() {
           </div>
         </div>
       </section>
+      {/* Fullscreen Pristine Clean Lightbox */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6 animate-in fade-in duration-200"
+          onClick={() => setLightboxImage(null)}
+        >
+          {/* Top Bar */}
+          <div
+            className="flex items-center justify-between text-white max-w-7xl mx-auto w-full z-10 shrink-0 mb-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 truncate pr-4">
+              {lightboxImage.badge && (
+                <span
+                  className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                    lightboxImage.badge === 'BEFORE'
+                      ? 'bg-rose-600 text-white'
+                      : lightboxImage.badge === 'AFTER'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-sky-600 text-white'
+                  }`}
+                >
+                  {lightboxImage.badge}
+                </span>
+              )}
+              <span className="font-bold text-sm sm:text-base text-slate-100 truncate">
+                {lightboxImage.title}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href={lightboxImage.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Open raw image in new tab"
+              >
+                <ExternalLink size={15} />
+                <span className="hidden sm:inline">Open Original</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setLightboxImage(null)}
+                className="p-2 rounded-full bg-white/10 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                title="Close Lightbox (Esc)"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Clean Uncropped Image Center */}
+          <div
+            className="flex-1 flex items-center justify-center min-h-0 w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={lightboxImage.url}
+              alt={lightboxImage.caption || lightboxImage.title}
+              className="max-h-[82vh] max-w-[96vw] object-contain rounded-xl shadow-2xl select-none"
+            />
+          </div>
+
+          {/* Bottom Caption Bar */}
+          {lightboxImage.caption && (
+            <div
+              className="max-w-2xl mx-auto w-full text-center text-xs sm:text-sm text-slate-300 bg-slate-900/80 border border-white/10 px-4 py-2 rounded-full backdrop-blur-sm z-10 shrink-0 mt-2 truncate"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {lightboxImage.caption}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
