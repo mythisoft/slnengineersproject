@@ -1405,6 +1405,10 @@ a:hover {
     height: min(70vw, 280px) !important;
     opacity: 0.10 !important;
   }
+
+  .home-paper-curl-edge {
+    display: none !important;
+  }
 }
 
 /* ==========================================================================
@@ -2861,19 +2865,24 @@ a:hover {
 
   .home-banner-controls {
     max-width: 100%;
-    margin: 0.85rem auto 0 0;
-    gap: 0.35rem;
-    padding: 0.25rem 0.5rem;
+    margin: 0.75rem auto 0 0;
+    gap: 0.45rem;
+    padding: 0.25rem 0.55rem;
   }
 
   .home-banner-caption {
-    max-width: min(34vw, 8.5rem);
-    font-size: 0.72rem;
+    display: none !important;
+  }
+
+  .home-all-service-card-light {
+    padding: 0.65rem 0.85rem;
+    border-radius: 0.85rem;
   }
 
   .inspection-form-aura {
     inset: -4px;
     filter: blur(16px);
+    opacity: 0.65;
   }
 
   .home-emblem-caption {

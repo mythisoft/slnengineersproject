@@ -780,6 +780,16 @@ export default function Home() {
     setActiveBannerIndex(0);
   }, [banners]);
 
+  // Cleanly clear outgoing banner underlay and paper curl transition after 2300ms
+  useEffect(() => {
+    if (prevBannerIndex !== null) {
+      const timer = setTimeout(() => {
+        setPrevBannerIndex(null);
+      }, 2300);
+      return () => clearTimeout(timer);
+    }
+  }, [prevBannerIndex, activeBannerIndex]);
+
   // High-performance IntersectionObserver for scroll animations
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -1382,11 +1392,11 @@ export default function Home() {
                 {activeBannerIsLogo ? (
                   <div className="space-y-3.5 sm:space-y-4">
                     {/* Brand Logo & Corporate Practice Hero Showcase */}
-                    <div className="home-logo-anim-brand-hero flex items-center gap-3 sm:gap-5 flex-nowrap">
+                    <div className="home-logo-anim-brand-hero flex items-center gap-2.5 sm:gap-5 flex-nowrap min-w-0">
                       {/* High-Impact Logo Emblem Card */}
                       <div className="relative group shrink-0">
                         <div className="absolute -inset-1 sm:-inset-1.5 rounded-2xl bg-gradient-to-r from-emerald-500/30 via-sky-500/20 to-emerald-500/30 blur-md opacity-80 group-hover:opacity-100 transition duration-500" />
-                        <div className="relative w-14 h-14 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl bg-white p-1.5 sm:p-2.5 border border-slate-200/90 shadow-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+                        <div className="relative w-12 h-12 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl bg-white p-1 sm:p-2.5 border border-slate-200/90 shadow-lg flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
                           <img
                             src={activeBanner?.imageUrl || logoUrl}
                             alt={brandNameLine1}
@@ -1399,38 +1409,38 @@ export default function Home() {
                       </div>
 
                       {/* Brand Identity & Distinction Lockup */}
-                      <div className="flex flex-col justify-center min-w-0">
+                      <div className="flex flex-col justify-center min-w-0 flex-1">
                         {/* Eyebrow & Credential Badges */}
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] sm:text-[11px] font-bold text-white shadow-2xs">
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap mb-0.5 sm:mb-1">
+                          <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[9px] sm:text-[11px] font-bold text-white shadow-2xs">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
                             <span className="tracking-wide uppercase">Official Corporate Practice</span>
                           </span>
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-mono font-bold text-emerald-800 shadow-2xs">
-                            <ShieldCheck size={12} className="text-emerald-600" />
+                          <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[9px] sm:text-[10px] font-mono font-bold text-emerald-800 shadow-2xs">
+                            <ShieldCheck size={11} className="text-emerald-600 sm:w-3 sm:h-3" />
                             <span>ISO 9001:2015 Practice</span>
                           </span>
                         </div>
 
                         {/* Primary Brand Name Display */}
-                        <div className="flex items-baseline gap-2 flex-wrap leading-tight">
+                        <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap leading-tight">
                           <span
                             style={{ color: logoNameColor }}
-                            className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight font-heading"
+                            className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight font-heading"
                           >
                             {brandNameLine1}
                           </span>
-                          <span className="text-xs sm:text-sm font-extrabold tracking-[0.16em] uppercase text-slate-700 font-heading">
+                          <span className="text-[11px] sm:text-sm font-extrabold tracking-[0.12em] sm:tracking-[0.16em] uppercase text-slate-700 font-heading">
                             {brandNameLine2}
                           </span>
                         </div>
 
                         {/* Tagline / Subtitle */}
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs sm:text-[13px] font-semibold text-emerald-700 truncate">
+                          <span className="text-[11px] sm:text-[13px] font-semibold text-emerald-700 truncate">
                             {heroCopy.eyebrow || 'All 4 Specializations Under One Roof'}
                           </span>
-                          <span className="text-slate-300">•</span>
+                          <span className="text-slate-300 hidden sm:inline">•</span>
                           <span className="text-xs text-slate-500 font-medium hidden sm:inline">
                             Restoration for Three Generations
                           </span>
@@ -1443,7 +1453,7 @@ export default function Home() {
                     </p>
 
                     {/* All 4 Services Capability Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2.5 pt-0.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-2.5 pt-0.5">
                       {(activeBanner?.bannerServices && activeBanner.bannerServices.length > 0
                         ? activeBanner.bannerServices
                         : CORE_FOUR_SERVICES
@@ -1461,7 +1471,7 @@ export default function Home() {
                             }}
                             title={`Explore ${service.name}`}
                           >
-                            <div className="flex items-center gap-3 relative z-10">
+                            <div className="flex items-center gap-2.5 sm:gap-3 relative z-10">
                               <div
                                 className="service-icon-box w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
                                 style={{
@@ -1470,7 +1480,7 @@ export default function Home() {
                                   border: `1px solid ${accent}40`,
                                 }}
                               >
-                                <SIcon size={17} />
+                                <SIcon size={16} className="sm:w-[17px] sm:h-[17px]" />
                               </div>
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center justify-between gap-1">
@@ -1479,7 +1489,7 @@ export default function Home() {
                                   </h3>
                                   <ChevronRight size={13} className="service-chevron text-slate-400 group-hover:text-primary-700 group-hover:translate-x-0.5 transition-all shrink-0" />
                                 </div>
-                                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                                <p className="text-[10.5px] sm:text-[11px] text-slate-500 truncate mt-0.5">
                                   {service.shortCategory}
                                 </p>
                               </div>
@@ -1490,27 +1500,27 @@ export default function Home() {
                     </div>
                   </div>
                 ) : (
-                  <div className="home-photo-hero-card space-y-3">
+                  <div className="home-photo-hero-card space-y-2.5 sm:space-y-3">
                     {/* Concise Discipline & Standards Micro-Badge */}
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/35 text-sky-200 text-xs font-bold uppercase tracking-wider shadow-xs">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap mb-1">
+                      <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/35 text-sky-200 text-[11px] sm:text-xs font-bold uppercase tracking-wider shadow-xs">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        <span>{activeBanner?.tag || heroCopy?.eyebrow || 'Precision Engineering'}</span>
+                        <span className="truncate max-w-[200px] sm:max-w-none">{activeBanner?.tag || heroCopy?.eyebrow || 'Precision Engineering'}</span>
                       </div>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-[10px] font-mono text-emerald-300">
+                      <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-[10px] font-mono text-emerald-300">
                         <ShieldCheck size={11} className="text-emerald-400" />
                         <span>IS Compliant</span>
                       </span>
                     </div>
 
                     {/* Impactful Headline — Balanced & Crisp (Does Not Dominate Photo) */}
-                    <h1 className="home-hero-title font-black tracking-tight text-white leading-snug">
+                    <h1 className="home-hero-title font-black tracking-tight text-white leading-snug text-xl sm:text-2xl lg:text-3xl">
                       <span>{heroCopy.headline}</span>{' '}
                       <span className="home-hero-gradient">{heroCopy.highlightedHeadline}</span>
                     </h1>
 
                     {/* Dedicated Responsive Banner Photo Showcase for Mobile & Tablet (< 1024px) */}
-                    <div className="home-mobile-banner-img-container lg:hidden relative w-full rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-slate-900/80 my-2.5 aspect-[16/10] sm:aspect-[16/9]">
+                    <div className="home-mobile-banner-img-container lg:hidden relative w-full rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-slate-900/80 my-2 aspect-[16/10] sm:aspect-[16/9]">
                       <img
                         src={activeBanner?.imageUrl || '/uploads/ModernHomeWaterproofingProtect-1792165882439-41612578.png'}
                         alt={activeBanner?.altText || activeBanner?.title || 'Waterproofing Project'}
@@ -1526,13 +1536,13 @@ export default function Home() {
                       <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/85 backdrop-blur-md border border-white/20 text-[11px] font-bold text-white shadow-md">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          <span className="truncate max-w-[240px] sm:max-w-none">{activeBanner?.tag || heroCopy?.eyebrow || 'Precision Engineering'}</span>
+                          <span className="truncate max-w-[220px] sm:max-w-none">{activeBanner?.tag || heroCopy?.eyebrow || 'Precision Engineering'}</span>
                         </span>
                       </div>
                     </div>
 
                     {/* Concise Engineering Description */}
-                    <p className="font-normal text-slate-200/90 leading-relaxed">
+                    <p className="font-normal text-slate-200/90 leading-relaxed text-xs sm:text-sm">
                       {heroCopy.description}
                     </p>
                   </div>
@@ -1541,7 +1551,7 @@ export default function Home() {
 
               {/* UNIFIED BOTTOM BANNER CONTROLS (BUTTON + LABEL IN SAME PILL, NO OVERLAP) */}
               <div
-                className={`home-banner-controls mt-4 sm:mt-5 select-none ${activeBannerIsLogo ? 'is-logo-active' : ''}`}
+                className={`home-banner-controls mt-3.5 sm:mt-5 select-none ${activeBannerIsLogo ? 'is-logo-active' : ''}`}
                 aria-label="Homepage banners"
                 onMouseEnter={() => setIsPaused(true)}
                 onMouseLeave={() => setIsPaused(false)}
@@ -1550,7 +1560,7 @@ export default function Home() {
               >
                 {/* 1. Slide Counter Badge: 01 / 03 */}
                 <div
-                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono font-black text-[11px] tracking-wider shrink-0 border ${
+                  className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full font-mono font-black text-[10px] sm:text-[11px] tracking-wider shrink-0 border ${
                     activeBannerIsLogo
                       ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
                       : 'bg-sky-500/20 border-sky-400/30 text-sky-300'
@@ -1561,18 +1571,18 @@ export default function Home() {
                   <span className="opacity-70">{String(displayBanners.length).padStart(2, '0')}</span>
                 </div>
 
-                {/* Vertical Divider */}
+                {/* Vertical Divider (shown on desktop & tablet) */}
                 <span className="home-banner-divider hidden sm:inline-block shrink-0" />
 
-                {/* Glowing Status Dot */}
+                {/* Glowing Status Dot (shown on desktop & tablet) */}
                 <span
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 hidden sm:inline-block ${
                     activeBannerIsLogo ? 'bg-emerald-400 animate-pulse' : 'bg-sky-400 animate-pulse'
                   }`}
                 />
 
-                {/* 2. Slide Title Label */}
-                <span className="home-banner-caption font-bold text-xs sm:text-[13px] tracking-wide text-slate-100 truncate max-w-[160px] sm:max-w-xs md:max-w-sm">
+                {/* 2. Slide Title Label (desktop & tablet only - hidden on mobile to prevent ugly truncation) */}
+                <span className="home-banner-caption font-bold text-xs sm:text-[13px] tracking-wide text-slate-100 truncate hidden sm:inline-block max-w-[160px] sm:max-w-xs md:max-w-sm">
                   {displayBanners[activeBannerIndex % displayBanners.length]?.title ||
                     (activeBannerIsLogo ? 'All Specialized Services & Company Overview' : 'Precision Waterproofing & Structural Defense')}
                 </span>
@@ -1580,10 +1590,10 @@ export default function Home() {
                 {displayBanners.length > 1 && (
                   <>
                     {/* Vertical Divider */}
-                    <span className="home-banner-divider hidden sm:inline-block shrink-0" />
+                    <span className="home-banner-divider shrink-0 opacity-40 sm:opacity-100" />
 
                     {/* 3. Slide Pagination Dots */}
-                    <div className="flex items-center gap-1.5 px-0.5 shrink-0" aria-label="Choose banner">
+                    <div className="flex items-center gap-1 sm:gap-1.5 px-0.5 shrink-0" aria-label="Choose banner">
                       {displayBanners.map((banner, index) => (
                         <button
                           key={banner._id || index}
@@ -1599,7 +1609,7 @@ export default function Home() {
                     </div>
 
                     {/* 4. Arrow Prev/Next Side Buttons */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1 shrink-0 ml-0.5 sm:ml-1">
                       <button
                         type="button"
                         onClick={() =>
@@ -1609,7 +1619,7 @@ export default function Home() {
                         className="home-banner-side-btn w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center border border-white/15 bg-white/10 hover:bg-white/25 text-white transition-all hover:scale-105 active:scale-95"
                         title="Previous Slide"
                       >
-                        <ChevronLeft size={14} />
+                        <ChevronLeft size={13} className="sm:w-3.5 sm:h-3.5" />
                       </button>
                       <button
                         type="button"
@@ -1618,7 +1628,7 @@ export default function Home() {
                         className="home-banner-side-btn w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center border border-white/15 bg-white/10 hover:bg-white/25 text-white transition-all hover:scale-105 active:scale-95"
                         title="Next Slide"
                       >
-                        <ChevronRight size={14} />
+                        <ChevronRight size={13} className="sm:w-3.5 sm:h-3.5" />
                       </button>
                     </div>
                   </>
@@ -1694,7 +1704,7 @@ export default function Home() {
                 {/* Sleek Top Brand Animated Gradient Accent Line */}
                 <div className="inspection-form-top-accent" />
 
-                <div className="p-5 sm:p-6 lg:p-6 xl:p-7 relative z-10">
+                <div className="p-4 sm:p-6 lg:p-6 xl:p-7 relative z-10">
                   {/* Brand Header Lockup based on Logo & Logo Name */}
                   <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-slate-200/90">
                     <div className="flex items-center gap-2.5">
@@ -1729,7 +1739,7 @@ export default function Home() {
                         borderColor: `${logoNameColor}35`,
                         color: logoNameColor,
                       }}
-                      className="hidden xs:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider"
                     >
                       <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: logoNameColor }} />
                       <span>Inspection</span>
@@ -1828,8 +1838,8 @@ export default function Home() {
                                 setEnquiryErrors({ ...enquiryErrors, customerName: '' });
                               }
                             }}
-                            placeholder="Enter customer or company name"
-                            className="w-full pr-3.5 py-2.5 bg-transparent text-slate-900 placeholder-slate-400 text-xs sm:text-sm focus:outline-none"
+                            placeholder="Customer or company name"
+                            className="w-full pr-3.5 py-2.5 bg-transparent text-slate-900 placeholder-slate-400 text-base sm:text-sm focus:outline-none"
                           />
                         </div>
                         {enquiryErrors.customerName && (
@@ -1871,8 +1881,8 @@ export default function Home() {
                                 setEnquiryErrors({ ...enquiryErrors, phone: '' });
                               }
                             }}
-                            placeholder="Enter 10-digit mobile number."
-                            className="w-full px-3.5 py-2.5 bg-transparent text-slate-900 placeholder-slate-400 text-xs sm:text-sm focus:outline-none"
+                            placeholder="10-digit mobile number"
+                            className="w-full px-3.5 py-2.5 bg-transparent text-slate-900 placeholder-slate-400 text-base sm:text-sm focus:outline-none"
                           />
                         </div>
                         {enquiryErrors.phone && (
@@ -1907,8 +1917,8 @@ export default function Home() {
                                 setEnquiryErrors({ ...enquiryErrors, location: '' });
                               }
                             }}
-                            placeholder="Enter property location or area."
-                            className="w-full pr-3.5 py-2.5 bg-transparent text-slate-900 placeholder-slate-400 text-xs sm:text-sm focus:outline-none"
+                            placeholder="Property location or area"
+                            className="w-full pr-3.5 py-2.5 bg-transparent text-slate-900 placeholder-slate-400 text-base sm:text-sm focus:outline-none"
                           />
                         </div>
                         {enquiryErrors.location && (
@@ -1944,16 +1954,16 @@ export default function Home() {
                       </button>
 
                       {/* Clean Micro Trust Badges */}
-                      <div className="pt-2.5 flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-100">
-                        <span className="flex items-center gap-1 font-semibold text-slate-600">
+                      <div className="pt-2.5 flex items-center justify-between gap-1 text-[10px] sm:text-[11px] text-slate-500 border-t border-slate-100">
+                        <span className="flex items-center gap-1 font-semibold text-slate-600 truncate">
                           <CheckCircle size={12} className="text-emerald-600 shrink-0" />
                           <span>24hr Visit</span>
                         </span>
-                        <span className="flex items-center gap-1 font-semibold text-slate-600">
+                        <span className="flex items-center gap-1 font-semibold text-slate-600 truncate">
                           <CheckCircle size={12} className="text-emerald-600 shrink-0" />
                           <span>Zero Obligation</span>
                         </span>
-                        <span className="flex items-center gap-1 font-semibold text-slate-600">
+                        <span className="flex items-center gap-1 font-semibold text-slate-600 truncate">
                           <CheckCircle size={12} className="text-emerald-600 shrink-0" />
                           <span>ISO Practice</span>
                         </span>
