@@ -1736,7 +1736,7 @@ export default function ProjectsManager() {
             {/* Modal Tabs Navigation */}
             <div className="bg-slate-50 border-b border-slate-200 px-6 flex items-center gap-2 shrink-0 overflow-x-auto scrollbar-none">
               {[
-                { id: 'overview', label: '1. Overview & Service Link', icon: Grid },
+                { id: 'overview', label: '1. Project Overview & Client', icon: Grid },
                 { id: 'technical', label: '2. Diagnostics & Materials', icon: FlaskConical },
                 { id: 'media', label: '3. Before & After Media', icon: ImageIcon },
                 { id: 'preview', label: '4. Live Card Preview', icon: Eye },
@@ -1842,49 +1842,19 @@ export default function ProjectsManager() {
                     </div>
                   </div>
 
-                  {/* Chemical Name / Formulation Systems & Client Reference */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="form-label text-xs font-bold text-slate-800">
-                        Chemical Name / Formulation Systems *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Dr. Fixit Fastflex, Fosroc Nitoseal PU40, SikaTop Seal-107"
-                        className="form-input text-xs py-2 rounded-xl"
-                        value={formData.materialsUsed}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const splitFormulation = val
-                            .split(/[,•\n]+/)
-                            .map((s) => s.trim())
-                            .filter(Boolean);
-                          setFormData({
-                            ...formData,
-                            materialsUsed: val,
-                            formulation: splitFormulation,
-                          });
-                        }}
-                      />
-                      <p className="text-[10px] text-slate-500 mt-1">
-                        Type chemical names or formulations used (separate with commas).
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="form-label text-xs font-bold text-slate-800">
-                        Client Reference / Property Designation *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Luxury Villa #42 (Mr. Ramesh Sundaram)"
-                        className="form-input text-xs py-2 rounded-xl"
-                        value={formData.clientReference}
-                        onChange={(e) => setFormData({ ...formData, clientReference: e.target.value })}
-                      />
-                    </div>
+                  {/* Client Reference */}
+                  <div>
+                    <label className="form-label text-xs font-bold text-slate-800">
+                      Client Reference / Property Designation *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Luxury Villa #42 (Mr. Ramesh Sundaram)"
+                      className="form-input text-xs py-2 rounded-xl"
+                      value={formData.clientReference}
+                      onChange={(e) => setFormData({ ...formData, clientReference: e.target.value })}
+                    />
                   </div>
 
                   {/* Location */}
@@ -2093,6 +2063,7 @@ export default function ProjectsManager() {
                     </label>
                     <input
                       type="text"
+                      required
                       placeholder="e.g. Dr. Fixit Fastflex, Fosroc Nitoseal PU40, SikaTop Seal-107, 200 GSM Fiberglass Mesh"
                       className="form-input text-xs py-2 rounded-xl"
                       value={formData.materialsUsed}
@@ -2109,6 +2080,9 @@ export default function ProjectsManager() {
                         });
                       }}
                     />
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      Type chemical names or formulations used (separate with commas).
+                    </p>
                   </div>
                 </div>
               )}
