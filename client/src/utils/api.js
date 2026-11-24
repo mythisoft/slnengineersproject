@@ -18,6 +18,7 @@ export const fetchApi = async (endpoint, options = {}) => {
     ...options,
     headers,
     credentials: 'include',
+    cache: options.cache || 'no-store',
   });
 
   const data = await response.json().catch(() => ({}));

@@ -96,6 +96,7 @@ export const getPublicServiceBySlug = async (req, res, next) => {
 export const getPublicProjects = async (req, res, next) => {
   try {
     await ensureProjectsSeed();
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const { category, discipline, page = 1, limit = 50, featured } = req.query;
     const query = { isPublished: true };
 
@@ -152,6 +153,7 @@ export const getPublicProjects = async (req, res, next) => {
 // GET /api/projects/:slug - Single project details
 export const getPublicProjectBySlug = async (req, res, next) => {
   try {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const project = await Project.findOne({
       slug: req.params.slug,
       isPublished: true,

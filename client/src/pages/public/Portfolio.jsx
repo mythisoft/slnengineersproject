@@ -130,12 +130,20 @@ export default function Portfolio() {
 
     loadProjects();
 
+    const handleStorage = (e) => {
+      if (e.key === 'sln_projects_sync') {
+        loadProjects();
+      }
+    };
+
     window.addEventListener('sln_projects_updated', loadProjects);
     window.addEventListener('focus', loadProjects);
+    window.addEventListener('storage', handleStorage);
 
     return () => {
       window.removeEventListener('sln_projects_updated', loadProjects);
       window.removeEventListener('focus', loadProjects);
+      window.removeEventListener('storage', handleStorage);
     };
   }, []);
 

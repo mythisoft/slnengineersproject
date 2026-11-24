@@ -450,6 +450,7 @@ export const deleteService = async (req, res, next) => {
 export const getAllProjects = async (req, res, next) => {
   try {
     await ensureProjectsSeed();
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const { category, discipline, search, page = 1, limit = 100 } = req.query;
     const query = {};
 
@@ -564,7 +565,8 @@ export const createProject = async (req, res, next) => {
       slug,
       serviceCategory: finalServiceCategory,
       serviceTitle: finalServiceTitle,
-      serviceId: serviceId || null,
+      serviceId: serviceId && mongoose.Types.ObjectId.isValid(serviceId) ? serviceId : null,
+      customerId: req.body.customerId && mongoose.Types.ObjectId.isValid(req.body.customerId) ? req.body.customerId : null,
       disciplineId: finalDisciplineId,
       disciplineName: finalDisciplineName,
       location: location || 'Hyderabad, Telangana',
@@ -622,6 +624,36 @@ export const updateProject = async (req, res, next) => {
   try {
     const updateData = { ...req.body };
 
+    delete updateData._id;
+    delete updateData.id;
+
+    if ('serviceId' in updateData) {
+      if (!updateData.serviceId || !mongoose.Types.ObjectId.isValid(updateData.serviceId)) {
+        updateData.serviceId = null;
+      }
+    }
+    if ('customerId' in updateData) {
+      if (!updateData.customerId || !mongoose.Types.ObjectId.isValid(updateData.customerId)) {
+        updateData.customerId = null;
+      }
+    }
+
+    if (Array.isArray(updateData.beforeMedia)) {
+      updateData.beforeMedia = updateData.beforeMedia.filter(
+        (m) => m && m.url && typeof m.url === 'string' && m.url.trim()
+      );
+    }
+    if (Array.isArray(updateData.afterMedia)) {
+      updateData.afterMedia = updateData.afterMedia.filter(
+        (m) => m && m.url && typeof m.url === 'string' && m.url.trim()
+      );
+    }
+    if (Array.isArray(updateData.duringMedia)) {
+      updateData.duringMedia = updateData.duringMedia.filter(
+        (m) => m && m.url && typeof m.url === 'string' && m.url.trim()
+      );
+    }
+
     if (updateData.title && !updateData.slug) {
       updateData.slug = updateData.title
         .toLowerCase()
@@ -629,6 +661,16 @@ export const updateProject = async (req, res, next) => {
         .replace(/[^\w\s-]/g, '')
         .replace(/[\s_-]+/g, '-')
         .replace(/^-+|-+$/g, '');
+    }
+
+    if (updateData.slug) {
+      const existingSlug = await Project.findOne({
+        slug: updateData.slug,
+        _id: { $ne: req.params.id },
+      });
+      if (existingSlug) {
+        updateData.slug = `${updateData.slug}-${Date.now().toString().slice(-4)}`;
+      }
     }
 
     if (updateData.materialsUsed && (!updateData.formulation || updateData.formulation.length === 0)) {
@@ -653,11 +695,15 @@ export const updateProject = async (req, res, next) => {
       'Waterproofing Solutions'
     );
 
-    if (!updateData.serviceCategory || (discId !== 'waterproofing' && String(updateData.serviceCategory).toLowerCase().includes('waterproof'))) {
-      updateData.serviceCategory = discName;
+    if (updateData.serviceCategory !== undefined) {
+      if (!updateData.serviceCategory || (discId !== 'waterproofing' && String(updateData.serviceCategory).toLowerCase().includes('waterproof'))) {
+        updateData.serviceCategory = discName;
+      }
     }
-    if (!updateData.serviceTitle || (discId !== 'waterproofing' && String(updateData.serviceTitle).toLowerCase().includes('waterproof'))) {
-      updateData.serviceTitle = updateData.serviceCategory || discName;
+    if (updateData.serviceTitle !== undefined) {
+      if (!updateData.serviceTitle || (discId !== 'waterproofing' && String(updateData.serviceTitle).toLowerCase().includes('waterproof'))) {
+        updateData.serviceTitle = updateData.serviceCategory || discName;
+      }
     }
 
     if (updateData.showOnHome === true) {

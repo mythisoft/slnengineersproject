@@ -346,6 +346,9 @@ export default function ProjectsManager() {
     const normalized = newList.map((p, idx) => normalizeProject(p, idx));
     setProjects(normalized);
     window.dispatchEvent(new Event('sln_projects_updated'));
+    try {
+      localStorage.setItem('sln_projects_sync', Date.now().toString());
+    } catch (_) {}
   };
 
   // Load Projects, Services, and Disciplines from database
@@ -548,6 +551,8 @@ export default function ProjectsManager() {
 
     const payload = {
       ...formData,
+      serviceId: formData.serviceId && formData.serviceId.trim() ? formData.serviceId.trim() : null,
+      customerId: formData.customerId && formData.customerId.trim() ? formData.customerId.trim() : null,
       serviceCategory: cleanServiceCategory,
       serviceTitle: cleanServiceTitle,
       disciplineId: activeDiscId,
@@ -571,25 +576,33 @@ export default function ProjectsManager() {
     try {
       if (editingProject) {
         const targetId = editingProject._id || editingProject.id;
+        let updatedProjectData = null;
         try {
-          await fetchApi(`/admin/projects/${targetId}`, {
+          const res = await fetchApi(`/admin/projects/${targetId}`, {
             method: 'PUT',
             body: JSON.stringify(payload),
           });
+          if (res?.success && res?.data) {
+            updatedProjectData = res.data;
+          }
         } catch (apiErr) {
-          console.warn('Backend update failed, persisting locally:', apiErr.message);
+          console.error('Backend update failed:', apiErr);
+          alert(`Warning: Server update failed (${apiErr.message}). Changes could not be saved to database.`);
+          setSaving(false);
+          return;
         }
 
-        const targetDiscId = payload.disciplineId;
+        const mergedProject = { ...payload, ...(updatedProjectData || {}) };
+        const targetDiscId = mergedProject.disciplineId || payload.disciplineId;
         const updatedList = projects.map((p) => {
           const pId = p._id || p.id;
-          if (pId === targetId) return { ...p, ...payload };
+          if (pId === targetId) return { ...p, ...mergedProject };
           // Enforce 1 radio showcase per discipline pillar
-          if (payload.showOnHome && matchesProjectDiscipline(p, targetDiscId)) {
+          if (mergedProject.showOnHome && matchesProjectDiscipline(p, targetDiscId)) {
             return { ...p, showOnHome: false };
           }
           // Enforce 1 featured showcase per discipline pillar
-          if (payload.isFeatured && matchesProjectDiscipline(p, targetDiscId)) {
+          if (mergedProject.isFeatured && matchesProjectDiscipline(p, targetDiscId)) {
             return { ...p, isFeatured: false };
           }
           return p;
@@ -603,9 +616,12 @@ export default function ProjectsManager() {
             method: 'POST',
             body: JSON.stringify(payload),
           });
-          if (res.success && res.data) createdProject = res.data;
+          if (res?.success && res?.data) createdProject = res.data;
         } catch (apiErr) {
-          console.warn('Backend create failed, saving locally:', apiErr.message);
+          console.error('Backend create failed:', apiErr);
+          alert(`Warning: Server creation failed (${apiErr.message}).`);
+          setSaving(false);
+          return;
         }
 
         const newEntry = createdProject || {

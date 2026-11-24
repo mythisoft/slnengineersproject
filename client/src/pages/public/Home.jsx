@@ -660,6 +660,12 @@ export default function Home() {
       if (e.detail) setSettings(e.detail);
     };
 
+    const handleStorage = (e) => {
+      if (e.key === 'sln_projects_sync' || e.key === 'sln_services_sync') {
+        syncData();
+      }
+    };
+
     window.addEventListener('sln_projects_updated', syncData);
     window.addEventListener('sln_services_updated', syncData);
     window.addEventListener('sln_transformations_updated', syncData);
@@ -668,6 +674,7 @@ export default function Home() {
     window.addEventListener('sln_home_content_updated', syncData);
     window.addEventListener('sln_settings_updated', handleSettingsUpdate);
     window.addEventListener('focus', syncData);
+    window.addEventListener('storage', handleStorage);
 
     return () => {
       window.removeEventListener('sln_projects_updated', syncData);
@@ -678,6 +685,7 @@ export default function Home() {
       window.removeEventListener('sln_home_content_updated', syncData);
       window.removeEventListener('sln_settings_updated', handleSettingsUpdate);
       window.removeEventListener('focus', syncData);
+      window.removeEventListener('storage', handleStorage);
     };
   }, []);
 
