@@ -1442,8 +1442,15 @@ export default function Home() {
   }, [allProjects]);
 
   const combinedHomeReviews = useMemo(() => {
-    // 1. Prioritize reviews explicitly marked with showOnHome: true (up to 3)
-    const homeSelected = (reviews || []).filter((r) => r.showOnHome);
+    // 1. Prioritize reviews explicitly marked with showOnHome: true (up to 3), sorted strictly by homeOrder
+    const homeSelected = (reviews || [])
+      .filter((r) => r.showOnHome)
+      .sort((a, b) => {
+        const orderA = typeof a.homeOrder === 'number' && a.homeOrder > 0 ? a.homeOrder : 999;
+        const orderB = typeof b.homeOrder === 'number' && b.homeOrder > 0 ? b.homeOrder : 999;
+        if (orderA !== orderB) return orderA - orderB;
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      });
     const list = [...homeSelected];
 
     // 2. If fewer than 3 reviews are marked for home, fill with default reviews to keep the 3-column grid complete

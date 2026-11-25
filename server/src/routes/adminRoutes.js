@@ -21,6 +21,7 @@ import {
   getAllReviews,
   createReview,
   updateReviewStatus,
+  reorderHomeReviews,
   deleteReview,
   generateProjectReviewLink,
   getAllReviewLinks,
@@ -225,6 +226,7 @@ router.post('/customers', protect, authorize('superadmin', 'admin'), createCusto
 // ==================== REVIEWS MODERATION & CRUD (Accessible to Admin & Super Admin) ====================
 router.get('/reviews', protect, authorize('superadmin', 'admin'), getAllReviews);
 router.post('/reviews', protect, authorize('superadmin', 'admin'), createReview);
+router.patch('/reviews/reorder/home', protect, authorize('superadmin', 'admin'), reorderHomeReviews);
 router.put('/reviews/:id', protect, authorize('superadmin', 'admin'), updateReviewStatus);
 router.patch('/reviews/:id', protect, authorize('superadmin', 'admin'), updateReviewStatus);
 router.delete('/reviews/:id', protect, authorize('superadmin', 'admin'), deleteReview);

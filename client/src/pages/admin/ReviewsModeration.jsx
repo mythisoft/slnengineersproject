@@ -21,6 +21,10 @@ import {
   Sliders,
   ShieldCheck,
   CheckCircle2,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { fetchApi } from '../../utils/api';
 import { DEFAULT_REVIEWS_HERO } from '../../utils/reviewsData';
@@ -59,6 +63,10 @@ export default function ReviewsModeration() {
   });
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+
+  // Homepage 4th Review Replacement Modal State
+  const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
+  const [pendingReplaceReview, setPendingReplaceReview] = useState(null);
 
   const loadReviews = () => {
     setLoading(true);
@@ -270,24 +278,24 @@ export default function ReviewsModeration() {
     const isCurrentlyHome = Boolean(rev.showOnHome);
     const nextState = !isCurrentlyHome;
     if (nextState) {
-      const homeCount = reviews.filter((r) => r.showOnHome && r._id !== rev._id).length;
-      if (homeCount >= 3) {
-        showToast(
-          'Maximum of 3 reviews can be featured on the Homepage. Please unpin another review first.',
-          'warning'
-        );
+      const currentHomeReviews = reviews.filter((r) => r.showOnHome && r._id !== rev._id);
+      if (currentHomeReviews.length >= 3) {
+        // Open Replace Modal to let admin pick which one to remove!
+        setPendingReplaceReview(rev);
+        setIsReplaceModalOpen(true);
         return;
       }
     }
 
     try {
+      const targetOrder = nextState ? (homeFeaturedReviews.length + 1) : 0;
       const res = await fetchApi(`/admin/reviews/${rev._id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ showOnHome: nextState }),
+        body: JSON.stringify({ showOnHome: nextState, homeOrder: targetOrder }),
       });
       if (res.success) {
         setReviews((prev) =>
-          prev.map((r) => (r._id === rev._id ? { ...r, showOnHome: nextState } : r))
+          prev.map((r) => (r._id === rev._id ? { ...r, showOnHome: nextState, homeOrder: targetOrder } : r))
         );
         showToast(
           nextState ? '★ Review pinned to Homepage Testimonials!' : 'Review removed from Homepage.',
@@ -299,6 +307,88 @@ export default function ReviewsModeration() {
       }
     } catch (err) {
       showToast(err.message || 'Failed to update homepage status', 'error');
+    }
+  };
+
+  // Replace one of the 3 existing homepage reviews with the newly selected review
+  const handleReplaceReview = async (reviewToReplaceId) => {
+    if (!pendingReplaceReview) return;
+    const oldReview = reviews.find((r) => r._id === reviewToReplaceId);
+    const targetOrder = oldReview?.homeOrder || 1;
+
+    try {
+      const res = await fetchApi(`/admin/reviews/${pendingReplaceReview._id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          showOnHome: true,
+          replaceReviewId: reviewToReplaceId,
+          homeOrder: targetOrder,
+        }),
+      });
+
+      if (res.success) {
+        setReviews((prev) =>
+          prev.map((r) => {
+            if (r._id === reviewToReplaceId) {
+              return { ...r, showOnHome: false, homeOrder: 0 };
+            }
+            if (r._id === pendingReplaceReview._id) {
+              return { ...r, showOnHome: true, homeOrder: targetOrder };
+            }
+            return r;
+          })
+        );
+        showToast(
+          `★ Replaced "${oldReview?.customerName}" with "${pendingReplaceReview.customerName}" on Homepage!`,
+          'success'
+        );
+        window.dispatchEvent(new Event('sln_reviews_updated'));
+        setIsReplaceModalOpen(false);
+        setPendingReplaceReview(null);
+      } else {
+        showToast(res.message || 'Failed to replace review', 'error');
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to replace review', 'error');
+    }
+  };
+
+  // Reorder homepage reviews using Left/Right or Up/Down arrows
+  const handleMoveHomeReview = async (reviewId, direction) => {
+    const currentIndex = homeFeaturedReviews.findIndex((r) => r._id === reviewId);
+    if (currentIndex === -1) return;
+
+    const targetIndex = direction === 'up' || direction === 'left' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= homeFeaturedReviews.length) return;
+
+    const newOrderedList = [...homeFeaturedReviews];
+    const [moved] = newOrderedList.splice(currentIndex, 1);
+    newOrderedList.splice(targetIndex, 0, moved);
+
+    const orderedIds = newOrderedList.map((r) => r._id);
+
+    // Optimistically update local state
+    setReviews((prev) =>
+      prev.map((r) => {
+        const orderIdx = orderedIds.indexOf(r._id);
+        if (orderIdx !== -1) {
+          return { ...r, homeOrder: orderIdx + 1, showOnHome: true };
+        }
+        return r;
+      })
+    );
+
+    try {
+      const res = await fetchApi('/admin/reviews/reorder/home', {
+        method: 'PATCH',
+        body: JSON.stringify({ orderedIds }),
+      });
+      if (res.success) {
+        showToast('Homepage reviews display order updated!', 'success');
+        window.dispatchEvent(new Event('sln_reviews_updated'));
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to update order', 'error');
     }
   };
 
@@ -394,6 +484,18 @@ export default function ReviewsModeration() {
       return true;
     });
   }, [reviews, filter, searchTerm]);
+
+  // 3 Featured Reviews on Homepage, sorted strictly by homeOrder
+  const homeFeaturedReviews = useMemo(() => {
+    return reviews
+      .filter((r) => r.showOnHome)
+      .sort((a, b) => {
+        const orderA = typeof a.homeOrder === 'number' && a.homeOrder > 0 ? a.homeOrder : 999;
+        const orderB = typeof b.homeOrder === 'number' && b.homeOrder > 0 ? b.homeOrder : 999;
+        if (orderA !== orderB) return orderA - orderB;
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      });
+  }, [reviews]);
 
   // Counts for tabs
   const pendingCount = reviews.filter((r) => !r.isApproved && !r.isSpam).length;
@@ -499,6 +601,129 @@ export default function ReviewsModeration() {
       {/* ===================================================================== */}
       {activeTab === 'reviews' && (
         <div className="space-y-6">
+          {/* ======================================================== */}
+          {/* HOMEPAGE FEATURED REVIEWS STRIP (3 SLOTS & ORDER ARROWS) */}
+          {/* ======================================================== */}
+          <div className="card p-4 sm:p-5 bg-gradient-to-r from-amber-50/70 via-amber-50/30 to-sky-50/40 border border-amber-200/90 shadow-sm rounded-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center font-black shadow-xs">
+                  <Star size={14} fill="currentColor" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
+                    Homepage Featured Testimonials (Max 3 Slots)
+                  </h3>
+                  <p className="text-[11px] text-slate-500 leading-tight">
+                    Use order arrows ◀ ▶ to arrange slot positions (Slot 1 = Left, Slot 2 = Center, Slot 3 = Right on Homepage)
+                  </p>
+                </div>
+              </div>
+              <span className="badge text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200 self-start sm:self-auto">
+                {homeFeaturedReviews.length}/3 Slots Filled
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {[0, 1, 2].map((slotIndex) => {
+                const rev = homeFeaturedReviews[slotIndex];
+                const slotLabels = ['Slot 1 (Left)', 'Slot 2 (Center)', 'Slot 3 (Right)'];
+                return (
+                  <div
+                    key={slotIndex}
+                    className={`p-3 rounded-xl border transition-all ${
+                      rev
+                        ? 'bg-white border-amber-300 shadow-xs'
+                        : 'bg-white/60 border-dashed border-slate-200 flex flex-col items-center justify-center min-h-[110px] text-center'
+                    }`}
+                  >
+                    {rev ? (
+                      <div className="flex flex-col justify-between h-full space-y-2">
+                        <div>
+                          <div className="flex items-center justify-between gap-1 mb-1">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
+                              {slotLabels[slotIndex]}
+                            </span>
+                            <div className="flex items-center gap-0.5 text-amber-400">
+                              {[...Array(rev.rating || 5)].map((_, i) => (
+                                <Star key={i} size={10} fill="currentColor" />
+                              ))}
+                            </div>
+                          </div>
+                          <h4 className="text-xs font-bold text-slate-900 truncate">
+                            {rev.customerName}
+                          </h4>
+                          <p className="text-[11px] text-slate-600 line-clamp-2 italic mt-0.5">
+                            “{rev.feedbackText}”
+                          </p>
+                        </div>
+
+                        {/* Order Controls & Unpin */}
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                          <div className="flex items-center gap-1">
+                            {/* Move Left / Earlier Arrow */}
+                            <button
+                              type="button"
+                              onClick={() => handleMoveHomeReview(rev._id, 'left')}
+                              disabled={slotIndex === 0}
+                              className={`p-1 rounded-md text-xs border transition-colors ${
+                                slotIndex === 0
+                                  ? 'text-slate-300 border-slate-200 cursor-not-allowed'
+                                  : 'text-slate-700 border-slate-300 hover:bg-amber-100 hover:text-amber-800 active:scale-95 cursor-pointer'
+                              }`}
+                              title={slotIndex === 0 ? 'Already in leftmost slot' : 'Move Left (earlier)'}
+                            >
+                              <ArrowLeft size={13} />
+                            </button>
+
+                            {/* Move Right / Later Arrow */}
+                            <button
+                              type="button"
+                              onClick={() => handleMoveHomeReview(rev._id, 'right')}
+                              disabled={slotIndex === homeFeaturedReviews.length - 1}
+                              className={`p-1 rounded-md text-xs border transition-colors ${
+                                slotIndex === homeFeaturedReviews.length - 1
+                                  ? 'text-slate-300 border-slate-200 cursor-not-allowed'
+                                  : 'text-slate-700 border-slate-300 hover:bg-amber-100 hover:text-amber-800 active:scale-95 cursor-pointer'
+                              }`}
+                              title={
+                                slotIndex === homeFeaturedReviews.length - 1
+                                  ? 'Already in rightmost slot'
+                                  : 'Move Right (later)'
+                              }
+                            >
+                              <ArrowRight size={13} />
+                            </button>
+                          </div>
+
+                          {/* Unpin button */}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleHome(rev)}
+                            className="text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                            title="Remove from Homepage"
+                          >
+                            <X size={12} />
+                            <span>Remove</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-4 text-center">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                          {slotLabels[slotIndex]}
+                        </span>
+                        <p className="text-[11px] text-slate-400">
+                          Empty Slot — Click “Show on Home” on any review below to feature here.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Filter Tabs & Search Bar */}
           <div className="card p-3 bg-white border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-2xs">
         {/* Filter Pills */}
@@ -676,28 +901,70 @@ export default function ReviewsModeration() {
                         : 'Pending Review'}
                     </span>
 
-                    {/* Show on Home (Star Icon) */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleHome(rev)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all border cursor-pointer ${
-                        rev.showOnHome
-                          ? 'bg-amber-500 text-white border-amber-600 shadow-2xs hover:bg-amber-600'
-                          : 'bg-white text-slate-700 border-slate-300 hover:border-amber-400 hover:bg-amber-50/70'
-                      }`}
-                      title={
-                        rev.showOnHome
-                          ? 'Featured on Homepage Testimonials (Click to unpin)'
-                          : 'Show on Home: Pins this review to the Homepage Testimonial section (up to 3)'
-                      }
-                    >
-                      <Star
-                        size={13}
-                        fill={rev.showOnHome ? 'currentColor' : 'none'}
-                        className={rev.showOnHome ? 'text-white' : 'text-amber-500'}
-                      />
-                      <span>{rev.showOnHome ? '★ On Homepage' : 'Show on Home'}</span>
-                    </button>
+                    {/* Show on Home (Star Icon) + Order Arrows */}
+                    <div className="inline-flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleHome(rev)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all border cursor-pointer ${
+                          rev.showOnHome
+                            ? 'bg-amber-500 text-white border-amber-600 shadow-2xs hover:bg-amber-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:border-amber-400 hover:bg-amber-50/70'
+                        }`}
+                        title={
+                          rev.showOnHome
+                            ? 'Featured on Homepage (Click to unpin)'
+                            : 'Show on Home: Pins this review to the Homepage Testimonial section (up to 3)'
+                        }
+                      >
+                        <Star
+                          size={13}
+                          fill={rev.showOnHome ? 'currentColor' : 'none'}
+                          className={rev.showOnHome ? 'text-white' : 'text-amber-500'}
+                        />
+                        <span>
+                          {rev.showOnHome
+                            ? `★ Slot #${homeFeaturedReviews.findIndex((h) => h._id === rev._id) + 1}`
+                            : 'Show on Home'}
+                        </span>
+                      </button>
+
+                      {/* Order Arrows for reviews featured on Home */}
+                      {rev.showOnHome && (
+                        <div className="inline-flex items-center border border-slate-200 rounded-full bg-white p-0.5 shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveHomeReview(rev._id, 'left')}
+                            disabled={homeFeaturedReviews.findIndex((h) => h._id === rev._id) === 0}
+                            className={`p-1 rounded-full transition-colors ${
+                              homeFeaturedReviews.findIndex((h) => h._id === rev._id) === 0
+                                ? 'text-slate-300 cursor-not-allowed'
+                                : 'text-slate-700 hover:bg-amber-100 hover:text-amber-800 cursor-pointer'
+                            }`}
+                            title="Move earlier in Homepage order (← Left)"
+                          >
+                            <ArrowLeft size={11} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveHomeReview(rev._id, 'right')}
+                            disabled={
+                              homeFeaturedReviews.findIndex((h) => h._id === rev._id) ===
+                              homeFeaturedReviews.length - 1
+                            }
+                            className={`p-1 rounded-full transition-colors ${
+                              homeFeaturedReviews.findIndex((h) => h._id === rev._id) ===
+                              homeFeaturedReviews.length - 1
+                                ? 'text-slate-300 cursor-not-allowed'
+                                : 'text-slate-700 hover:bg-amber-100 hover:text-amber-800 cursor-pointer'
+                            }`}
+                            title="Move later in Homepage order (Right →)"
+                          >
+                            <ArrowRight size={11} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Feedback Text Quote */}
@@ -1417,6 +1684,106 @@ export default function ReviewsModeration() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL: REPLACE A HOMEPAGE REVIEW (WHEN 4TH IS SELECTED)   */}
+      {/* ======================================================== */}
+      {isReplaceModalOpen && pendingReplaceReview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full p-5 sm:p-6 space-y-4">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Star size={18} fill="currentColor" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900 leading-tight">
+                    Replace a Homepage Review
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Only 3 reviews can be featured on the Homepage.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsReplaceModalOpen(false);
+                  setPendingReplaceReview(null);
+                }}
+                className="text-slate-400 hover:text-slate-600 text-lg font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Notification Banner */}
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+              <p className="font-semibold">
+                You selected <span className="font-black text-amber-950">“{pendingReplaceReview.customerName}”</span> ({pendingReplaceReview.rating}★) to feature on the Homepage.
+              </p>
+              <p className="mt-1 text-[11.5px] text-amber-800">
+                Please select which of the current 3 reviews to remove and replace:
+              </p>
+            </div>
+
+            {/* 3 Existing Reviews to Choose from */}
+            <div className="space-y-2.5">
+              {homeFeaturedReviews.map((currRev, idx) => (
+                <div
+                  key={currRev._id}
+                  onClick={() => handleReplaceReview(currRev._id)}
+                  className="p-3.5 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 transition-all cursor-pointer group flex items-center justify-between gap-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
+                        Slot #{idx + 1}
+                      </span>
+                      <div className="flex items-center gap-0.5 text-amber-400">
+                        {[...Array(currRev.rating || 5)].map((_, i) => (
+                          <Star key={i} size={11} fill="currentColor" />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-xs font-bold text-slate-900 group-hover:text-amber-900 truncate">
+                      {currRev.customerName}
+                    </div>
+                    <div className="text-[11px] text-slate-500 italic line-clamp-1 mt-0.5">
+                      “{currRev.feedbackText}”
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleReplaceReview(currRev._id);
+                    }}
+                    className="btn btn-primary btn-sm text-xs shrink-0 whitespace-nowrap cursor-pointer"
+                  >
+                    Replace This
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer Actions */}
+            <div className="flex justify-end pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsReplaceModalOpen(false);
+                  setPendingReplaceReview(null);
+                }}
+                className="btn btn-outline btn-sm text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

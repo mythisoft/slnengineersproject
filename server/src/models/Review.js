@@ -55,6 +55,11 @@ const reviewSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+    homeOrder: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
     isSpam: {
       type: Boolean,
       default: false,

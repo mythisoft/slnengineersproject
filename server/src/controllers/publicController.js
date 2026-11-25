@@ -284,8 +284,8 @@ export const getPublicReviews = async (req, res, next) => {
       isApproved: true,
       isSpam: false,
     })
-      .select('customerName projectTitle rating feedbackText showOnHome createdAt')
-      .sort({ showOnHome: -1, createdAt: -1 })
+      .select('customerName projectTitle rating feedbackText showOnHome homeOrder createdAt')
+      .sort({ showOnHome: -1, homeOrder: 1, createdAt: -1 })
       .lean();
 
     const totalReviews = reviews.length;

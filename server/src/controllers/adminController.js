@@ -1074,6 +1074,8 @@ export const updateReviewStatus = async (req, res, next) => {
       isSpam,
       adminNotes,
       showOnHome,
+      homeOrder,
+      replaceReviewId,
     } = req.body;
 
     const review = await Review.findById(req.params.id);
@@ -1085,20 +1087,26 @@ export const updateReviewStatus = async (req, res, next) => {
     if (showOnHome !== undefined) {
       const willBeHome = Boolean(showOnHome);
       if (willBeHome && !review.showOnHome) {
-        const homeCount = await Review.countDocuments({
-          _id: { $ne: review._id },
-          showOnHome: true,
-        });
-        if (homeCount >= 3) {
-          return res.status(400).json({
-            success: false,
-            message: 'Only a maximum of 3 reviews can be featured on the Homepage. Please deselect another review first.',
+        if (replaceReviewId) {
+          await Review.findByIdAndUpdate(replaceReviewId, { showOnHome: false });
+        } else {
+          const homeCount = await Review.countDocuments({
+            _id: { $ne: review._id },
+            showOnHome: true,
           });
+          if (homeCount >= 3) {
+            return res.status(400).json({
+              success: false,
+              code: 'MAX_HOME_REVIEWS_REACHED',
+              message: 'Only a maximum of 3 reviews can be featured on the Homepage. Please select which review to replace.',
+            });
+          }
         }
       }
       review.showOnHome = willBeHome;
     }
 
+    if (homeOrder !== undefined) review.homeOrder = Number(homeOrder);
     if (customerName !== undefined) review.customerName = customerName.trim();
     if (rating !== undefined) review.rating = Number(rating);
     if (feedbackText !== undefined) review.feedbackText = feedbackText.trim();
@@ -1119,11 +1127,31 @@ export const updateReviewStatus = async (req, res, next) => {
         rating: review.rating,
         isApproved: review.isApproved,
         showOnHome: review.showOnHome,
+        homeOrder: review.homeOrder,
         isSpam: review.isSpam,
       },
     });
 
     res.json({ success: true, data: review });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const reorderHomeReviews = async (req, res, next) => {
+  try {
+    const { orderedIds } = req.body;
+    if (!Array.isArray(orderedIds)) {
+      return res.status(400).json({ success: false, message: 'orderedIds must be an array of review IDs' });
+    }
+
+    const updates = orderedIds.map((id, index) =>
+      Review.findByIdAndUpdate(id, { homeOrder: index + 1, showOnHome: true }, { new: true })
+    );
+    await Promise.all(updates);
+
+    const updatedReviews = await Review.find().sort({ createdAt: -1 }).lean();
+    res.json({ success: true, data: updatedReviews });
   } catch (error) {
     next(error);
   }
