@@ -208,7 +208,7 @@ export default function Footer() {
               <div className="mt-3.5">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   <Award size={13} className="text-emerald-400 shrink-0" />
-                  <span>Restoration for Three Generations • Est. 1980s</span>
+                  <span>{settings?.tagline || 'Restoration for Three Generations'}</span>
                 </div>
               </div>
 
