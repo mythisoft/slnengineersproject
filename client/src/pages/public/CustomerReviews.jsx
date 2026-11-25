@@ -7,8 +7,6 @@ import {
   QrCode,
   ArrowRight,
   Shield,
-  Home,
-  Building2,
   User,
   Calendar,
   FileCheck,
@@ -83,14 +81,6 @@ export default function CustomerReviews() {
   }, []);
 
   const displayedReviews = useMemo(() => {
-    const fallbackAvatars = [
-      'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&w=300&q=80',
-      'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=300&q=80',
-      'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=300&q=80',
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-    ];
-
     if (!reviewsData?.reviews || reviewsData.reviews.length === 0) {
       return [];
     }
@@ -98,17 +88,10 @@ export default function CustomerReviews() {
     return reviewsData.reviews.map((r, i) => ({
       id: r._id || `rev-${i}`,
       customerName: r.customerName || 'Verified Client',
-      projectTitle: r.projectTitle || 'Waterproofing & Civil Restoration',
       rating: r.rating || 5,
       quote: r.feedbackText?.startsWith('“')
         ? r.feedbackText
         : `“${r.feedbackText}”`,
-      type:
-        r.projectTitle?.toLowerCase().includes('building') ||
-        r.projectTitle?.toLowerCase().includes('commercial')
-          ? 'building'
-          : 'home',
-      image: fallbackAvatars[i % fallbackAvatars.length],
       isDbReview: true,
     }));
   }, [reviewsData]);
@@ -528,35 +511,25 @@ export default function CustomerReviews() {
                   </span>
 
                   <div className="relative z-10">
-                    {/* Card Header: Circular Image & Rating */}
-                    <div className="flex items-center gap-3 sm:gap-3.5 mb-3.5 sm:mb-4">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-white shadow-xs shrink-0 bg-slate-100 ring-2 ring-sky-100 group-hover:ring-sky-400 group-hover:scale-105 transition-all duration-300">
-                        <img
-                          src={review.image}
-                          alt={review.customerName}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
+                    {/* Card Header: Rating Stars & Verified Customer Badge */}
+                    <div className="flex items-center justify-between gap-3 mb-3.5 sm:mb-4">
+                      <div className="flex items-center gap-1 text-amber-400">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={15}
+                            fill={i < (review.rating || 5) ? 'currentColor' : 'none'}
+                            className={`drop-shadow-xs ${
+                              i < (review.rating || 5)
+                                ? 'text-amber-400'
+                                : 'text-slate-300'
+                            }`}
+                          />
+                        ))}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-1 text-emerald-700 text-xs font-semibold mb-0.5 sm:mb-1">
-                          <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
-                          <span>Verified Customer</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-amber-400">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              size={14}
-                              fill={i < (review.rating || 5) ? 'currentColor' : 'none'}
-                              className={`drop-shadow-xs sm:w-[15px] sm:h-[15px] ${
-                                i < (review.rating || 5)
-                                  ? 'text-amber-400'
-                                  : 'text-slate-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
+                      <div className="flex items-center gap-1 text-emerald-700 text-[11px] font-semibold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
+                        <ShieldCheck size={13} className="text-emerald-600 shrink-0" />
+                        <span>Verified Customer</span>
                       </div>
                     </div>
 
@@ -566,19 +539,11 @@ export default function CustomerReviews() {
                     </p>
                   </div>
 
-                  {/* Metadata Details */}
-                  <div className="border-t border-slate-100 pt-3 space-y-1.5 sm:space-y-2 text-xs relative z-10">
+                  {/* Metadata Details: Customer Name */}
+                  <div className="border-t border-slate-100 pt-3 flex items-center justify-between text-xs relative z-10">
                     <div className="flex items-center gap-2 font-bold text-slate-800 group-hover:text-[#0284c7] transition-colors truncate">
                       <User size={14} className="text-sky-600 shrink-0" />
                       <span className="truncate">{review.customerName}</span>
-                    </div>
-                    <div className="flex items-start gap-2 text-slate-600 text-[10.5px] sm:text-[11px] leading-tight">
-                      {review.type === 'building' ? (
-                        <Building2 size={13} className="text-sky-600 shrink-0 mt-0.5" />
-                      ) : (
-                        <Home size={13} className="text-sky-600 shrink-0 mt-0.5" />
-                      )}
-                      <span className="line-clamp-2">{review.projectTitle}</span>
                     </div>
                   </div>
                 </div>

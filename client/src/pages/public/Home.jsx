@@ -2822,9 +2822,6 @@ export default function Home() {
                         <strong className="text-slate-900 block font-bold text-xs truncate">
                           {rev.customerName || 'Verified Client'}
                         </strong>
-                        <span className="text-slate-500 text-[10px] block truncate">
-                          {rev.projectTitle || 'Waterproofing & Civil Restoration'}
-                        </span>
                       </div>
                       <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] font-semibold shrink-0 animate-pulse-glow">
                         ✔ Verified

@@ -974,13 +974,15 @@ export default function ReviewsModeration() {
 
                   {/* Metadata Row (No Date) */}
                   <div className="flex items-center gap-3 text-[11px] text-slate-400 pt-0.5 flex-wrap">
-                    <span className="flex items-center gap-1">
-                      <Building2 size={12} className="text-sky-600" />
-                      <span>{rev.projectTitle || 'Waterproofing Service'}</span>
-                    </span>
+                    {rev.projectTitle && (
+                      <span className="flex items-center gap-1">
+                        <Building2 size={12} className="text-sky-600" />
+                        <span>{rev.projectTitle}</span>
+                      </span>
+                    )}
                     {rev.token && (
                       <>
-                        <span>•</span>
+                        {rev.projectTitle && <span>•</span>}
                         <span className="font-mono text-[10px] text-slate-400">
                           Source: {rev.token === 'universal' ? 'Universal QR' : rev.token === 'admin-created' ? 'Admin Entry' : 'Handover Token'}
                         </span>
