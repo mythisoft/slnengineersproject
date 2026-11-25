@@ -23,40 +23,6 @@ import {
 import { fetchApi } from '../../utils/api';
 import { DEFAULT_REVIEWS_HERO } from '../../utils/reviewsData';
 
-// 3 Verified Client Reviews matching the design mockup exactly
-const REVIEWS_DATA = [
-  {
-    id: '01',
-    customerName: 'Mrs. Radhika Varma, Jubilee Hills, Hyderabad',
-    projectTitle: 'Façade Re-pointing & Elastomeric Weather-Shielding at Regency Enclave',
-    date: 'Oct 2026',
-    image: 'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&w=300&q=80',
-    type: 'home',
-    quote:
-      '“Three generations of craftsmanship truly shows in their work ethic. They repaired structural hairline cracks across our entire 4-storey exterior and applied an elastomeric weather-shield coating that looks pristine. Honest pricing and genuine engineering expertise.”',
-  },
-  {
-    id: '02',
-    customerName: 'Facility Manager, Tech Park, Madhapur',
-    projectTitle: 'Negative-Side Basement Tanking & PU Chemical Injection at Tech Park',
-    date: 'Oct 2026',
-    image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=300&q=80',
-    type: 'building',
-    quote:
-      '“The high-pressure PU chemical injection executed in our corporate underground parking halted active monsoon water gushing in seconds. Outstanding civil engineering oversight and verified hydrostatic warranty handover.”',
-  },
-  {
-    id: '03',
-    customerName: 'Mr. Ramesh Sundaram, Palm Meadows Villa, Medipally',
-    projectTitle: 'Penthouse Roof & Terrace Garden Waterproofing at Palm Meadows Villa',
-    date: 'Oct 2026',
-    image: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=300&q=80',
-    type: 'home',
-    quote:
-      '“Exceptional professionalism from the SLN engineering team. They scanned our terrace slab with thermal diagnostic tools, reinforced every expansion joint, and provided a bonded 10-year written warranty certificate with a tamper-proof QR code.”',
-  },
-];
-
 export default function CustomerReviews() {
   const [reviewsData, setReviewsData] = useState(null);
   const [settings, setSettings] = useState(null);
@@ -107,6 +73,11 @@ export default function CustomerReviews() {
         .catch((e) => console.error('Failed to reload reviews:', e));
     };
 
+    try {
+      localStorage.removeItem('sln_cached_reviews');
+      localStorage.removeItem('sln_reviews');
+    } catch {}
+
     window.addEventListener('sln_reviews_updated', handleReviewsUpdated);
     return () => window.removeEventListener('sln_reviews_updated', handleReviewsUpdated);
   }, []);
@@ -120,40 +91,26 @@ export default function CustomerReviews() {
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
     ];
 
-    if (reviewsData?.reviews && reviewsData.reviews.length > 0) {
-      const dbReviews = reviewsData.reviews.map((r, i) => ({
-        id: r._id || `rev-${i}`,
-        customerName: r.customerName || 'Verified Client',
-        projectTitle: r.projectTitle || 'Waterproofing & Civil Restoration',
-        date: r.createdAt
-          ? new Date(r.createdAt).toLocaleDateString('en-US', {
-              month: 'short',
-              year: 'numeric',
-            })
-          : 'Recent',
-        rating: r.rating || 5,
-        quote: r.feedbackText?.startsWith('“')
-          ? r.feedbackText
-          : `“${r.feedbackText}”`,
-        type:
-          r.projectTitle?.toLowerCase().includes('building') ||
-          r.projectTitle?.toLowerCase().includes('commercial')
-            ? 'building'
-            : 'home',
-        image: fallbackAvatars[i % fallbackAvatars.length],
-        isDbReview: true,
-      }));
-
-      // Combine approved DB reviews at the top, then append default reviews so the page always has at least 3 reviews
-      const combined = [...dbReviews];
-      REVIEWS_DATA.forEach((defRev) => {
-        if (!combined.some((c) => c.customerName === defRev.customerName)) {
-          combined.push(defRev);
-        }
-      });
-      return combined;
+    if (!reviewsData?.reviews || reviewsData.reviews.length === 0) {
+      return [];
     }
-    return REVIEWS_DATA;
+
+    return reviewsData.reviews.map((r, i) => ({
+      id: r._id || `rev-${i}`,
+      customerName: r.customerName || 'Verified Client',
+      projectTitle: r.projectTitle || 'Waterproofing & Civil Restoration',
+      rating: r.rating || 5,
+      quote: r.feedbackText?.startsWith('“')
+        ? r.feedbackText
+        : `“${r.feedbackText}”`,
+      type:
+        r.projectTitle?.toLowerCase().includes('building') ||
+        r.projectTitle?.toLowerCase().includes('commercial')
+          ? 'building'
+          : 'home',
+      image: fallbackAvatars[i % fallbackAvatars.length],
+      isDbReview: true,
+    }));
   }, [reviewsData]);
 
   // High-performance IntersectionObserver for scroll animations
@@ -555,77 +512,93 @@ export default function CustomerReviews() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {displayedReviews.map((review, idx) => (
-              <div
-                key={review.id || idx}
-                className={`relative bg-white rounded-2xl border border-sky-100 shadow-2xs hover:shadow-xl hover:border-sky-300 hover:-translate-y-2 transition-all duration-300 p-4 sm:p-6 flex flex-col justify-between overflow-hidden group scroll-reveal-pop stagger-${(idx % 3) + 1}`}
-              >
-                {/* Top Sliding Gradient Accent Line */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-20" />
+          {displayedReviews.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {displayedReviews.map((review, idx) => (
+                <div
+                  key={review.id || idx}
+                  className={`relative bg-white rounded-2xl border border-sky-100 shadow-2xs hover:shadow-xl hover:border-sky-300 hover:-translate-y-2 transition-all duration-300 p-4 sm:p-6 flex flex-col justify-between overflow-hidden group scroll-reveal-pop stagger-${(idx % 3) + 1}`}
+                >
+                  {/* Top Sliding Gradient Accent Line */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-20" />
 
-                {/* Elegant Background Watermark Quote */}
-                <span className="absolute right-4 top-2 text-7xl font-serif text-sky-100/60 select-none pointer-events-none group-hover:text-sky-200/80 group-hover:scale-105 transition-all duration-300">
-                  “
-                </span>
+                  {/* Elegant Background Watermark Quote */}
+                  <span className="absolute right-4 top-2 text-7xl font-serif text-sky-100/60 select-none pointer-events-none group-hover:text-sky-200/80 group-hover:scale-105 transition-all duration-300">
+                    “
+                  </span>
 
-                <div className="relative z-10">
-                  {/* Card Header: Circular Image & Rating */}
-                  <div className="flex items-center gap-3 sm:gap-3.5 mb-3.5 sm:mb-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-white shadow-xs shrink-0 bg-slate-100 ring-2 ring-sky-100 group-hover:ring-sky-400 group-hover:scale-105 transition-all duration-300">
-                      <img
-                        src={review.image}
-                        alt={review.customerName}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1 text-emerald-700 text-xs font-semibold mb-0.5 sm:mb-1">
-                        <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
-                        <span>Verified Customer</span>
+                  <div className="relative z-10">
+                    {/* Card Header: Circular Image & Rating */}
+                    <div className="flex items-center gap-3 sm:gap-3.5 mb-3.5 sm:mb-4">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-white shadow-xs shrink-0 bg-slate-100 ring-2 ring-sky-100 group-hover:ring-sky-400 group-hover:scale-105 transition-all duration-300">
+                        <img
+                          src={review.image}
+                          alt={review.customerName}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
                       </div>
-                      <div className="flex items-center gap-1 text-amber-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={14}
-                            fill={i < (review.rating || 5) ? 'currentColor' : 'none'}
-                            className={`drop-shadow-xs sm:w-[15px] sm:h-[15px] ${
-                              i < (review.rating || 5)
-                                ? 'text-amber-400'
-                                : 'text-slate-300'
-                            }`}
-                          />
-                        ))}
+                      <div>
+                        <div className="flex items-center gap-1 text-emerald-700 text-xs font-semibold mb-0.5 sm:mb-1">
+                          <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
+                          <span>Verified Customer</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-amber-400">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              size={14}
+                              fill={i < (review.rating || 5) ? 'currentColor' : 'none'}
+                              className={`drop-shadow-xs sm:w-[15px] sm:h-[15px] ${
+                                i < (review.rating || 5)
+                                  ? 'text-amber-400'
+                                  : 'text-slate-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
                       </div>
                     </div>
+
+                    {/* Review Quote Body */}
+                    <p className="text-xs sm:text-[12.5px] text-slate-600 leading-relaxed mb-4 italic">
+                      {review.quote}
+                    </p>
                   </div>
 
-                  {/* Review Quote Body */}
-                  <p className="text-xs sm:text-[12.5px] text-slate-600 leading-relaxed mb-4 italic">
-                    {review.quote}
-                  </p>
-                </div>
-
-                {/* Metadata Details */}
-                <div className="border-t border-slate-100 pt-3 space-y-1.5 sm:space-y-2 text-xs relative z-10">
-                  <div className="flex items-center gap-2 font-bold text-slate-800 group-hover:text-[#0284c7] transition-colors truncate">
-                    <User size={14} className="text-sky-600 shrink-0" />
-                    <span className="truncate">{review.customerName}</span>
-                  </div>
-                  <div className="flex items-start gap-2 text-slate-600 text-[10.5px] sm:text-[11px] leading-tight">
-                    {review.type === 'building' ? (
-                      <Building2 size={13} className="text-sky-600 shrink-0 mt-0.5" />
-                    ) : (
-                      <Home size={13} className="text-sky-600 shrink-0 mt-0.5" />
-                    )}
-                    <span className="line-clamp-2">{review.projectTitle}</span>
+                  {/* Metadata Details */}
+                  <div className="border-t border-slate-100 pt-3 space-y-1.5 sm:space-y-2 text-xs relative z-10">
+                    <div className="flex items-center gap-2 font-bold text-slate-800 group-hover:text-[#0284c7] transition-colors truncate">
+                      <User size={14} className="text-sky-600 shrink-0" />
+                      <span className="truncate">{review.customerName}</span>
+                    </div>
+                    <div className="flex items-start gap-2 text-slate-600 text-[10.5px] sm:text-[11px] leading-tight">
+                      {review.type === 'building' ? (
+                        <Building2 size={13} className="text-sky-600 shrink-0 mt-0.5" />
+                      ) : (
+                        <Home size={13} className="text-sky-600 shrink-0 mt-0.5" />
+                      )}
+                      <span className="line-clamp-2">{review.projectTitle}</span>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 sm:p-12 text-center max-w-md mx-auto shadow-xs">
+              <div className="w-12 h-12 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Star size={24} />
               </div>
-            ))}
-          </div>
+              <h3 className="text-base font-bold text-slate-800 mb-1">No Reviews Yet</h3>
+              <p className="text-xs text-slate-500 mb-4">
+                Be the first to share your experience with SLN Engineers Projects!
+              </p>
+              <Link to="/review" className="btn btn-primary btn-sm text-xs inline-flex items-center gap-1.5">
+                <Star size={13} className="text-amber-300 fill-amber-300" />
+                <span>Submit a Customer Review</span>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 

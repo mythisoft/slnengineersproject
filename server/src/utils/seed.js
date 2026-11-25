@@ -478,25 +478,8 @@ const seedDatabase = async () => {
         lastScannedAt: new Date(),
         createdBy: adminUser._id,
       });
-
-      // 8. Approved Customer Review for this project
-      await Review.create({
-        reviewLinkId: reviewLink._id,
-        token,
-        projectId: project._id,
-        projectTitle: project.title,
-        rating: 5,
-        customerName: project.clientReference.includes('(')
-          ? project.clientReference.split('(')[1].replace(')', '')
-          : 'Homeowner, Bangalore',
-        feedbackText: `SLN Engineers solved our leaking terrace after two other contractors had failed. Their three generations of experience really showed in their thorough inspection and systematic waterproofing process. Clean work, zero mess, and bone dry ever since!`,
-        consentToPublish: true,
-        isApproved: true,
-        isSpam: false,
-        ipAddress: '127.0.0.1',
-      });
     }
-    console.log('[Seed] Created QR review links and verified reviews.');
+    console.log('[Seed] Created QR review links.');
 
     // 9. Pipeline Enquiries
     await Enquiry.insertMany([

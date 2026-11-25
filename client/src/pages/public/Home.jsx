@@ -405,33 +405,6 @@ const DEFAULT_TRANSFORMATIONS = [
   },
 ];
 
-const DEFAULT_HOME_REVIEWS = [
-  {
-    _id: 'default-home-rev-1',
-    customerName: 'Mr. K. Srinivas Rao',
-    projectTitle: 'Medipally, Hyderabad • Terrace Restoration',
-    rating: 5,
-    feedbackText:
-      'SLN Engineers solved our chronic terrace leakage after two previous contractors had failed. Their civil engineering team identified the hidden crack paths with moisture meters, applied a monolithic PU membrane, and our ceiling has remained completely dry through heavy monsoon rains.',
-  },
-  {
-    _id: 'default-home-rev-2',
-    customerName: 'Mr. Ramesh Sundaram',
-    projectTitle: 'Madhapur, Hyderabad • Basement Tanking',
-    rating: 5,
-    feedbackText:
-      'We had severe groundwater seepage in our basement parking. SLN Engineers executed negative-side crystalline waterproofing and polyurethane injection grouting with zero disruption to residents. Outstanding professionalism, clean site handover, and solid engineering quality.',
-  },
-  {
-    _id: 'default-home-rev-3',
-    customerName: 'Mrs. Radhika Varma',
-    projectTitle: 'Jubilee Hills, Hyderabad • Façade Coating',
-    rating: 5,
-    feedbackText:
-      'Three generations of craftsmanship truly shows in their work ethic. They repaired structural hairline cracks across our entire 4-storey exterior and applied an elastomeric weather-shield coating that looks pristine. Honest pricing and genuine engineering expertise.',
-  },
-];
-
 export default function Home() {
   const location = useLocation();
   const [settings, setSettings] = useState(null);
@@ -1442,27 +1415,16 @@ export default function Home() {
   }, [allProjects]);
 
   const combinedHomeReviews = useMemo(() => {
-    // 1. Prioritize reviews explicitly marked with showOnHome: true (up to 3), sorted strictly by homeOrder
-    const homeSelected = (reviews || [])
+    // Return strictly database reviews marked with showOnHome: true (up to 3), sorted by homeOrder
+    return (reviews || [])
       .filter((r) => r.showOnHome)
       .sort((a, b) => {
         const orderA = typeof a.homeOrder === 'number' && a.homeOrder > 0 ? a.homeOrder : 999;
         const orderB = typeof b.homeOrder === 'number' && b.homeOrder > 0 ? b.homeOrder : 999;
         if (orderA !== orderB) return orderA - orderB;
         return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-      });
-    const list = [...homeSelected];
-
-    // 2. If fewer than 3 reviews are marked for home, fill with default reviews to keep the 3-column grid complete
-    if (list.length < 3) {
-      DEFAULT_HOME_REVIEWS.forEach((def) => {
-        if (list.length < 3 && !list.some((r) => r.customerName === def.customerName)) {
-          list.push(def);
-        }
-      });
-    }
-
-    return list.slice(0, 3);
+      })
+      .slice(0, 3);
   }, [reviews]);
   const heroCopy = activeBanner ? getBannerCopy(activeBanner) : basementBannerCopy;
 
@@ -2833,42 +2795,54 @@ export default function Home() {
 
             {/* Dynamic Feedback Cards */}
             <div className="lg:col-span-9 grid grid-cols-1 md:grid-cols-3 gap-5">
-              {combinedHomeReviews.map((rev, idx) => (
-                <div
-                  key={rev._id || `home-rev-${idx}`}
-                  className={`bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs hover:shadow-md hover:border-sky-300 transition-all duration-300 flex flex-col justify-between space-y-3 card-interactive-3d scroll-reveal-pop stagger-${(idx % 3) + 1}`}
-                >
-                  <div>
-                    <div className="flex items-center gap-1 text-amber-400 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          size={14}
-                          fill={i < (rev.rating || 5) ? 'currentColor' : 'none'}
-                          className={`animate-float ${i < (rev.rating || 5) ? 'text-amber-400' : 'text-slate-300'}`}
-                          style={{ animationDelay: `${i * 0.1}s` }}
-                        />
-                      ))}
+              {combinedHomeReviews.length > 0 ? (
+                combinedHomeReviews.map((rev, idx) => (
+                  <div
+                    key={rev._id || `home-rev-${idx}`}
+                    className={`bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs hover:shadow-md hover:border-sky-300 transition-all duration-300 flex flex-col justify-between space-y-3 card-interactive-3d scroll-reveal-pop stagger-${(idx % 3) + 1}`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-1 text-amber-400 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={14}
+                            fill={i < (rev.rating || 5) ? 'currentColor' : 'none'}
+                            className={`animate-float ${i < (rev.rating || 5) ? 'text-amber-400' : 'text-slate-300'}`}
+                            style={{ animationDelay: `${i * 0.1}s` }}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-[11px] sm:text-xs text-slate-600 italic leading-relaxed line-clamp-4">
+                        {rev.feedbackText?.startsWith('“') ? rev.feedbackText : `“${rev.feedbackText}”`}
+                      </p>
                     </div>
-                    <p className="text-[11px] sm:text-xs text-slate-600 italic leading-relaxed line-clamp-4">
-                      {rev.feedbackText?.startsWith('“') ? rev.feedbackText : `“${rev.feedbackText}”`}
-                    </p>
-                  </div>
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                    <div className="min-w-0 pr-2">
-                      <strong className="text-slate-900 block font-bold text-xs truncate">
-                        {rev.customerName || 'Verified Client'}
-                      </strong>
-                      <span className="text-slate-500 text-[10px] block truncate">
-                        {rev.projectTitle || 'Waterproofing & Civil Restoration'}
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                      <div className="min-w-0 pr-2">
+                        <strong className="text-slate-900 block font-bold text-xs truncate">
+                          {rev.customerName || 'Verified Client'}
+                        </strong>
+                        <span className="text-slate-500 text-[10px] block truncate">
+                          {rev.projectTitle || 'Waterproofing & Civil Restoration'}
+                        </span>
+                      </div>
+                      <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] font-semibold shrink-0 animate-pulse-glow">
+                        ✔ Verified
                       </span>
                     </div>
-                    <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] font-semibold shrink-0 animate-pulse-glow">
-                      ✔ Verified
-                    </span>
                   </div>
+                ))
+              ) : (
+                <div className="col-span-1 md:col-span-3 bg-white rounded-xl border border-dashed border-slate-300 p-8 text-center space-y-2">
+                  <div className="w-10 h-10 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center mx-auto">
+                    <Star size={18} />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-800">Verified Client Testimonials</h4>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    Reviews approved and marked for homepage in the admin panel will appear here.
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
