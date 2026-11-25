@@ -164,18 +164,19 @@ export default function PillarCardsManager() {
     }
   };
 
-  // Handle Image File Upload using fetchApi
+  // Handle Image File Upload using fetchApi (supports JPG, PNG, WebP, and animated GIF)
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Please select a valid image file (JPG, PNG, WebP).');
+    const isImageOrGif = file.type.startsWith('image/') || file.name.toLowerCase().endsWith('.gif');
+    if (!isImageOrGif) {
+      setUploadError('Please select a valid image or GIF file (JPG, PNG, WebP, GIF).');
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setUploadError('Image size exceeds 10MB limit.');
+    if (file.size > 20 * 1024 * 1024) {
+      setUploadError('File size exceeds 20MB limit.');
       return;
     }
 
@@ -204,13 +205,14 @@ export default function PillarCardsManager() {
       const uploadedUrl = res?.url || res?.data?.url;
       if (uploadedUrl) {
         setFormData((prev) => ({ ...prev, imageUrl: uploadedUrl }));
-        showToast('Image uploaded successfully!', 'success');
+        const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
+        showToast(isGif ? 'Animated GIF uploaded successfully!' : 'Image uploaded successfully!', 'success');
       } else {
-        throw new Error(res?.message || 'Image upload failed.');
+        throw new Error(res?.message || 'Image/GIF upload failed.');
       }
     } catch (err) {
-      console.error('Image upload failed:', err);
-      setUploadError(err.message || 'Image upload failed.');
+      console.error('Image/GIF upload failed:', err);
+      setUploadError(err.message || 'Image or GIF upload failed.');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -898,6 +900,11 @@ export default function PillarCardsManager() {
                         alt={card.pillarName}
                         className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
                       />
+                      {(card.imageUrl?.toLowerCase().includes('.gif') || card.imageUrl?.toLowerCase().endsWith('.gif')) && (
+                        <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-white shadow-xs tracking-wider">
+                          GIF
+                        </div>
+                      )}
                     </div>
                     <div className="p-3 text-center flex items-center justify-center min-h-[52px]">
                       <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug">
@@ -1016,6 +1023,11 @@ export default function PillarCardsManager() {
                     <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-black bg-slate-950/85 text-white">
                       #{card.order || idx + 1}
                     </div>
+                    {(card.imageUrl?.toLowerCase().includes('.gif') || card.imageUrl?.toLowerCase().endsWith('.gif')) && (
+                      <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-white shadow-xs tracking-wider">
+                        GIF
+                      </div>
+                    )}
                   </div>
 
                   {/* Text Details */}
@@ -1184,11 +1196,14 @@ export default function PillarCardsManager() {
                 </div>
               )}
 
-              {/* 2. UPLOAD IMAGE */}
+              {/* 2. UPLOAD IMAGE OR GIF */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Card Image <span className="text-rose-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Card Image or GIF <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] font-semibold text-slate-400">JPG, PNG, WebP, or Animated GIF</span>
+                </div>
 
                 {/* Upload Button & Preview */}
                 <div className="space-y-3">
@@ -1197,24 +1212,24 @@ export default function PillarCardsManager() {
                       type="file"
                       ref={fileInputRef}
                       onChange={handleFileUpload}
-                      accept="image/*"
+                      accept="image/*,.gif,image/gif"
                       className="hidden"
                     />
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
-                      className="btn btn-outline btn-sm text-xs flex items-center gap-1.5 cursor-pointer"
+                      className="btn btn-outline btn-sm text-xs flex items-center gap-1.5 cursor-pointer hover:border-slate-800"
                     >
                       <Upload size={14} className={isUploading ? 'animate-bounce' : ''} />
-                      <span>{isUploading ? 'Uploading Image...' : 'Choose File from Device'}</span>
+                      <span>{isUploading ? 'Uploading Image / GIF...' : 'Choose File from Device'}</span>
                     </button>
                     <span className="text-[11px] text-slate-400">or enter image path / URL below</span>
                   </div>
 
                   <input
                     type="text"
-                    placeholder="e.g. /uploads/pillar-waterproofing.jpg or https://..."
+                    placeholder="e.g. /uploads/pillar-waterproofing.jpg, .gif or https://..."
                     value={formData.imageUrl}
                     onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-slate-900 bg-white"
@@ -1223,7 +1238,7 @@ export default function PillarCardsManager() {
                   {/* Thumbnail Preview */}
                   {formData.imageUrl && (
                     <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                      <div className="w-16 h-20 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0">
+                      <div className="w-16 h-20 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 relative">
                         <img
                           src={formData.imageUrl}
                           alt="Preview"
@@ -1233,9 +1248,21 @@ export default function PillarCardsManager() {
                             e.target.src = 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=400&q=80';
                           }}
                         />
+                        {(formData.imageUrl?.toLowerCase().includes('.gif') || formData.imageUrl?.toLowerCase().endsWith('.gif')) && (
+                          <div className="absolute top-1 right-1 px-1 py-0.5 rounded text-[8px] font-black bg-amber-500 text-white shadow-xs">
+                            GIF
+                          </div>
+                        )}
                       </div>
                       <div className="text-xs">
-                        <div className="font-bold text-slate-800">Preview Thumbnail</div>
+                        <div className="font-bold text-slate-800 flex items-center gap-1.5">
+                          <span>Preview Thumbnail</span>
+                          {(formData.imageUrl?.toLowerCase().includes('.gif') || formData.imageUrl?.toLowerCase().endsWith('.gif')) && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                              Animated GIF
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[11px] text-slate-500 truncate max-w-xs">{formData.imageUrl}</div>
                         <div className="text-[10px] text-emerald-600 font-semibold mt-1">Ready for homepage display</div>
                       </div>

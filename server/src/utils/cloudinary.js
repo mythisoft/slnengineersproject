@@ -112,7 +112,7 @@ export const uploadFileToCloudinary = async (file, folder = 'sln_waterproofing')
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
-    const ext = path.extname(file.originalname || '') || (file.mimetype?.startsWith('video') ? '.mp4' : '.jpg');
+    const ext = path.extname(file.originalname || '') || (file.mimetype?.startsWith('video') ? '.mp4' : file.mimetype === 'image/gif' ? '.gif' : '.jpg');
     const safeName = (file.originalname || 'upload')
       .replace(/[^a-zA-Z0-9.-]/g, '_')
       .slice(0, 30);
