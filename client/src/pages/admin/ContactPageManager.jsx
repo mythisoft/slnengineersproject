@@ -183,6 +183,9 @@ export default function ContactPageManager() {
       };
 
       setData(merged);
+      try {
+        localStorage.setItem('sln_cached_contact', JSON.stringify(merged));
+      } catch {}
     } catch (err) {
       console.warn('API error loading contact content, using defaults:', err.message);
       setData(DEFAULT_CONTACT_CONTENT);
@@ -199,6 +202,9 @@ export default function ContactPageManager() {
     setSaving(true);
     setError('');
     try {
+      try {
+        localStorage.setItem('sln_cached_contact', JSON.stringify(data));
+      } catch {}
       window.dispatchEvent(new Event('sln_contact_updated'));
 
       // Dispatch real-time settings event so Header, Footer, and other components re-render immediately
@@ -239,6 +245,9 @@ export default function ContactPageManager() {
     setResetting(true);
     try {
       setData(DEFAULT_CONTACT_CONTENT);
+      try {
+        localStorage.setItem('sln_cached_contact', JSON.stringify(DEFAULT_CONTACT_CONTENT));
+      } catch {}
       window.dispatchEvent(new Event('sln_contact_updated'));
 
       try {

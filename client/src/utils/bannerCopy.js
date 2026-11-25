@@ -68,7 +68,7 @@ export const PHOTO_BANNER_PRESETS = [
     id: 'villa-waterproofing',
     tag: 'Villa Waterproofing & Deep Tanking',
     title: 'Precision Waterproofing & Structural Defense',
-    imageUrl: '/uploads/ModernHomeWaterproofingProtect-1792165882439-41612578.png',
+    imageUrl: 'https://res.cloudinary.com/vqifqntv/image/upload/v1795431959/sln_waterproofing/banners/fam7jmcpaoxskw7hside.jpg',
     isCompanyLogoBanner: false,
     durationSeconds: 6,
     altText: 'Modern architectural home protected by SLN Engineers advanced waterproofing',

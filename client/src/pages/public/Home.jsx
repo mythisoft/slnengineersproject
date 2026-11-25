@@ -73,40 +73,140 @@ const resolveBannerServiceIcon = (icon) => {
   return BANNER_ICON_MAP[icon] || Droplets;
 };
 
-// High-Resolution Default Hero Banners for Pristine Clarity (Exactly 2 Banners in Rotation)
+// High-Resolution Default Hero Banners for Pristine Clarity (Synced from Database)
 const DEFAULT_BANNERS = [
   {
-    _id: 'default-banner-company-overview',
+    _id: '6afeb0dda4cf1ce46ae79ffc',
     title: 'All Specialized Services & Company Overview',
-    imageUrl: '/sln-logo.png',
+    imageUrl: 'https://res.cloudinary.com/vqifqntv/image/upload/v1795431492/sln_waterproofing/banners/nooq3caitvkevrr3sznm.png',
     isCompanyLogoBanner: true,
     durationSeconds: 3,
     altText: 'SLN Engineers Projects Official Company Logo and Full Civil Services Spectrum',
     eyebrow: 'All 4 Specializations Under One Roof',
     foundedText: '',
-    headline: 'Engineered Structural Defense,',
-    highlightedHeadline: 'Across 4 Core Disciplines.',
-    description: 'Licensed civil engineering practice delivering specialized leak-proof waterproofing, structural crack restoration, monsoon weather-shield painting, and designer acoustic false ceilings across Telangana.',
+    headline: '',
+    highlightedHeadline: '',
+    description: 'Certified ISO civil engineering practice delivering specialized leak defense, weather-shield painting, structural restoration, and acoustic interior ceilings with warranty protection.',
     primaryCtaText: 'Request Inspection',
     secondaryCtaText: 'WhatsApp Senior Engineer',
     metrics: [
       { value: '4 Core', label: 'Civil Disciplines' },
       { value: '40+ Yrs', label: 'Continuous Practice' },
-      { value: '1,450+', label: 'Projects Completed' },
+      { value: '100%', label: 'In-House Execution' },
+    ],
+    isActive: true,
+    order: 0,
+    bannerServices: [
+      {
+        name: 'Waterproofing Solutions',
+        shortCategory: 'Active Leak Defense & Crystalline Tanking',
+        tag: 'IS 1346 Certified',
+        icon: 'Droplets',
+        accentColor: '#38bdf8',
+        targetBannerIndex: 1,
+        _id: '6b041c45e462764fc43dc0d9',
+      },
+      {
+        name: 'Interior & Exterior Painting',
+        shortCategory: 'Weather-Shield & Aesthetic Finishes',
+        tag: 'UV Weather-Shield',
+        icon: 'Paintbrush',
+        accentColor: '#f59e0b',
+        targetBannerIndex: 1,
+        _id: '6b041c45e462764fc43dc0da',
+      },
+      {
+        name: 'Building Repairs & Restoration',
+        shortCategory: 'Structural Crack Stitching & Concrete Rehab',
+        tag: 'Structural Defense',
+        icon: 'Building2',
+        accentColor: '#029746',
+        targetBannerIndex: 1,
+        _id: '6b041c45e462764fc43dc0db',
+      },
+      {
+        name: 'False Ceiling & Interior Work',
+        shortCategory: 'Acoustic Ceilings & Gypsum Partitions',
+        tag: 'Acoustic & Gypsum',
+        icon: 'Layers',
+        accentColor: '#fbbf24',
+        targetBannerIndex: 1,
+        _id: '6b041c45e462764fc43dc0dc',
+      },
     ],
   },
   {
-    _id: 'default-banner-01',
+    _id: '6afeb0dda4cf1ce46ae7a001',
     title: 'Precision Waterproofing & Structural Defense',
-    imageUrl: '/uploads/ModernHomeWaterproofingProtect-1792165882439-41612578.png',
+    imageUrl: 'https://res.cloudinary.com/vqifqntv/image/upload/v1795431959/sln_waterproofing/banners/fam7jmcpaoxskw7hside.jpg',
     isCompanyLogoBanner: false,
-    durationSeconds: 6,
+    durationSeconds: 2,
     altText: 'Modern architectural home protected by SLN Engineers advanced waterproofing',
     eyebrow: 'Precision Structural Waterproofing',
     foundedText: '',
-    headline: 'Permanent Leak Defense,',
-    highlightedHeadline: 'engineered from the substrate up.',
+    headline: 'Advanced Waterproofing,',
+    highlightedHeadline: 'engineered for decades.',
     description: 'High-pressure polyurethane injection, crystalline tanking, and elastomeric membrane systems that stop active groundwater ingress and structural dampness permanently.',
+    primaryCtaText: 'Book Free Inspection',
+    secondaryCtaText: 'WhatsApp Senior Engineer',
+    metrics: [
+      { value: '100%', label: 'Active Leak Defense' },
+      { value: '500+ Bar', label: 'Injection Capacity' },
+      { value: '10-Year', label: 'Written Warranty' },
+    ],
+    isActive: true,
+    order: 1,
+    bannerServices: [
+      {
+        name: 'Waterproofing Solutions',
+        shortCategory: 'Active Leak Defense & Crystalline Tanking',
+        tag: 'IS 1346 Certified',
+        icon: 'Droplets',
+        accentColor: '#38bdf8',
+        targetBannerIndex: 1,
+        _id: '6b041e1ae462764fc43dc3ed',
+      },
+      {
+        name: 'Interior & Exterior Painting',
+        shortCategory: 'Weather-Shield & Aesthetic Finishes',
+        tag: 'UV Weather-Shield',
+        icon: 'Paintbrush',
+        accentColor: '#f59e0b',
+        targetBannerIndex: 1,
+        _id: '6b041e1ae462764fc43dc3ee',
+      },
+      {
+        name: 'Building Repairs & Restoration',
+        shortCategory: 'Structural Crack Stitching & Concrete Rehab',
+        tag: 'Structural Defense',
+        icon: 'Building2',
+        accentColor: '#029746',
+        targetBannerIndex: 1,
+        _id: '6b041e1ae462764fc43dc3ef',
+      },
+      {
+        name: 'False Ceiling & Interior Work',
+        shortCategory: 'Acoustic Ceilings & Gypsum Partitions',
+        tag: 'Acoustic & Gypsum',
+        icon: 'Layers',
+        accentColor: '#fbbf24',
+        targetBannerIndex: 1,
+        _id: '6b041e1ae462764fc43dc3f0',
+      },
+    ],
+  },
+  {
+    _id: '6afeb108a4cf1ce46ae7a00d',
+    title: 'Professional Painting & Decorative Finishes',
+    imageUrl: 'https://res.cloudinary.com/vqifqntv/image/upload/v1795432269/sln_waterproofing/banners/emxrzwoqooupt7bmikuv.jpg',
+    isCompanyLogoBanner: false,
+    durationSeconds: 1,
+    altText: 'Professional residential and commercial painting services featuring premium interior wall finishes, exterior building coatings, decorative textures, and long-lasting surface protection',
+    eyebrow: 'Premium Painting & Finishing',
+    foundedText: '',
+    headline: 'Transform Your Spaces',
+    highlightedHeadline: 'with beautiful lasting finishes.',
+    description: 'Enhance your residential and commercial spaces with premium painting solutions. From elegant interior finishes to durable exterior coatings, we deliver vibrant colours, smooth surfaces, and long-lasting protection with expert craftsmanship.',
     primaryCtaText: 'Book Site Inspection',
     secondaryCtaText: 'WhatsApp Senior Engineer',
     metrics: [
@@ -114,8 +214,68 @@ const DEFAULT_BANNERS = [
       { value: '500+ Bar', label: 'Injection Capacity' },
       { value: '10-Year', label: 'Written Warranty' },
     ],
+    isActive: true,
+    order: 2,
+    bannerServices: [],
+  },
+  {
+    _id: '6afeb19aa4cf1ce46ae7a2b2',
+    title: 'Complete Property Repair Solutions',
+    imageUrl: 'https://res.cloudinary.com/vqifqntv/image/upload/v1795432554/sln_waterproofing/banners/qtmpcnrvxhr9k4qxjbsd.png',
+    isCompanyLogoBanner: false,
+    durationSeconds: 3,
+    altText: 'Professional building repair and restoration services featuring wall crack repairs, damaged concrete rehabilitation, plaster restoration, and high-quality property maintenance.',
+    eyebrow: 'Reliable Repairs & Restoration',
+    foundedText: '',
+    headline: 'Expert Repairs,',
+    highlightedHeadline: 'restoring strength',
+    description: 'Bring strength and beauty back to your property with professional repair and restoration services. From wall cracks and surface damage to structural repairs, we deliver reliable solutions, quality workmanship, and long-lasting results',
+    primaryCtaText: 'Book Site Inspection',
+    secondaryCtaText: 'WhatsApp Senior Engineer',
+    metrics: [
+      { value: '100%', label: 'Active Leak Defense' },
+      { value: '500+ Bar', label: 'Injection Capacity' },
+      { value: '10-Year', label: 'Written Warranty' },
+    ],
+    isActive: true,
+    order: 3,
+    bannerServices: [],
+  },
+  {
+    _id: '6b042185e462764fc43dc6ec',
+    title: 'Modern False Ceiling & Interior Solutions',
+    imageUrl: 'https://res.cloudinary.com/vqifqntv/image/upload/v1795433105/sln_waterproofing/banners/cste7pvmfixjcuhdf93o.png',
+    isCompanyLogoBanner: false,
+    durationSeconds: 3,
+    altText: 'Modern false ceiling design and installation featuring premium gypsum and POP ceiling finishes, decorative lighting, elegant architectural details, and contemporary interior some protected by SLN Engineers advanced waterproofing',
+    eyebrow: 'Modern Ceiling Design & Installation',
+    foundedText: '',
+    headline: 'Elevate Your Ceilings,',
+    highlightedHeadline: 'with modern false ceiling designs.',
+    description: 'Transform your interiors with stylish and expertly crafted false ceiling solutions. From elegant gypsum ceilings to contemporary POP designs and custom lighting integration, we create beautiful, functional spaces with exceptional finishing and lasting quality.',
+    primaryCtaText: 'Book Site Inspection',
+    secondaryCtaText: 'WhatsApp Senior Engineer',
+    metrics: [
+      { value: '100%', label: 'Active Leak Defense' },
+      { value: '500+ Bar', label: 'Injection Capacity' },
+      { value: '10-Year', label: 'Written Warranty' },
+    ],
+    isActive: true,
+    order: 4,
+    bannerServices: [],
   },
 ];
+
+const getCachedBanners = () => {
+  try {
+    const cached = localStorage.getItem('sln_cached_banners');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {}
+  return DEFAULT_BANNERS;
+};
 
 // Core 4 Civil Engineering Services
 const CORE_FOUR_SERVICES = [
@@ -280,7 +440,7 @@ export default function Home() {
   const [featuredProjects, setFeaturedProjects] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
-  const [banners, setBanners] = useState([]);
+  const [banners, setBanners] = useState(getCachedBanners);
   const [trustMetrics, setTrustMetrics] = useState(DEFAULT_TRUST_METRICS);
   const [adminTransformations, setAdminTransformations] = useState([]);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
@@ -607,11 +767,22 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    fetchApi('/banners')
-      .then((res) => {
-        if (res.success) setBanners(res.data);
-      })
-      .catch((err) => console.error('Error loading homepage banners:', err));
+    const loadBanners = () => {
+      fetchApi('/banners')
+        .then((res) => {
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+            setBanners(res.data);
+            try {
+              localStorage.setItem('sln_cached_banners', JSON.stringify(res.data));
+            } catch {}
+          }
+        })
+        .catch((err) => console.error('Error loading homepage banners:', err));
+    };
+
+    loadBanners();
+    window.addEventListener('sln_banners_updated', loadBanners);
+    return () => window.removeEventListener('sln_banners_updated', loadBanners);
   }, []);
 
   // Real-time synchronization for projects, services, and transformations from Admin API
@@ -739,8 +910,7 @@ export default function Home() {
   }, []);
 
   const activeBannersList = Array.isArray(banners) ? banners.filter((b) => b.isActive !== false) : [];
-  const hasLogoBanner = activeBannersList.some((b) => isLogoBanner(b));
-  const displayBanners = activeBannersList.length >= 2 && hasLogoBanner ? activeBannersList : DEFAULT_BANNERS;
+  const displayBanners = activeBannersList.length > 0 ? activeBannersList : DEFAULT_BANNERS;
 
   // Centralized Banner Switcher with Outgoing/Incoming State Tracking for Left-to-Right Paper Animation
   const handleBannerSelect = useCallback((nextIdxOrUpdater) => {
@@ -1360,14 +1530,14 @@ export default function Home() {
               aria-hidden={!isActive}
             >
               <img
-                src={banner.imageUrl || '/uploads/ModernHomeWaterproofingProtect-1792165882439-41612578.png'}
+                src={banner.imageUrl || 'https://res.cloudinary.com/vqifqntv/image/upload/v1795431959/sln_waterproofing/banners/fam7jmcpaoxskw7hside.jpg'}
                 alt={banner.altText || banner.title || 'Waterproofing Project'}
                 decoding="async"
                 fetchPriority="high"
                 loading="eager"
                 className="home-hero-banner-image"
                 onError={(e) => {
-                  e.currentTarget.src = '/uploads/ModernHomeWaterproofingProtect-1792165882439-41612578.png';
+                  e.currentTarget.src = 'https://res.cloudinary.com/vqifqntv/image/upload/v1795431959/sln_waterproofing/banners/fam7jmcpaoxskw7hside.jpg';
                 }}
               />
               <div className="home-hero-banner-overlay" aria-hidden="true" />
@@ -1522,12 +1692,12 @@ export default function Home() {
                     {/* Dedicated Responsive Banner Photo Showcase for Mobile & Tablet (< 1024px) */}
                     <div className="home-mobile-banner-img-container lg:hidden relative w-full rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-slate-900/80 my-2 aspect-[16/10] sm:aspect-[16/9]">
                       <img
-                        src={activeBanner?.imageUrl || '/uploads/ModernHomeWaterproofingProtect-1792165882439-41612578.png'}
+                        src={activeBanner?.imageUrl || 'https://res.cloudinary.com/vqifqntv/image/upload/v1795431959/sln_waterproofing/banners/fam7jmcpaoxskw7hside.jpg'}
                         alt={activeBanner?.altText || activeBanner?.title || 'Waterproofing Project'}
                         decoding="async"
                         className="w-full h-full object-cover object-center"
                         onError={(e) => {
-                          e.currentTarget.src = '/uploads/ModernHomeWaterproofingProtect-1792165882439-41612578.png';
+                          e.currentTarget.src = 'https://res.cloudinary.com/vqifqntv/image/upload/v1795431959/sln_waterproofing/banners/fam7jmcpaoxskw7hside.jpg';
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent pointer-events-none" />

@@ -122,7 +122,14 @@ export default function BannersManager() {
   const loadBanners = () => {
     setLoading(true);
     fetchApi('/admin/banners')
-      .then((res) => setBanners(res.data || []))
+      .then((res) => {
+        const list = res.data || [];
+        setBanners(list);
+        try {
+          localStorage.setItem('sln_cached_banners', JSON.stringify(list));
+        } catch {}
+        window.dispatchEvent(new Event('sln_banners_updated'));
+      })
       .catch((err) => setError(err.message || 'Failed to load banners.'))
       .finally(() => setLoading(false));
   };

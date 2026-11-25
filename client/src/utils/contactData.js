@@ -5,7 +5,7 @@ export const DEFAULT_CONTACT_CONTENT = {
     subtitle: 'Consult With Our Senior Engineers & Schedule a Non-Invasive Site Inspection.',
     description:
       'Schedule a comprehensive moisture diagnostic survey, receive an IS-compliant Bill of Quantities (BOQ), and obtain written legal warranty protection across all 4 specializations.',
-    imageUrl: '/uploads/ModernHomeWaterproofingProtect-1792165882439-41612578.png',
+    imageUrl: 'https://res.cloudinary.com/vqifqntv/image/upload/v1795538507/sln_waterproofing/media/csmajposqzie2yr8gugv.png',
     imageAlt: 'SLN Engineers Civil Protection',
     imageCaption: 'Engineering Structural Defense',
     imageBadge: 'All 4 Disciplines',

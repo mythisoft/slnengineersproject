@@ -34,6 +34,17 @@ import {
 import { fetchApi } from '../../utils/api';
 import { DEFAULT_CONTACT_CONTENT } from '../../utils/contactData';
 
+const getInitialContactContent = () => {
+  try {
+    const cached = localStorage.getItem('sln_cached_contact');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && typeof parsed === 'object') return { ...DEFAULT_CONTACT_CONTENT, ...parsed };
+    }
+  } catch {}
+  return DEFAULT_CONTACT_CONTENT;
+};
+
 export default function ContactUs() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -44,7 +55,7 @@ export default function ContactUs() {
   const [formHighlighted, setFormHighlighted] = useState(false);
 
   const [settings, setSettings] = useState(null);
-  const [content, setContent] = useState(DEFAULT_CONTACT_CONTENT);
+  const [content, setContent] = useState(getInitialContactContent);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
@@ -68,6 +79,9 @@ export default function ContactUs() {
         .then((res) => {
           if (res.success && res.data) {
             setContent(res.data);
+            try {
+              localStorage.setItem('sln_cached_contact', JSON.stringify(res.data));
+            } catch {}
           }
         })
         .catch((err) => {
@@ -297,11 +311,11 @@ export default function ContactUs() {
               <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/20 shadow-2xl bg-slate-900 group transition-all duration-300 hover:border-white/35">
                 <div className="aspect-[16/10] sm:aspect-[16/9] lg:aspect-[16/10] max-h-[220px] sm:max-h-[300px] lg:max-h-none w-full overflow-hidden relative">
                   <img
-                    src={content.hero?.imageUrl || '/uploads/ModernHomeWaterproofingProtect-1792165882439-41612578.png'}
+                    src={content.hero?.imageUrl || 'https://res.cloudinary.com/vqifqntv/image/upload/v1795538507/sln_waterproofing/media/csmajposqzie2yr8gugv.png'}
                     alt={content.hero?.imageAlt || 'SLN Engineers Civil Protection'}
                     className="w-full h-full object-cover object-center transform transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                     onError={(e) => {
-                      e.currentTarget.src = '/uploads/pillars-horizontal-banner.jpg';
+                      e.currentTarget.src = 'https://res.cloudinary.com/vqifqntv/image/upload/v1795538507/sln_waterproofing/media/csmajposqzie2yr8gugv.png';
                     }}
                   />
 
