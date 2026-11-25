@@ -22,3 +22,21 @@ export const generateQRCodeDataUrl = async (reviewUrl) => {
     throw new Error('Failed to generate QR Code');
   }
 };
+
+export const generateGoogleQRCodeDataUrl = async (googleUrl) => {
+  try {
+    const dataUrl = await QRCode.toDataURL(googleUrl, {
+      width: 400,
+      margin: 2,
+      color: {
+        dark: '#1a73e8', // Google Blue
+        light: '#ffffff',
+      },
+      errorCorrectionLevel: 'H',
+    });
+    return dataUrl;
+  } catch (error) {
+    console.error('[QRCode] Error generating Google QR code:', error);
+    return await generateQRCodeDataUrl(googleUrl);
+  }
+};

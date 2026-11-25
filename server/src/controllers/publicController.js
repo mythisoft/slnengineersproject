@@ -8,7 +8,7 @@ import CompanySettings from '../models/CompanySettings.js';
 import AnalyticsEvent from '../models/AnalyticsEvent.js';
 import Customer from '../models/Customer.js';
 import { ensureServicesSeed, ensureProjectsSeed } from './adminController.js';
-import { generateQRCodeDataUrl } from '../utils/qrService.js';
+import { generateQRCodeDataUrl, generateGoogleQRCodeDataUrl } from '../utils/qrService.js';
 
 // GET /api/settings - Public company details & social links
 export const getPublicSettings = async (req, res, next) => {
@@ -483,12 +483,23 @@ export const getUniversalQRCode = async (req, res, next) => {
         : `${host.replace(/\/$/, '')}/review`;
     const qrCodeDataUrl = await generateQRCodeDataUrl(reviewUrl);
 
+    const googleReviewUrl =
+      settings?.googleReviewUrl &&
+      !settings.googleReviewUrl.includes('sln-engineers-review') &&
+      !settings.googleReviewUrl.includes('slnengineers/review')
+        ? settings.googleReviewUrl
+        : 'https://www.google.com/maps/place/Elvino+Cafe/@17.38986,78.5687662,17z/data=!4m8!3m7!1s0x3bcb9fdaf85927fb:0x54886b6240f47511!8m2!3d17.38986!4d78.5713411!9m1!1b1!16s%2Fg%2F11z7cpylxy?entry=ttu&g_ep=EgoyMDI2MTExMC4wIKXMDSoASAFQAw%3D%3D';
+    const googleQrCodeDataUrl = await generateGoogleQRCodeDataUrl(googleReviewUrl);
+
     res.json({
       success: true,
       data: {
         reviewUrl,
         qrCodeDataUrl,
         qrDataUrl: qrCodeDataUrl,
+        googleReviewUrl,
+        googleQrCodeDataUrl,
+        googleQrDataUrl: googleQrCodeDataUrl,
         companyName: settings?.companyName || 'SLN Engineers Projects Pvt. Ltd.',
         phone: settings?.phone || '+91 8977668776',
         tagline: settings?.tagline || 'Restoration for Three Generations',
