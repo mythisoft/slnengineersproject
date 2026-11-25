@@ -167,7 +167,7 @@ export default function ReviewsModeration() {
       customerName: '',
       rating: 5,
       feedbackText: '',
-      projectTitle: 'Precision Waterproofing & Restoration',
+      projectTitle: '',
       isApproved: true,
       showOnHome: false,
       isSpam: false,
@@ -1517,10 +1517,10 @@ export default function ReviewsModeration() {
             )}
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
-              {/* Star Rating Selection */}
+              {/* 1. Star Rating Selection */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Rating *
+                  Star Rating *
                 </label>
                 <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -1546,16 +1546,16 @@ export default function ReviewsModeration() {
                 </div>
               </div>
 
-              {/* Customer Name */}
+              {/* 2. Customer Name */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Customer Name *
+                  Customer's Name *
                 </label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Ramesh Sundaram"
-                  className="form-input text-xs w-full py-2"
+                  className="form-input text-xs w-full py-2.5 rounded-xl border border-slate-300"
                   value={formData.customerName}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, customerName: e.target.value }))
@@ -1563,38 +1563,26 @@ export default function ReviewsModeration() {
                 />
               </div>
 
-              {/* Project / Service Title */}
+              {/* 3. Written Feedback Text */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Project or Service Description
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Penthouse Terrace Waterproofing, Banjara Hills"
-                  className="form-input text-xs w-full py-2"
-                  value={formData.projectTitle}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, projectTitle: e.target.value }))
-                  }
-                />
-              </div>
-
-              {/* Written Feedback Text */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Written Feedback *
+                  Feedback Message *
                 </label>
                 <textarea
                   required
                   rows="4"
                   minLength="5"
+                  maxLength="2000"
                   placeholder="Customer feedback details..."
-                  className="form-textarea text-xs w-full"
+                  className="form-textarea text-xs w-full rounded-xl border border-slate-300"
                   value={formData.feedbackText}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, feedbackText: e.target.value }))
                   }
                 ></textarea>
+                <div className="text-[11px] text-slate-400 text-right mt-0.5">
+                  {formData.feedbackText.length} / 2000 characters
+                </div>
               </div>
 
               {/* Show on Homepage Star Toggle (Max 3) */}
