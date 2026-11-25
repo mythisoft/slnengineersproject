@@ -7,15 +7,93 @@ import {
   DEFAULT_NAV_LINKS,
 } from '../../utils/navbarData';
 
+const getCachedSettings = () => {
+  try {
+    const raw = localStorage.getItem('sln_cached_settings');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const getCachedNavbarConfig = () => {
+  try {
+    const rawNav = localStorage.getItem('sln_cached_navbar_config');
+    if (rawNav) {
+      const parsed = JSON.parse(rawNav);
+      if (parsed && typeof parsed === 'object') {
+        return {
+          ...DEFAULT_NAVBAR_CONFIG,
+          ...parsed,
+          topAnnouncement: {
+            ...DEFAULT_NAVBAR_CONFIG.topAnnouncement,
+            ...(parsed.topAnnouncement || {}),
+          },
+          headerCtas: {
+            ...DEFAULT_NAVBAR_CONFIG.headerCtas,
+            ...(parsed.headerCtas || {}),
+          },
+        };
+      }
+    }
+    const rawSet = localStorage.getItem('sln_cached_settings');
+    if (rawSet) {
+      const parsedSet = JSON.parse(rawSet);
+      if (parsedSet?.navbarConfig && Object.keys(parsedSet.navbarConfig).length > 0) {
+        return {
+          ...DEFAULT_NAVBAR_CONFIG,
+          ...parsedSet.navbarConfig,
+          topAnnouncement: {
+            ...DEFAULT_NAVBAR_CONFIG.topAnnouncement,
+            ...(parsedSet.navbarConfig.topAnnouncement || {}),
+          },
+          headerCtas: {
+            ...DEFAULT_NAVBAR_CONFIG.headerCtas,
+            ...(parsedSet.navbarConfig.headerCtas || {}),
+          },
+        };
+      }
+    }
+  } catch {}
+  return DEFAULT_NAVBAR_CONFIG;
+};
+
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
-  const [settings, setSettings] = useState(null);
-  const [navbarConfig, setNavbarConfig] = useState(DEFAULT_NAVBAR_CONFIG);
+  const [settings, setSettings] = useState(getCachedSettings);
+  const [navbarConfig, setNavbarConfig] = useState(getCachedNavbarConfig);
   const [scrolled, setScrolled] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef(null);
   const location = useLocation();
+
+  const applySettingsData = (data) => {
+    if (!data) return;
+    setSettings(data);
+    try {
+      localStorage.setItem('sln_cached_settings', JSON.stringify(data));
+    } catch {}
+
+    if (data.navbarConfig && Object.keys(data.navbarConfig).length > 0) {
+      const merged = {
+        ...DEFAULT_NAVBAR_CONFIG,
+        ...data.navbarConfig,
+        topAnnouncement: {
+          ...DEFAULT_NAVBAR_CONFIG.topAnnouncement,
+          ...(data.navbarConfig.topAnnouncement || {}),
+        },
+        headerCtas: {
+          ...DEFAULT_NAVBAR_CONFIG.headerCtas,
+          ...(data.navbarConfig.headerCtas || {}),
+        },
+      };
+      setNavbarConfig(merged);
+      try {
+        localStorage.setItem('sln_cached_navbar_config', JSON.stringify(merged));
+      } catch {}
+    }
+  };
 
   const logoUrl = settings?.logoUrl || '/sln-logo.png';
   const brandNameLine1 = settings?.brandNameLine1 || 'SLN ENGINEERS';
@@ -26,33 +104,28 @@ export default function Header() {
     fetchApi('/settings')
       .then((res) => {
         if (res.success && res.data) {
-          setSettings(res.data);
-          if (res.data.navbarConfig && Object.keys(res.data.navbarConfig).length > 0) {
-            const merged = { ...DEFAULT_NAVBAR_CONFIG, ...res.data.navbarConfig };
-            setNavbarConfig(merged);
-          }
+          applySettingsData(res.data);
         }
       })
       .catch((err) => console.error('Failed to load settings:', err));
   }, []);
 
-  // Real-time synchronization when admin modifies navbar
+  // Real-time synchronization when admin modifies navbar or company settings
   useEffect(() => {
     const handleNavbarSync = () => {
       fetchApi('/settings')
         .then((res) => {
           if (res.success && res.data) {
-            setSettings(res.data);
-            if (res.data.navbarConfig && Object.keys(res.data.navbarConfig).length > 0) {
-              setNavbarConfig({ ...DEFAULT_NAVBAR_CONFIG, ...res.data.navbarConfig });
-            }
+            applySettingsData(res.data);
           }
         })
         .catch(() => {});
     };
 
     const handleSettingsSync = (e) => {
-      if (e.detail) setSettings(e.detail);
+      if (e.detail) {
+        applySettingsData(e.detail);
+      }
     };
 
     window.addEventListener('sln_navbar_updated', handleNavbarSync);

@@ -30,8 +30,17 @@ export const DEFAULT_DEVELOPER_CREDIT = {
   openInNewTab: true,
 };
 
+const getCachedSettings = () => {
+  try {
+    const raw = localStorage.getItem('sln_cached_settings');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export default function Footer() {
-  const [settings, setSettings] = useState(null);
+  const [settings, setSettings] = useState(getCachedSettings);
   const [pillarCards, setPillarCards] = useState(() =>
     DEFAULT_PILLAR_CARDS.filter((c) => c && c.isActive !== false)
   );
@@ -68,7 +77,12 @@ export default function Footer() {
   useEffect(() => {
     fetchApi('/settings')
       .then((res) => {
-        if (res.success) setSettings(res.data);
+        if (res.success && res.data) {
+          setSettings(res.data);
+          try {
+            localStorage.setItem('sln_cached_settings', JSON.stringify(res.data));
+          } catch {}
+        }
       })
       .catch((err) => console.error('Failed to load settings:', err));
 

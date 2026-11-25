@@ -6,18 +6,37 @@ import InspectionModal, { openInspectionModal } from './InspectionModal';
 import { MessageCircle } from 'lucide-react';
 import { fetchApi } from '../../utils/api';
 
+const getCachedSettings = () => {
+  try {
+    const raw = localStorage.getItem('sln_cached_settings');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export default function PublicLayout() {
-  const [settings, setSettings] = useState(null);
+  const [settings, setSettings] = useState(getCachedSettings);
 
   useEffect(() => {
     fetchApi('/settings')
       .then((res) => {
-        if (res.success) setSettings(res.data);
+        if (res.success && res.data) {
+          setSettings(res.data);
+          try {
+            localStorage.setItem('sln_cached_settings', JSON.stringify(res.data));
+          } catch {}
+        }
       })
       .catch((e) => console.error(e));
 
     const handleSync = (e) => {
-      if (e.detail) setSettings((prev) => ({ ...prev, ...e.detail }));
+      if (e.detail) {
+        setSettings((prev) => ({ ...prev, ...e.detail }));
+        try {
+          localStorage.setItem('sln_cached_settings', JSON.stringify(e.detail));
+        } catch {}
+      }
     };
     window.addEventListener('sln_settings_updated', handleSync);
     return () => window.removeEventListener('sln_settings_updated', handleSync);

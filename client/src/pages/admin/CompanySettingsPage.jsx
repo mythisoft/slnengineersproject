@@ -37,7 +37,7 @@ export default function CompanySettingsPage() {
             badgeText: 'Technology Partner',
             openInNewTab: true,
           };
-          setSettings({
+          const updated = {
             ...res.data,
             logoUrl: res.data.logoUrl || '/sln-logo.png',
             brandNameLine1: res.data.brandNameLine1 || 'SLN ENGINEERS',
@@ -47,7 +47,14 @@ export default function CompanySettingsPage() {
               ...defaultCredit,
               ...(res.data.footerDeveloperCredit || {}),
             },
-          });
+          };
+          setSettings(updated);
+          try {
+            localStorage.setItem('sln_cached_settings', JSON.stringify(res.data));
+            if (res.data.navbarConfig && Object.keys(res.data.navbarConfig).length > 0) {
+              localStorage.setItem('sln_cached_navbar_config', JSON.stringify(res.data.navbarConfig));
+            }
+          } catch {}
         }
       })
       .catch((e) => console.error(e))
@@ -92,6 +99,12 @@ export default function CompanySettingsPage() {
       });
       if (res.success && res.data) {
         setSettings(res.data);
+        try {
+          localStorage.setItem('sln_cached_settings', JSON.stringify(res.data));
+          if (res.data.navbarConfig && Object.keys(res.data.navbarConfig).length > 0) {
+            localStorage.setItem('sln_cached_navbar_config', JSON.stringify(res.data.navbarConfig));
+          }
+        } catch {}
         window.dispatchEvent(new CustomEvent('sln_settings_updated', { detail: res.data }));
         setSavedSuccess(true);
         setTimeout(() => setSavedSuccess(false), 3000);

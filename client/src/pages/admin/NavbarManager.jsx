@@ -59,9 +59,17 @@ export default function NavbarManager() {
     setLoading(true);
     try {
       const res = await fetchApi('/settings');
-      if (res.success && res.data?.navbarConfig && Object.keys(res.data.navbarConfig).length > 0) {
-        const merged = { ...DEFAULT_NAVBAR_CONFIG, ...res.data.navbarConfig };
-        setNavbarConfig(merged);
+      if (res.success && res.data) {
+        try {
+          localStorage.setItem('sln_cached_settings', JSON.stringify(res.data));
+        } catch {}
+        if (res.data.navbarConfig && Object.keys(res.data.navbarConfig).length > 0) {
+          const merged = { ...DEFAULT_NAVBAR_CONFIG, ...res.data.navbarConfig };
+          setNavbarConfig(merged);
+          try {
+            localStorage.setItem('sln_cached_navbar_config', JSON.stringify(merged));
+          } catch {}
+        }
       }
     } catch (e) {
       console.warn('Could not load navbarConfig from settings:', e);
@@ -85,6 +93,15 @@ export default function NavbarManager() {
       });
 
       if (res.success) {
+        try {
+          localStorage.setItem('sln_cached_navbar_config', JSON.stringify(navbarConfig));
+          const cachedSettings = localStorage.getItem('sln_cached_settings');
+          if (cachedSettings) {
+            const parsed = JSON.parse(cachedSettings);
+            parsed.navbarConfig = navbarConfig;
+            localStorage.setItem('sln_cached_settings', JSON.stringify(parsed));
+          }
+        } catch {}
         window.dispatchEvent(new Event('sln_navbar_updated'));
         showToast('Navbar link names & settings saved and published to database successfully!');
       } else {
@@ -110,6 +127,15 @@ export default function NavbarManager() {
       });
 
       if (res.success) {
+        try {
+          localStorage.setItem('sln_cached_navbar_config', JSON.stringify(DEFAULT_NAVBAR_CONFIG));
+          const cachedSettings = localStorage.getItem('sln_cached_settings');
+          if (cachedSettings) {
+            const parsed = JSON.parse(cachedSettings);
+            parsed.navbarConfig = DEFAULT_NAVBAR_CONFIG;
+            localStorage.setItem('sln_cached_settings', JSON.stringify(parsed));
+          }
+        } catch {}
         window.dispatchEvent(new Event('sln_navbar_updated'));
         showToast('Navbar reset to defaults in database!');
       } else {
