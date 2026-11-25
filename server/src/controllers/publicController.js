@@ -13,7 +13,7 @@ import { generateQRCodeDataUrl, generateGoogleQRCodeDataUrl } from '../utils/qrS
 // GET /api/settings - Public company details & social links
 export const getPublicSettings = async (req, res, next) => {
   try {
-    let settings = await CompanySettings.findOne().lean();
+    let settings = await CompanySettings.findOne();
     if (!settings) {
       settings = await CompanySettings.create({});
     }
@@ -25,11 +25,21 @@ export const getPublicSettings = async (req, res, next) => {
         ? settings.googleReviewUrl
         : 'https://www.google.com/maps/place/Elvino+Cafe/@17.38986,78.5687662,17z/data=!4m8!3m7!1s0x3bcb9fdaf85927fb:0x54886b6240f47511!8m2!3d17.38986!4d78.5713411!9m1!1b1!16s%2Fg%2F11z7cpylxy?entry=ttu&g_ep=EgoyMDI2MTExMC4wIKXMDSoASAFQAw%3D%3D';
 
+    let googleQrCodeDataUrl = settings.googleQrCodeDataUrl;
+    if (!googleQrCodeDataUrl) {
+      googleQrCodeDataUrl = await generateGoogleQRCodeDataUrl(googleReviewUrl);
+      settings.googleQrCodeDataUrl = googleQrCodeDataUrl;
+      await settings.save();
+    }
+
+    const settingsObj = settings.toObject ? settings.toObject() : settings;
+
     res.json({
       success: true,
       data: {
-        ...settings,
+        ...settingsObj,
         googleReviewUrl,
+        googleQrCodeDataUrl,
         socialLinks,
       },
     });

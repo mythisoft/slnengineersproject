@@ -152,20 +152,23 @@ export default function CustomerReviews() {
     'https://www.google.com/maps/place/Elvino+Cafe/@17.38986,78.5687662,17z/data=!4m8!3m7!1s0x3bcb9fdaf85927fb:0x54886b6240f47511!8m2!3d17.38986!4d78.5713411!9m1!1b1!16s%2Fg%2F11z7cpylxy?entry=ttu&g_ep=EgoyMDI2MTExMC4wIKXMDSoASAFQAw%3D%3D';
 
   const googleQrImage =
+    settings?.googleQrCodeDataUrl ||
     customerQr?.googleQrCodeDataUrl ||
     customerQr?.googleQrDataUrl ||
-    `https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=1a73e8&data=${encodeURIComponent(googleReviewUrl)}`;
+    `https://api.qrserver.com/v1/create-qr-code/?size=450x450&margin=2&color=000000&data=${encodeURIComponent(googleReviewUrl)}`;
 
   const customerReviewUrl =
     customerQr?.reviewUrl ||
+    settings?.customerReviewUrl ||
     (typeof window !== 'undefined' && window.location.origin
       ? `${window.location.origin}/review`
       : 'https://slnengineersproject.vercel.app/review');
 
   const customerQrImage =
+    settings?.customerQrCodeDataUrl ||
     customerQr?.qrCodeDataUrl ||
     customerQr?.qrDataUrl ||
-    `https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=0f4c81&data=${encodeURIComponent(customerReviewUrl)}`;
+    `https://api.qrserver.com/v1/create-qr-code/?size=450x450&margin=2&color=000000&data=${encodeURIComponent(customerReviewUrl)}`;
 
   const pageContent = { ...DEFAULT_REVIEWS_HERO, ...(settings?.reviewsPageContent || {}) };
 
@@ -255,39 +258,34 @@ export default function CustomerReviews() {
           </div>
 
           {/* Right Column: 3D Rotating Review Scan Card (Google Review Scan -> Customer Review Scan) */}
-          <div className="w-full max-w-[340px] sm:max-w-sm shrink-0 scroll-reveal-right delay-300 mt-4 lg:mt-0 mx-auto lg:mx-0">
+          <div className="w-full max-w-[340px] sm:max-w-[360px] shrink-0 scroll-reveal-right delay-300 mt-4 lg:mt-0 mx-auto lg:mx-0">
             <div className="perspective-1000 w-full">
               <div
                 onClick={() => setIsQrFlipped((prev) => !prev)}
                 className={`relative w-full transform-style-3d card-flip-transition cursor-pointer select-none active:scale-[0.99] touch-manipulation ${
                   isQrFlipped ? 'rotate-y-180' : ''
                 }`}
-                style={{ minHeight: '390px' }}
+                style={{ minHeight: '370px' }}
                 title="Click to rotate between Google Review Scan and Customer Review Scan"
               >
                 {/* ---------------------------------------------------- */}
                 {/* SIDE 1 (FRONT): GOOGLE REVIEW SCAN (Default View)    */}
                 {/* ---------------------------------------------------- */}
-                <div className="w-full h-full backface-hidden bg-white rounded-2xl border-2 border-sky-400/90 shadow-2xl p-3.5 sm:p-5 text-center flex flex-col justify-between relative overflow-hidden group hover:border-sky-500 transition-colors">
+                <div className="w-full h-full backface-hidden bg-white rounded-2xl border-2 border-slate-200 shadow-xl p-4 sm:p-5 text-center flex flex-col justify-between relative overflow-hidden group hover:border-sky-400 transition-colors">
                   {/* Google Multicolor Top Accent Bar */}
                   <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-red-500 via-amber-400 to-green-500" />
 
                   {/* Header Row */}
-                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1">
+                  <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-50 border border-slate-200 shadow-2xs flex items-center justify-center shrink-0">
                         <span className="text-sm sm:text-base font-black bg-gradient-to-r from-blue-500 via-red-500 via-yellow-500 to-green-500 bg-clip-text text-transparent">
                           G
                         </span>
                       </div>
-                      <div className="text-left">
-                        <span className="text-[11px] sm:text-xs font-black text-slate-900 block leading-tight">
-                          Google Review Scan
-                        </span>
-                        <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold block leading-tight">
-                          Official Google Business Profile
-                        </span>
-                      </div>
+                      <span className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
+                        Google Review
+                      </span>
                     </div>
 
                     {/* Rotation Badge */}
@@ -297,72 +295,62 @@ export default function CustomerReviews() {
                         e.stopPropagation();
                         setIsQrFlipped(true);
                       }}
-                      className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 shadow-2xs transition-all active:scale-95 shrink-0"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 shadow-2xs transition-all active:scale-95 shrink-0"
                       title="Click to rotate to Customer Review Scan"
                     >
-                      <RotateCw size={11} className="text-sky-600 animate-spin-slow shrink-0" />
-                      <span>Rotate ↻</span>
+                      <RotateCw size={11} className="text-slate-600 animate-spin-slow shrink-0" />
+                      <span>Flip QR ↻</span>
                     </button>
                   </div>
 
-                  {/* Google Scannable QR Code Frame */}
-                  <div className="my-1 p-1.5 sm:p-2 bg-gradient-to-b from-sky-50/60 to-white rounded-xl border border-sky-100 inline-block mx-auto shadow-inner group-hover:border-sky-300 transition-all">
+                  {/* High-Contrast Large Google Scannable QR Code Frame */}
+                  <div className="my-2 p-2.5 sm:p-3 bg-white rounded-2xl border-2 border-slate-200/90 shadow-sm mx-auto flex items-center justify-center group-hover:border-sky-300 transition-all">
                     <img
                       src={googleQrImage}
-                      alt="Google Review QR Code Scan"
-                      className="w-24 h-24 sm:w-32 sm:h-32 object-contain mx-auto transition-transform group-hover:scale-105"
+                      alt="Google Review QR Code"
+                      className="w-44 h-44 sm:w-48 sm:h-48 object-contain mx-auto block transition-transform group-hover:scale-102"
                     />
                   </div>
 
-                  <p className="text-[10.5px] sm:text-[11px] font-bold text-slate-700 leading-tight px-1">
-                    Point your mobile camera at the QR code to review on Google
-                  </p>
-
-                  {/* Click to Rotate Interactive Hint Banner */}
-                  <div className="mt-2 p-1.5 sm:p-2 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 text-amber-900 flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] font-extrabold hover:from-amber-100 hover:to-orange-100 transition-all shadow-2xs">
-                    <RotateCw size={12} className="text-amber-600 animate-spin-slow shrink-0" />
-                    <span>Click anywhere to rotate to Customer Review Scan ↻</span>
+                  {/* 5 Stars Rating Bar */}
+                  <div className="flex items-center justify-center gap-1 text-amber-400 mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={16} fill="currentColor" className="text-amber-400 drop-shadow-2xs" />
+                    ))}
                   </div>
 
                   {/* Direct Google Review Button */}
-                  <div className="mt-2 sm:mt-2.5 pt-2 border-t border-slate-100">
-                    <a
-                      href={googleReviewUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-full inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-bold text-white bg-[#1a73e8] hover:bg-blue-600 shadow-md transition-all active:scale-98"
-                    >
-                      <span className="w-4 h-4 rounded-full bg-white text-blue-600 flex items-center justify-center font-bold text-[9px] shrink-0">
-                        G
-                      </span>
-                      <span className="truncate">Write a Google Review Directly</span>
-                      <ExternalLink size={12} className="text-white/80 shrink-0" />
-                    </a>
-                  </div>
+                  <a
+                    href={googleReviewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#1a73e8] hover:bg-blue-600 shadow-sm transition-all active:scale-98"
+                  >
+                    <span className="w-4 h-4 rounded-full bg-white text-blue-600 flex items-center justify-center font-bold text-[9px] shrink-0">
+                      G
+                    </span>
+                    <span className="truncate">Write a Google Review</span>
+                    <ExternalLink size={13} className="text-white/80 shrink-0" />
+                  </a>
                 </div>
 
                 {/* ---------------------------------------------------- */}
                 {/* SIDE 2 (BACK): CUSTOMER REVIEW SCAN (Rotated View)   */}
                 {/* ---------------------------------------------------- */}
-                <div className="w-full h-full backface-hidden rotate-y-180 bg-white rounded-2xl border-2 border-emerald-400/90 shadow-2xl p-3.5 sm:p-5 text-center flex flex-col justify-between absolute inset-0 overflow-hidden group hover:border-emerald-500 transition-colors">
+                <div className="w-full h-full backface-hidden rotate-y-180 bg-white rounded-2xl border-2 border-slate-200 shadow-xl p-4 sm:p-5 text-center flex flex-col justify-between absolute inset-0 overflow-hidden group hover:border-emerald-400 transition-colors">
                   {/* Emerald / Brand Top Accent Bar */}
-                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-sky-500 to-emerald-600" />
+                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500" />
 
                   {/* Header Row */}
-                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1">
+                  <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-50 border border-emerald-200 shadow-2xs flex items-center justify-center shrink-0 text-emerald-700">
                         <ShieldCheck size={16} />
                       </div>
-                      <div className="text-left">
-                        <span className="text-[11px] sm:text-xs font-black text-slate-900 block leading-tight">
-                          Customer Review Scan
-                        </span>
-                        <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold block leading-tight">
-                          SLN Engineers Projects
-                        </span>
-                      </div>
+                      <span className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
+                        Customer Review
+                      </span>
                     </div>
 
                     {/* Rotation Badge */}
@@ -372,45 +360,40 @@ export default function CustomerReviews() {
                         e.stopPropagation();
                         setIsQrFlipped(false);
                       }}
-                      className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 shadow-2xs transition-all active:scale-95 shrink-0"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 shadow-2xs transition-all active:scale-95 shrink-0"
                       title="Click to rotate back to Google Review Scan"
                     >
-                      <RotateCw size={11} className="text-emerald-700 animate-spin-slow shrink-0" />
-                      <span>Rotate ↻</span>
+                      <RotateCw size={11} className="text-slate-600 animate-spin-slow shrink-0" />
+                      <span>Flip QR ↻</span>
                     </button>
                   </div>
 
-                  {/* Customer Scannable QR Code Frame */}
-                  <div className="my-1 p-1.5 sm:p-2 bg-gradient-to-b from-emerald-50/60 to-white rounded-xl border border-emerald-100 inline-block mx-auto shadow-inner group-hover:border-emerald-300 transition-all">
+                  {/* High-Contrast Large Customer Scannable QR Code Frame */}
+                  <div className="my-2 p-2.5 sm:p-3 bg-white rounded-2xl border-2 border-slate-200/90 shadow-sm mx-auto flex items-center justify-center group-hover:border-emerald-300 transition-all">
                     <img
                       src={customerQrImage}
-                      alt="Customer Review QR Code Scan"
-                      className="w-24 h-24 sm:w-32 sm:h-32 object-contain mx-auto transition-transform group-hover:scale-105"
+                      alt="Customer Review QR Code"
+                      className="w-44 h-44 sm:w-48 sm:h-48 object-contain mx-auto block transition-transform group-hover:scale-102"
                     />
                   </div>
 
-                  <p className="text-[10.5px] sm:text-[11px] font-bold text-slate-700 leading-tight px-1">
-                    Point your mobile camera at the QR code to submit feedback
-                  </p>
-
-                  {/* Click to Rotate Interactive Hint Banner */}
-                  <div className="mt-2 p-1.5 sm:p-2 rounded-xl bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-200/80 text-sky-900 flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] font-extrabold hover:from-sky-100 hover:to-indigo-100 transition-all shadow-2xs">
-                    <RotateCw size={12} className="text-sky-600 animate-spin-slow shrink-0" />
-                    <span>Click anywhere to rotate to Google Review Scan ↻</span>
+                  {/* 5 Stars Rating Bar */}
+                  <div className="flex items-center justify-center gap-1 text-amber-400 mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={16} fill="currentColor" className="text-amber-400 drop-shadow-2xs" />
+                    ))}
                   </div>
 
                   {/* Direct Customer Review Form Button */}
-                  <div className="mt-2 sm:mt-2.5 pt-2 border-t border-slate-100">
-                    <Link
-                      to="/review"
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition-all active:scale-98"
-                    >
-                      <Star size={13} className="text-amber-300 fill-amber-300 shrink-0" />
-                      <span className="truncate">Open Customer Review Form Directly</span>
-                      <ArrowRight size={13} className="shrink-0" />
-                    </Link>
-                  </div>
+                  <Link
+                    to="/review"
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition-all active:scale-98"
+                  >
+                    <Star size={13} className="text-amber-300 fill-amber-300 shrink-0" />
+                    <span className="truncate">Open Review Form</span>
+                    <ArrowRight size={13} className="shrink-0" />
+                  </Link>
                 </div>
               </div>
             </div>

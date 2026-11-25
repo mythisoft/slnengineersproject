@@ -8,13 +8,13 @@ export const generateSecureToken = () => {
 export const generateQRCodeDataUrl = async (reviewUrl) => {
   try {
     const dataUrl = await QRCode.toDataURL(reviewUrl, {
-      width: 400,
+      width: 480,
       margin: 2,
       color: {
-        dark: '#0f4c81', // Brand blue
+        dark: '#0a192f', // High-contrast deep slate black
         light: '#ffffff',
       },
-      errorCorrectionLevel: 'H',
+      errorCorrectionLevel: 'M',
     });
     return dataUrl;
   } catch (error) {
@@ -26,13 +26,13 @@ export const generateQRCodeDataUrl = async (reviewUrl) => {
 export const generateGoogleQRCodeDataUrl = async (googleUrl) => {
   try {
     const dataUrl = await QRCode.toDataURL(googleUrl, {
-      width: 400,
+      width: 480,
       margin: 2,
       color: {
-        dark: '#1a73e8', // Google Blue
+        dark: '#0a192f', // High-contrast deep slate black for instant camera recognition
         light: '#ffffff',
       },
-      errorCorrectionLevel: 'H',
+      errorCorrectionLevel: 'M',
     });
     return dataUrl;
   } catch (error) {
