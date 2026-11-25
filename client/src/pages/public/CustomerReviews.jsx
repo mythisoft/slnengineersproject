@@ -182,7 +182,7 @@ export default function CustomerReviews() {
       />
 
       {/* 1. HERO SECTION WITH GOOGLE REVIEW CALLOUT & VILLA BACKDROP */}
-      <section className="relative bg-gradient-to-r from-[#f0f9ff] via-[#e0f2fe]/80 to-[#f8fafc] py-8 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden border-b border-sky-100">
+      <section className="relative bg-gradient-to-r from-[#f0f9ff] via-[#e0f2fe]/80 to-[#f8fafc] py-6 sm:py-14 lg:py-20 px-3.5 sm:px-6 lg:px-8 overflow-hidden border-b border-sky-100">
         {/* Subtle Ambient City Grid Overlay */}
         <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#0284c7_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
 
@@ -255,36 +255,36 @@ export default function CustomerReviews() {
           </div>
 
           {/* Right Column: 3D Rotating Review Scan Card (Google Review Scan -> Customer Review Scan) */}
-          <div className="w-full max-w-sm shrink-0 scroll-reveal-right delay-300 mt-4 lg:mt-0 mx-auto lg:mx-0">
+          <div className="w-full max-w-[340px] sm:max-w-sm shrink-0 scroll-reveal-right delay-300 mt-4 lg:mt-0 mx-auto lg:mx-0">
             <div className="perspective-1000 w-full">
               <div
                 onClick={() => setIsQrFlipped((prev) => !prev)}
-                className={`relative w-full transform-style-3d card-flip-transition cursor-pointer select-none ${
+                className={`relative w-full transform-style-3d card-flip-transition cursor-pointer select-none active:scale-[0.99] touch-manipulation ${
                   isQrFlipped ? 'rotate-y-180' : ''
                 }`}
-                style={{ minHeight: '410px' }}
+                style={{ minHeight: '390px' }}
                 title="Click to rotate between Google Review Scan and Customer Review Scan"
               >
                 {/* ---------------------------------------------------- */}
                 {/* SIDE 1 (FRONT): GOOGLE REVIEW SCAN (Default View)    */}
                 {/* ---------------------------------------------------- */}
-                <div className="w-full h-full backface-hidden bg-white rounded-2xl border-2 border-sky-400/90 shadow-2xl p-4 sm:p-5 text-center flex flex-col justify-between relative overflow-hidden group hover:border-sky-500 transition-colors">
+                <div className="w-full h-full backface-hidden bg-white rounded-2xl border-2 border-sky-400/90 shadow-2xl p-3.5 sm:p-5 text-center flex flex-col justify-between relative overflow-hidden group hover:border-sky-500 transition-colors">
                   {/* Google Multicolor Top Accent Bar */}
                   <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-red-500 via-amber-400 to-green-500" />
 
                   {/* Header Row */}
-                  <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center shrink-0">
-                        <span className="text-base font-black bg-gradient-to-r from-blue-500 via-red-500 via-yellow-500 to-green-500 bg-clip-text text-transparent">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center shrink-0">
+                        <span className="text-sm sm:text-base font-black bg-gradient-to-r from-blue-500 via-red-500 via-yellow-500 to-green-500 bg-clip-text text-transparent">
                           G
                         </span>
                       </div>
                       <div className="text-left">
-                        <span className="text-xs font-black text-slate-900 block leading-tight">
+                        <span className="text-[11px] sm:text-xs font-black text-slate-900 block leading-tight">
                           Google Review Scan
                         </span>
-                        <span className="text-[10px] text-slate-500 font-semibold block leading-tight">
+                        <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold block leading-tight">
                           Official Google Business Profile
                         </span>
                       </div>
@@ -297,47 +297,47 @@ export default function CustomerReviews() {
                         e.stopPropagation();
                         setIsQrFlipped(true);
                       }}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 shadow-2xs transition-all active:scale-95"
+                      className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 shadow-2xs transition-all active:scale-95 shrink-0"
                       title="Click to rotate to Customer Review Scan"
                     >
-                      <RotateCw size={11} className="text-sky-600 animate-spin-slow" />
+                      <RotateCw size={11} className="text-sky-600 animate-spin-slow shrink-0" />
                       <span>Rotate ↻</span>
                     </button>
                   </div>
 
                   {/* Google Scannable QR Code Frame */}
-                  <div className="my-1 p-2 bg-gradient-to-b from-sky-50/60 to-white rounded-xl border border-sky-100 inline-block mx-auto shadow-inner group-hover:border-sky-300 transition-all">
+                  <div className="my-1 p-1.5 sm:p-2 bg-gradient-to-b from-sky-50/60 to-white rounded-xl border border-sky-100 inline-block mx-auto shadow-inner group-hover:border-sky-300 transition-all">
                     <img
                       src={googleQrImage}
                       alt="Google Review QR Code Scan"
-                      className="w-28 h-28 sm:w-32 sm:h-32 object-contain mx-auto transition-transform group-hover:scale-105"
+                      className="w-24 h-24 sm:w-32 sm:h-32 object-contain mx-auto transition-transform group-hover:scale-105"
                     />
                   </div>
 
-                  <p className="text-[11px] font-bold text-slate-700 leading-tight">
+                  <p className="text-[10.5px] sm:text-[11px] font-bold text-slate-700 leading-tight px-1">
                     Point your mobile camera at the QR code to review on Google
                   </p>
 
                   {/* Click to Rotate Interactive Hint Banner */}
-                  <div className="mt-2 p-2 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 text-amber-900 flex items-center justify-center gap-1.5 text-[11px] font-extrabold hover:from-amber-100 hover:to-orange-100 transition-all shadow-2xs">
+                  <div className="mt-2 p-1.5 sm:p-2 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 text-amber-900 flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] font-extrabold hover:from-amber-100 hover:to-orange-100 transition-all shadow-2xs">
                     <RotateCw size={12} className="text-amber-600 animate-spin-slow shrink-0" />
                     <span>Click anywhere to rotate to Customer Review Scan ↻</span>
                   </div>
 
                   {/* Direct Google Review Button */}
-                  <div className="mt-2.5 pt-2 border-t border-slate-100">
+                  <div className="mt-2 sm:mt-2.5 pt-2 border-t border-slate-100">
                     <a
                       href={googleReviewUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-white bg-[#1a73e8] hover:bg-blue-600 shadow-md transition-all active:scale-98"
+                      className="w-full inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-bold text-white bg-[#1a73e8] hover:bg-blue-600 shadow-md transition-all active:scale-98"
                     >
-                      <span className="w-4 h-4 rounded-full bg-white text-blue-600 flex items-center justify-center font-bold text-[9px]">
+                      <span className="w-4 h-4 rounded-full bg-white text-blue-600 flex items-center justify-center font-bold text-[9px] shrink-0">
                         G
                       </span>
-                      <span>Write a Google Review Directly</span>
-                      <ExternalLink size={12} className="text-white/80" />
+                      <span className="truncate">Write a Google Review Directly</span>
+                      <ExternalLink size={12} className="text-white/80 shrink-0" />
                     </a>
                   </div>
                 </div>
@@ -345,21 +345,21 @@ export default function CustomerReviews() {
                 {/* ---------------------------------------------------- */}
                 {/* SIDE 2 (BACK): CUSTOMER REVIEW SCAN (Rotated View)   */}
                 {/* ---------------------------------------------------- */}
-                <div className="w-full h-full backface-hidden rotate-y-180 bg-white rounded-2xl border-2 border-emerald-400/90 shadow-2xl p-4 sm:p-5 text-center flex flex-col justify-between absolute inset-0 overflow-hidden group hover:border-emerald-500 transition-colors">
+                <div className="w-full h-full backface-hidden rotate-y-180 bg-white rounded-2xl border-2 border-emerald-400/90 shadow-2xl p-3.5 sm:p-5 text-center flex flex-col justify-between absolute inset-0 overflow-hidden group hover:border-emerald-500 transition-colors">
                   {/* Emerald / Brand Top Accent Bar */}
                   <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-sky-500 to-emerald-600" />
 
                   {/* Header Row */}
-                  <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 shadow-2xs flex items-center justify-center shrink-0 text-emerald-700">
-                        <ShieldCheck size={18} />
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-50 border border-emerald-200 shadow-2xs flex items-center justify-center shrink-0 text-emerald-700">
+                        <ShieldCheck size={16} />
                       </div>
                       <div className="text-left">
-                        <span className="text-xs font-black text-slate-900 block leading-tight">
+                        <span className="text-[11px] sm:text-xs font-black text-slate-900 block leading-tight">
                           Customer Review Scan
                         </span>
-                        <span className="text-[10px] text-slate-500 font-semibold block leading-tight">
+                        <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold block leading-tight">
                           SLN Engineers Projects
                         </span>
                       </div>
@@ -372,43 +372,43 @@ export default function CustomerReviews() {
                         e.stopPropagation();
                         setIsQrFlipped(false);
                       }}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 shadow-2xs transition-all active:scale-95"
+                      className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 shadow-2xs transition-all active:scale-95 shrink-0"
                       title="Click to rotate back to Google Review Scan"
                     >
-                      <RotateCw size={11} className="text-emerald-700 animate-spin-slow" />
+                      <RotateCw size={11} className="text-emerald-700 animate-spin-slow shrink-0" />
                       <span>Rotate ↻</span>
                     </button>
                   </div>
 
                   {/* Customer Scannable QR Code Frame */}
-                  <div className="my-1 p-2 bg-gradient-to-b from-emerald-50/60 to-white rounded-xl border border-emerald-100 inline-block mx-auto shadow-inner group-hover:border-emerald-300 transition-all">
+                  <div className="my-1 p-1.5 sm:p-2 bg-gradient-to-b from-emerald-50/60 to-white rounded-xl border border-emerald-100 inline-block mx-auto shadow-inner group-hover:border-emerald-300 transition-all">
                     <img
                       src={customerQrImage}
                       alt="Customer Review QR Code Scan"
-                      className="w-28 h-28 sm:w-32 sm:h-32 object-contain mx-auto transition-transform group-hover:scale-105"
+                      className="w-24 h-24 sm:w-32 sm:h-32 object-contain mx-auto transition-transform group-hover:scale-105"
                     />
                   </div>
 
-                  <p className="text-[11px] font-bold text-slate-700 leading-tight">
+                  <p className="text-[10.5px] sm:text-[11px] font-bold text-slate-700 leading-tight px-1">
                     Point your mobile camera at the QR code to submit feedback
                   </p>
 
                   {/* Click to Rotate Interactive Hint Banner */}
-                  <div className="mt-2 p-2 rounded-xl bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-200/80 text-sky-900 flex items-center justify-center gap-1.5 text-[11px] font-extrabold hover:from-sky-100 hover:to-indigo-100 transition-all shadow-2xs">
+                  <div className="mt-2 p-1.5 sm:p-2 rounded-xl bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-200/80 text-sky-900 flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] font-extrabold hover:from-sky-100 hover:to-indigo-100 transition-all shadow-2xs">
                     <RotateCw size={12} className="text-sky-600 animate-spin-slow shrink-0" />
                     <span>Click anywhere to rotate to Google Review Scan ↻</span>
                   </div>
 
                   {/* Direct Customer Review Form Button */}
-                  <div className="mt-2.5 pt-2 border-t border-slate-100">
+                  <div className="mt-2 sm:mt-2.5 pt-2 border-t border-slate-100">
                     <Link
                       to="/review"
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition-all active:scale-98"
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition-all active:scale-98"
                     >
-                      <Star size={13} className="text-amber-300 fill-amber-300" />
-                      <span>Open Customer Review Form Directly</span>
-                      <ArrowRight size={13} />
+                      <Star size={13} className="text-amber-300 fill-amber-300 shrink-0" />
+                      <span className="truncate">Open Customer Review Form Directly</span>
+                      <ArrowRight size={13} className="shrink-0" />
                     </Link>
                   </div>
                 </div>
@@ -419,64 +419,64 @@ export default function CustomerReviews() {
       </section>
 
       {/* 2. FOUR TRUST METRIC TILES */}
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-5 sm:-mt-7 relative z-20">
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-md p-3 sm:p-5 particle-bg">
+      <div className="container max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 -mt-5 sm:-mt-7 relative z-20">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-md p-2.5 sm:p-5 particle-bg">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-0 lg:divide-x lg:divide-slate-200/80 items-stretch">
             {/* Tile 1 */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5 px-2.5 sm:px-3 py-2 rounded-xl trust-metric-card scroll-reveal stagger-1 group hover:-translate-y-1 hover:bg-sky-50/60 transition-all duration-300 cursor-default">
-              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-300 group-hover:scale-110 group-hover:bg-amber-600">
-                <Star size={18} fill="currentColor" className="sm:w-5 sm:h-5" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5 p-2 sm:p-3 rounded-xl trust-metric-card scroll-reveal stagger-1 group hover:-translate-y-1 hover:bg-sky-50/60 transition-all duration-300 cursor-default">
+              <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-300 group-hover:scale-110 group-hover:bg-amber-600">
+                <Star size={16} fill="currentColor" className="sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <div className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-amber-600 tracking-tight leading-none transition-colors duration-200">
+              <div className="min-w-0">
+                <div className="text-base sm:text-2xl font-black text-slate-900 group-hover:text-amber-600 tracking-tight leading-none transition-colors duration-200 truncate">
                   {pageContent.trustTile1Value || (reviewsData?.stats?.avgRating ? `${reviewsData.stats.avgRating} / 5.0` : '5.0 / 5.0')}
                 </div>
-                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">{pageContent.trustTile1Label || 'Average Star Rating'}</div>
-                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">
+                <div className="text-[10px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight truncate">{pageContent.trustTile1Label || 'Average Star Rating'}</div>
+                <div className="text-[9px] sm:text-[11px] text-slate-500 font-medium leading-tight truncate">
                   {pageContent.trustTile1Sub || (reviewsData?.stats?.totalReviews ? `${reviewsData.stats.totalReviews} Verified Client Reviews` : '100% Verified Clients')}
                 </div>
               </div>
             </div>
 
             {/* Tile 2 */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5 px-2.5 sm:px-3 py-2 rounded-xl trust-metric-card scroll-reveal stagger-2 group hover:-translate-y-1 hover:bg-sky-50/60 transition-all duration-300 cursor-default">
-              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#0284c7] group-hover:bg-sky-600 group-hover:scale-110 text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-300">
-                <Users size={18} className="sm:w-5 sm:h-5" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5 p-2 sm:p-3 rounded-xl trust-metric-card scroll-reveal stagger-2 group hover:-translate-y-1 hover:bg-sky-50/60 transition-all duration-300 cursor-default">
+              <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-[#0284c7] group-hover:bg-sky-600 group-hover:scale-110 text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-300">
+                <Users size={16} className="sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <div className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-[#0284c7] tracking-tight leading-none transition-colors duration-200">
+              <div className="min-w-0">
+                <div className="text-base sm:text-2xl font-black text-slate-900 group-hover:text-[#0284c7] tracking-tight leading-none transition-colors duration-200 truncate">
                   {pageContent.trustTile2Value || '3'}
                 </div>
-                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">{pageContent.trustTile2Label || 'Generations of Engineers'}</div>
-                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">{pageContent.trustTile2Sub || 'Family-Led Integrity'}</div>
+                <div className="text-[10px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight truncate">{pageContent.trustTile2Label || 'Generations of Engineers'}</div>
+                <div className="text-[9px] sm:text-[11px] text-slate-500 font-medium leading-tight truncate">{pageContent.trustTile2Sub || 'Family-Led Integrity'}</div>
               </div>
             </div>
 
             {/* Tile 3 */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5 px-2.5 sm:px-3 py-2 rounded-xl trust-metric-card scroll-reveal stagger-3 group hover:-translate-y-1 hover:bg-sky-50/60 transition-all duration-300 cursor-default">
-              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#0284c7] group-hover:bg-sky-600 group-hover:scale-110 text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-300">
-                <ShieldCheck size={18} className="sm:w-5 sm:h-5" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5 p-2 sm:p-3 rounded-xl trust-metric-card scroll-reveal stagger-3 group hover:-translate-y-1 hover:bg-sky-50/60 transition-all duration-300 cursor-default">
+              <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-[#0284c7] group-hover:bg-sky-600 group-hover:scale-110 text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-300">
+                <ShieldCheck size={16} className="sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <div className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-[#0284c7] tracking-tight leading-none transition-colors duration-200">
+              <div className="min-w-0">
+                <div className="text-base sm:text-2xl font-black text-slate-900 group-hover:text-[#0284c7] tracking-tight leading-none transition-colors duration-200 truncate">
                   {pageContent.trustTile3Value || '1,450+'}
                 </div>
-                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">{pageContent.trustTile3Label || 'Zero-Leak Sites Sealed'}</div>
-                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">{pageContent.trustTile3Sub || 'Zero Re-leak Failures'}</div>
+                <div className="text-[10px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight truncate">{pageContent.trustTile3Label || 'Zero-Leak Sites Sealed'}</div>
+                <div className="text-[9px] sm:text-[11px] text-slate-500 font-medium leading-tight truncate">{pageContent.trustTile3Sub || 'Zero Re-leak Failures'}</div>
               </div>
             </div>
 
             {/* Tile 4 */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5 px-2.5 sm:px-3 py-2 rounded-xl trust-metric-card scroll-reveal stagger-4 group hover:-translate-y-1 hover:bg-sky-50/60 transition-all duration-300 cursor-default">
-              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-emerald-600 group-hover:bg-emerald-700 group-hover:scale-110 text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-300">
-                <QrCode size={18} className="sm:w-5 sm:h-5" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5 p-2 sm:p-3 rounded-xl trust-metric-card scroll-reveal stagger-4 group hover:-translate-y-1 hover:bg-sky-50/60 transition-all duration-300 cursor-default">
+              <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-emerald-600 group-hover:bg-emerald-700 group-hover:scale-110 text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-300">
+                <QrCode size={16} className="sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <div className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-emerald-700 tracking-tight leading-none transition-colors duration-200">
+              <div className="min-w-0">
+                <div className="text-base sm:text-2xl font-black text-slate-900 group-hover:text-emerald-700 tracking-tight leading-none transition-colors duration-200 truncate">
                   {pageContent.trustTile4Value || 'QR Handover'}
                 </div>
-                <div className="text-[11px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight">{pageContent.trustTile4Label || 'Authentic QR Verification'}</div>
-                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight">{pageContent.trustTile4Sub || 'Bonded Warranty Included'}</div>
+                <div className="text-[10px] sm:text-xs font-bold text-slate-800 mt-1 leading-tight truncate">{pageContent.trustTile4Label || 'Authentic QR Verification'}</div>
+                <div className="text-[9px] sm:text-[11px] text-slate-500 font-medium leading-tight truncate">{pageContent.trustTile4Sub || 'Bonded Warranty Included'}</div>
               </div>
             </div>
           </div>
@@ -484,10 +484,10 @@ export default function CustomerReviews() {
       </div>
 
       {/* 3. THREE VERIFIED REVIEW CARDS */}
-      <section className="py-8 sm:py-16">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-left mb-6 sm:mb-8 scroll-reveal">
-            <span className="text-[#0284c7] font-bold text-xs uppercase tracking-wider block mb-1">
+      <section className="py-6 sm:py-16">
+        <div className="container max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
+          <div className="text-left mb-5 sm:mb-8 scroll-reveal">
+            <span className="text-[#0284c7] font-bold text-[11px] sm:text-xs uppercase tracking-wider block mb-1">
               {pageContent.catalogSubtitle || 'Field Verified Testimonials'}
             </span>
             <h2 className="text-xl sm:text-3xl font-extrabold text-[#061b33] tracking-tight">
@@ -496,11 +496,11 @@ export default function CustomerReviews() {
           </div>
 
           {displayedReviews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
               {displayedReviews.map((review, idx) => (
                 <div
                   key={review.id || idx}
-                  className={`relative bg-white rounded-2xl border border-sky-100 shadow-2xs hover:shadow-xl hover:border-sky-300 hover:-translate-y-2 transition-all duration-300 p-4 sm:p-6 flex flex-col justify-between overflow-hidden group scroll-reveal-pop stagger-${(idx % 3) + 1}`}
+                  className={`relative bg-white rounded-2xl border border-sky-100 shadow-2xs hover:shadow-xl hover:border-sky-300 sm:hover:-translate-y-2 transition-all duration-300 p-4 sm:p-6 flex flex-col justify-between overflow-hidden group scroll-reveal-pop stagger-${(idx % 3) + 1}`}
                 >
                   {/* Top Sliding Gradient Accent Line */}
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-20" />
@@ -512,14 +512,14 @@ export default function CustomerReviews() {
 
                   <div className="relative z-10">
                     {/* Card Header: Rating Stars & Verified Customer Badge */}
-                    <div className="flex items-center justify-between gap-3 mb-3.5 sm:mb-4">
+                    <div className="flex items-center justify-between gap-2 mb-3.5 sm:mb-4">
                       <div className="flex items-center gap-1 text-amber-400">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            size={15}
+                            size={14}
                             fill={i < (review.rating || 5) ? 'currentColor' : 'none'}
-                            className={`drop-shadow-xs ${
+                            className={`drop-shadow-xs sm:w-[15px] sm:h-[15px] ${
                               i < (review.rating || 5)
                                 ? 'text-amber-400'
                                 : 'text-slate-300'
@@ -527,14 +527,14 @@ export default function CustomerReviews() {
                           />
                         ))}
                       </div>
-                      <div className="flex items-center gap-1 text-emerald-700 text-[11px] font-semibold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
+                      <div className="flex items-center gap-1 text-emerald-700 text-[10px] sm:text-[11px] font-semibold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shrink-0">
                         <ShieldCheck size={13} className="text-emerald-600 shrink-0" />
                         <span>Verified Customer</span>
                       </div>
                     </div>
 
                     {/* Review Quote Body */}
-                    <p className="text-xs sm:text-[12.5px] text-slate-600 leading-relaxed mb-4 italic">
+                    <p className="text-xs sm:text-[12.5px] text-slate-600 leading-relaxed mb-4 italic break-words">
                       {review.quote}
                     </p>
                   </div>
@@ -550,7 +550,7 @@ export default function CustomerReviews() {
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 sm:p-12 text-center max-w-md mx-auto shadow-xs">
+            <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-6 sm:p-12 text-center max-w-md mx-auto shadow-xs">
               <div className="w-12 h-12 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Star size={24} />
               </div>
@@ -568,17 +568,17 @@ export default function CustomerReviews() {
       </section>
 
       {/* 4. HOW SLN CUSTOMER REVIEWS ARE COLLECTED INFOGRAPHIC BANNER */}
-      <section className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-reveal">
+      <section className="container max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 scroll-reveal">
         <div className="bg-[#f0f9ff]/90 border border-sky-200/80 rounded-2xl p-4 sm:p-8 lg:p-10 relative overflow-hidden shadow-xs hover:border-sky-300 transition-colors">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 items-center">
             {/* Left Column: Narrative and 4-Step Process Flow */}
-            <div className="lg:col-span-8 space-y-4 sm:space-y-6">
+            <div className="lg:col-span-8 space-y-3.5 sm:space-y-6">
               <div>
-                <div className="flex items-center gap-1.5 text-sky-700 font-bold text-xs uppercase tracking-wider mb-2">
-                  <Shield size={14} className="text-sky-600" />
+                <div className="flex items-center gap-1.5 text-sky-700 font-bold text-[10px] sm:text-xs uppercase tracking-wider mb-1.5 sm:mb-2">
+                  <Shield size={13} className="text-sky-600 shrink-0" />
                   <span>HOW SLN CUSTOMER REVIEWS ARE COLLECTED</span>
                 </div>
-                <h2 className="text-xl sm:text-3xl font-extrabold text-[#061b33] tracking-tight mb-2">
+                <h2 className="text-lg sm:text-3xl font-extrabold text-[#061b33] tracking-tight mb-1.5 sm:mb-2">
                   Simple. Transparent. Trusted.
                 </h2>
                 <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed max-w-xl">
@@ -587,61 +587,61 @@ export default function CustomerReviews() {
               </div>
 
               {/* 4-Step Chain with Arrows */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 pt-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 pt-1 sm:pt-2">
                 {/* Step 1 */}
-                <div className="bg-white/90 rounded-xl p-3 sm:p-3.5 border border-sky-100 shadow-2xs hover:shadow-md hover:border-sky-300 hover:-translate-y-1 hover:bg-white transition-all duration-200 group relative">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="bg-white/90 rounded-xl p-2.5 sm:p-3.5 border border-sky-100 shadow-2xs hover:shadow-md hover:border-sky-300 hover:-translate-y-1 hover:bg-white transition-all duration-200 group relative">
+                  <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
                     <span className="w-5 h-5 rounded-full bg-[#0284c7] group-hover:bg-sky-600 group-hover:scale-110 text-white text-[10px] font-bold flex items-center justify-center transition-all duration-200">
                       1
                     </span>
-                    <FileCheck size={18} className="text-sky-600 group-hover:scale-115 transition-transform duration-200" />
+                    <FileCheck size={16} className="text-sky-600 group-hover:scale-115 transition-transform duration-200 sm:w-[18px] sm:h-[18px]" />
                   </div>
-                  <h4 className="text-xs font-bold text-slate-900 leading-tight mb-1">Project Complete</h4>
-                  <p className="text-[10px] text-slate-500 leading-tight">
+                  <h4 className="text-[11px] sm:text-xs font-bold text-slate-900 leading-tight mb-0.5 sm:mb-1">Project Complete</h4>
+                  <p className="text-[9.5px] sm:text-[10px] text-slate-500 leading-tight">
                     You receive your warranty certificate with a QR code.
                   </p>
                 </div>
 
                 {/* Step 2 */}
-                <div className="bg-white/90 rounded-xl p-3 sm:p-3.5 border border-sky-100 shadow-2xs hover:shadow-md hover:border-sky-300 hover:-translate-y-1 hover:bg-white transition-all duration-200 group relative">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="bg-white/90 rounded-xl p-2.5 sm:p-3.5 border border-sky-100 shadow-2xs hover:shadow-md hover:border-sky-300 hover:-translate-y-1 hover:bg-white transition-all duration-200 group relative">
+                  <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
                     <span className="w-5 h-5 rounded-full bg-[#0284c7] group-hover:bg-sky-600 group-hover:scale-110 text-white text-[10px] font-bold flex items-center justify-center transition-all duration-200">
                       2
                     </span>
-                    <QrCode size={18} className="text-sky-600 group-hover:scale-115 transition-transform duration-200" />
+                    <QrCode size={16} className="text-sky-600 group-hover:scale-115 transition-transform duration-200 sm:w-[18px] sm:h-[18px]" />
                   </div>
-                  <h4 className="text-xs font-bold text-slate-900 leading-tight mb-1">Scan QR Code</h4>
-                  <p className="text-[10px] text-slate-500 leading-tight">
+                  <h4 className="text-[11px] sm:text-xs font-bold text-slate-900 leading-tight mb-0.5 sm:mb-1">Scan QR Code</h4>
+                  <p className="text-[9.5px] sm:text-[10px] text-slate-500 leading-tight">
                     Open the camera app and scan the code on your certificate.
                   </p>
                 </div>
 
                 {/* Step 3 */}
-                <div className="bg-white/90 rounded-xl p-3 sm:p-3.5 border border-sky-100 shadow-2xs hover:shadow-md hover:border-sky-300 hover:-translate-y-1 hover:bg-white transition-all duration-200 group relative">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="bg-white/90 rounded-xl p-2.5 sm:p-3.5 border border-sky-100 shadow-2xs hover:shadow-md hover:border-sky-300 hover:-translate-y-1 hover:bg-white transition-all duration-200 group relative">
+                  <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
                     <span className="w-5 h-5 rounded-full bg-[#0284c7] group-hover:bg-sky-600 group-hover:scale-110 text-white text-[10px] font-bold flex items-center justify-center transition-all duration-200">
                       3
                     </span>
-                    <MessageSquare size={18} className="text-sky-600 group-hover:scale-115 transition-transform duration-200" />
+                    <MessageSquare size={16} className="text-sky-600 group-hover:scale-115 transition-transform duration-200 sm:w-[18px] sm:h-[18px]" />
                   </div>
-                  <h4 className="text-xs font-bold text-slate-900 leading-tight mb-1">Share Feedback</h4>
-                  <p className="text-[10px] text-slate-500 leading-tight">
+                  <h4 className="text-[11px] sm:text-xs font-bold text-slate-900 leading-tight mb-0.5 sm:mb-1">Share Feedback</h4>
+                  <p className="text-[9.5px] sm:text-[10px] text-slate-500 leading-tight">
                     Rate our workmanship, request follow-ups or write a review.
                   </p>
                 </div>
 
                 {/* Step 4 */}
-                <div className="bg-white/90 rounded-xl p-3 sm:p-3.5 border border-sky-100 shadow-2xs hover:shadow-md hover:border-sky-300 hover:-translate-y-1 hover:bg-white transition-all duration-200 group relative">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="bg-white/90 rounded-xl p-2.5 sm:p-3.5 border border-sky-100 shadow-2xs hover:shadow-md hover:border-sky-300 hover:-translate-y-1 hover:bg-white transition-all duration-200 group relative">
+                  <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
                     <span className="w-5 h-5 rounded-full bg-[#0284c7] group-hover:bg-sky-600 group-hover:scale-110 text-white text-[10px] font-bold flex items-center justify-center transition-all duration-200">
                       4
                     </span>
-                    <span className="text-sm font-black bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent group-hover:scale-115 transition-transform duration-200">
+                    <span className="text-xs sm:text-sm font-black bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent group-hover:scale-115 transition-transform duration-200">
                       G
                     </span>
                   </div>
-                  <h4 className="text-xs font-bold text-slate-900 leading-tight mb-1">Help Others</h4>
-                  <p className="text-[10px] text-slate-500 leading-tight">
+                  <h4 className="text-[11px] sm:text-xs font-bold text-slate-900 leading-tight mb-0.5 sm:mb-1">Help Others</h4>
+                  <p className="text-[9.5px] sm:text-[10px] text-slate-500 leading-tight">
                     Your genuine feedback helps other property owners decide.
                   </p>
                 </div>
@@ -650,43 +650,43 @@ export default function CustomerReviews() {
 
             {/* Right Column: Physical Warranty Certificate Card with QR code */}
             <div className="lg:col-span-4 flex justify-center lg:justify-end mt-4 lg:mt-0">
-              <div className="transform rotate-1 sm:rotate-2 hover:rotate-0 hover:scale-103 hover:shadow-2xl transition-all duration-300 w-full max-w-[260px] sm:max-w-[280px] group mx-auto lg:mx-0">
-                <div className="bg-white rounded-xl border border-slate-300 shadow-xl p-4 sm:p-5 text-center space-y-3 relative group-hover:border-sky-300 transition-colors">
+              <div className="transform rotate-0 sm:rotate-2 hover:rotate-0 hover:scale-102 hover:shadow-2xl transition-all duration-300 w-full max-w-[240px] xs:max-w-[260px] sm:max-w-[280px] group mx-auto lg:mx-0">
+                <div className="bg-white rounded-xl border border-slate-300 shadow-xl p-3.5 sm:p-5 text-center space-y-2.5 sm:space-y-3 relative group-hover:border-sky-300 transition-colors">
                   {/* Top Seal */}
                   <div className="flex items-center justify-center gap-1.5 mb-1">
-                    <Shield size={16} className="text-sky-600 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-800">
+                    <Shield size={14} className="text-sky-600 group-hover:scale-110 transition-transform sm:w-4 sm:h-4" />
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-800">
                       SLN ENGINEERS PROJECTS PVT. LTD.
                     </span>
                   </div>
 
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 border-y border-slate-200 py-1">
+                  <h3 className="text-[11px] sm:text-xs font-black uppercase tracking-widest text-slate-900 border-y border-slate-200 py-1">
                     WARRANTY CERTIFICATE
                   </h3>
 
                   {/* Scannable Customer Review QR Code Frame */}
                   <Link
                     to="/review"
-                    className="p-3 bg-slate-50 border border-slate-200 rounded-lg inline-block my-1 shadow-inner group-hover:border-emerald-500 hover:shadow-md transition-all block cursor-pointer"
+                    className="p-2 sm:p-3 bg-slate-50 border border-slate-200 rounded-lg inline-block my-1 shadow-inner group-hover:border-emerald-500 hover:shadow-md transition-all block cursor-pointer"
                     title="Click or scan to leave a verified customer review"
                   >
                     {customerQr?.qrCodeDataUrl || customerQr?.qrDataUrl ? (
                       <img
                         src={customerQr.qrCodeDataUrl || customerQr.qrDataUrl}
                         alt="Scan to Add Customer Review"
-                        className="w-24 h-24 sm:w-28 sm:h-28 mx-auto object-contain transition-transform group-hover:scale-105"
+                        className="w-20 h-20 sm:w-28 sm:h-28 mx-auto object-contain transition-transform group-hover:scale-105"
                       />
                     ) : (
-                      <QrCode size={90} className="text-slate-900 mx-auto sm:w-[100px] sm:h-[100px]" />
+                      <QrCode size={75} className="text-slate-900 mx-auto sm:w-[100px] sm:h-[100px]" />
                     )}
                   </Link>
 
-                  <p className="text-[10px] font-bold text-slate-700 leading-tight">
+                  <p className="text-[9.5px] sm:text-[10px] font-bold text-slate-700 leading-tight">
                     Scan with Mobile Camera to Add Customer Review
                   </p>
                   <Link
                     to="/review"
-                    className="text-[10px] text-emerald-700 font-extrabold hover:underline block"
+                    className="text-[9.5px] sm:text-[10px] text-emerald-700 font-extrabold hover:underline block"
                   >
                     Or Tap Here to Open Review Form →
                   </Link>
@@ -698,16 +698,16 @@ export default function CustomerReviews() {
       </section>
 
       {/* 5. BOTTOM CONSULTATION BANNER */}
-      <section className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16">
+      <section className="container max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 mt-10 sm:mt-16">
         <div className="rounded-2xl sm:rounded-3xl overflow-hidden hero-bg-animated bg-gradient-to-r from-[#031d36] via-[#073256] to-[#031d36] text-white border border-slate-800 shadow-xl scroll-reveal">
-          <div className="p-5 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6 relative">
+          <div className="p-4 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-5 sm:gap-6 relative">
             {/* Left Info */}
             <div className="flex items-start gap-3 sm:gap-4 max-w-xl w-full">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-300 shrink-0 mt-1 shadow-inner animate-float">
-                <ShieldCheck size={22} />
+              <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-300 shrink-0 mt-0.5 shadow-inner animate-float">
+                <ShieldCheck size={20} className="sm:w-[22px] sm:h-[22px]" />
               </div>
-              <div>
-                <h3 className="text-base sm:text-xl font-black text-white tracking-tight">
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-xl font-black text-white tracking-tight leading-snug">
                   Ready to Experience Permanent Zero-Leak Waterproofing?
                 </h3>
                 <div className="text-[11px] sm:text-xs font-bold text-sky-300 mt-1">
@@ -723,14 +723,14 @@ export default function CustomerReviews() {
             <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-2.5 shrink-0 w-full lg:w-auto justify-start lg:justify-end">
               <Link
                 to="/contact"
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-full text-xs font-bold text-white bg-[#0284c7] hover:bg-sky-500 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/30 active:translate-y-0 shadow-sm transition-all duration-200 group w-full sm:w-auto text-center"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold text-white bg-[#0284c7] hover:bg-sky-500 active:scale-98 shadow-sm transition-all duration-200 group w-full sm:w-auto text-center"
               >
                 <Calendar size={13} className="group-hover:rotate-6 transition-transform duration-200 shrink-0" />
                 <span>Book Site Inspection</span>
               </Link>
               <a
                 href={`tel:${phone.replace(/\s+/g, '')}`}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-full text-xs font-bold text-white bg-slate-900/60 hover:bg-slate-900 hover:-translate-y-0.5 hover:shadow-lg hover:border-slate-500 active:translate-y-0 border border-slate-700 shadow-sm transition-all duration-200 group w-full sm:w-auto text-center"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold text-white bg-slate-900/60 hover:bg-slate-900 border border-slate-700 active:scale-98 shadow-sm transition-all duration-200 group w-full sm:w-auto text-center"
               >
                 <Phone size={13} className="group-hover:scale-115 transition-transform duration-200 shrink-0" />
                 <span>Call {phone}</span>
@@ -739,7 +739,7 @@ export default function CustomerReviews() {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-full text-xs font-bold text-white bg-[#22c55e] hover:bg-[#16a34a] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/25 active:translate-y-0 shadow-sm transition-all duration-200 group w-full sm:w-auto text-center"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold text-white bg-[#22c55e] hover:bg-[#16a34a] active:scale-98 shadow-sm transition-all duration-200 group w-full sm:w-auto text-center"
               >
                 <MessageCircle size={13} className="group-hover:scale-115 transition-transform duration-200 shrink-0" />
                 <span>WhatsApp Senior Engineer</span>

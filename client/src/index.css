@@ -3931,3 +3931,35 @@ a:hover {
   animation: loginPulseGlow 4s ease-in-out infinite;
 }
 
+/* ============================================================
+   Public Reviews Page Mobile Responsiveness Only (.reviews-page)
+   ============================================================ */
+.reviews-page {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+@media (max-width: 640px) {
+  .reviews-page .perspective-1000 {
+    perspective: 750px;
+  }
+
+  .reviews-page .card-flip-transition {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Compact padding & smooth typography on small screens */
+  .reviews-page .trust-metric-card {
+    min-height: 72px;
+  }
+
+  /* Prevent watermark quotes from causing horizontal scroll */
+  .reviews-page .select-none {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
