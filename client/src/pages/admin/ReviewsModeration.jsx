@@ -211,6 +211,8 @@ export default function ReviewsModeration() {
             prev.map((r) => (r._id === editingReview._id ? res.data : r))
           );
           setIsModalOpen(false);
+          showToast('Review updated successfully!', 'success');
+          window.dispatchEvent(new Event('sln_reviews_updated'));
         } else {
           setFormError(res.message || 'Failed to update review.');
         }
@@ -223,6 +225,8 @@ export default function ReviewsModeration() {
         if (res.success) {
           setReviews((prev) => [res.data, ...prev]);
           setIsModalOpen(false);
+          showToast('New customer review added & published successfully!', 'success');
+          window.dispatchEvent(new Event('sln_reviews_updated'));
         } else {
           setFormError(res.message || 'Failed to create review.');
         }
@@ -245,20 +249,32 @@ export default function ReviewsModeration() {
         setReviews((prev) =>
           prev.map((r) => (r._id === id ? { ...r, ...updates } : r))
         );
+        if (updates.isApproved === true) {
+          showToast('Review approved & published live to public website!', 'success');
+        } else if (updates.isApproved === false) {
+          showToast('Review unpublished from public website.', 'info');
+        } else if (updates.isSpam === true) {
+          showToast('Review moved to Spam.', 'warning');
+        } else if (updates.isSpam === false) {
+          showToast('Review restored from Spam.', 'success');
+        }
+        window.dispatchEvent(new Event('sln_reviews_updated'));
       }
     } catch (err) {
-      alert(err.message || 'Failed to update review status');
+      showToast(err.message || 'Failed to update review status', 'error');
     }
   };
 
   // Fast Toggle for Homepage Feature (Max 3 Reviews)
   const handleToggleHome = async (rev) => {
     const isCurrentlyHome = Boolean(rev.showOnHome);
-    if (!isCurrentlyHome) {
-      const homeCount = reviews.filter((r) => r.showOnHome).length;
+    const nextState = !isCurrentlyHome;
+    if (nextState) {
+      const homeCount = reviews.filter((r) => r.showOnHome && r._id !== rev._id).length;
       if (homeCount >= 3) {
-        alert(
-          'Maximum of 3 reviews can be featured on the Homepage. Please deselect another review first.'
+        showToast(
+          'Maximum of 3 reviews can be featured on the Homepage. Please unpin another review first.',
+          'warning'
         );
         return;
       }
@@ -267,17 +283,22 @@ export default function ReviewsModeration() {
     try {
       const res = await fetchApi(`/admin/reviews/${rev._id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ showOnHome: !isCurrentlyHome }),
+        body: JSON.stringify({ showOnHome: nextState }),
       });
       if (res.success) {
         setReviews((prev) =>
-          prev.map((r) => (r._id === rev._id ? { ...r, showOnHome: !isCurrentlyHome } : r))
+          prev.map((r) => (r._id === rev._id ? { ...r, showOnHome: nextState } : r))
         );
+        showToast(
+          nextState ? '★ Review pinned to Homepage Testimonials!' : 'Review removed from Homepage.',
+          nextState ? 'success' : 'info'
+        );
+        window.dispatchEvent(new Event('sln_reviews_updated'));
       } else {
-        alert(res.message || 'Failed to update homepage status');
+        showToast(res.message || 'Failed to update homepage status', 'error');
       }
     } catch (err) {
-      alert(err.message || 'Failed to update homepage status');
+      showToast(err.message || 'Failed to update homepage status', 'error');
     }
   };
 
@@ -299,11 +320,13 @@ export default function ReviewsModeration() {
       if (res.success) {
         setReviews((prev) => prev.filter((r) => r._id !== id));
         setSelectedIds((prev) => prev.filter((item) => item !== id));
+        showToast('Review deleted permanently.', 'error');
+        window.dispatchEvent(new Event('sln_reviews_updated'));
       } else {
-        alert(res.message || 'Failed to delete review');
+        showToast(res.message || 'Failed to delete review', 'error');
       }
     } catch (err) {
-      alert(err.message || 'Failed to delete review');
+      showToast(err.message || 'Failed to delete review', 'error');
     } finally {
       setDeletingId(null);
     }
@@ -653,28 +676,27 @@ export default function ReviewsModeration() {
                         : 'Pending Review'}
                     </span>
 
-                    {/* Radio Button for Homepage Feature (Max 3) */}
+                    {/* Show on Home (Star Icon) */}
                     <button
                       type="button"
                       onClick={() => handleToggleHome(rev)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all border cursor-pointer ${
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all border cursor-pointer ${
                         rev.showOnHome
                           ? 'bg-amber-500 text-white border-amber-600 shadow-2xs hover:bg-amber-600'
-                          : 'bg-slate-50 text-slate-600 border-slate-300 hover:border-amber-400 hover:bg-amber-50/70'
+                          : 'bg-white text-slate-700 border-slate-300 hover:border-amber-400 hover:bg-amber-50/70'
                       }`}
                       title={
                         rev.showOnHome
-                          ? 'Click to remove from Homepage'
-                          : 'Click to feature on Homepage (Up to 3 only)'
+                          ? 'Featured on Homepage Testimonials (Click to unpin)'
+                          : 'Show on Home: Pins this review to the Homepage Testimonial section (up to 3)'
                       }
                     >
-                      <input
-                        type="radio"
-                        readOnly
-                        checked={Boolean(rev.showOnHome)}
-                        className="accent-amber-600 w-3.5 h-3.5 cursor-pointer pointer-events-none"
+                      <Star
+                        size={13}
+                        fill={rev.showOnHome ? 'currentColor' : 'none'}
+                        className={rev.showOnHome ? 'text-white' : 'text-amber-500'}
                       />
-                      <span>{rev.showOnHome ? '★ On Homepage' : 'Add to Home'}</span>
+                      <span>{rev.showOnHome ? '★ On Homepage' : 'Show on Home'}</span>
                     </button>
                   </div>
 
@@ -683,7 +705,7 @@ export default function ReviewsModeration() {
                     “{rev.feedbackText}”
                   </p>
 
-                  {/* Metadata Row (Date removed as requested) */}
+                  {/* Metadata Row (No Date) */}
                   <div className="flex items-center gap-3 text-[11px] text-slate-400 pt-0.5 flex-wrap">
                     <span className="flex items-center gap-1">
                       <Building2 size={12} className="text-sky-600" />
@@ -702,7 +724,7 @@ export default function ReviewsModeration() {
 
                 {/* CRUD Action Buttons */}
                 <div className="flex items-center md:flex-col gap-2 shrink-0 w-full md:w-auto justify-end pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
-                  {/* Approve / Unpublish Button */}
+                  {/* Approve / Publish (Green Checkmark) vs Unpublish */}
                   {!rev.isApproved ? (
                     <button
                       type="button"
@@ -710,65 +732,66 @@ export default function ReviewsModeration() {
                         handleUpdateStatus(rev._id, { isApproved: true, isSpam: false })
                       }
                       className="btn btn-success btn-sm text-xs flex items-center justify-center gap-1.5 w-full md:w-auto"
-                      title="Publish review on public website"
+                      title="Approve / Publish: Immediately makes the review live and visible on the public Customer Reviews page"
                     >
-                      <CheckCircle size={13} />
-                      <span>Approve</span>
+                      <CheckCircle size={14} className="text-white" />
+                      <span>Approve / Publish</span>
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={() => handleUpdateStatus(rev._id, { isApproved: false })}
-                      className="btn btn-outline btn-sm text-xs flex items-center justify-center gap-1.5 w-full md:w-auto"
-                      title="Unpublish from website"
+                      className="btn btn-outline border-amber-300 text-amber-700 hover:bg-amber-50 btn-sm text-xs flex items-center justify-center gap-1.5 w-full md:w-auto"
+                      title="Unpublish: Temporarily hides the review from the public website without deleting it"
                     >
-                      <XCircle size={13} />
+                      <XCircle size={14} className="text-amber-600" />
                       <span>Unpublish</span>
                     </button>
                   )}
 
                   <div className="flex items-center gap-1.5 w-full md:w-auto">
-                    {/* Edit Button */}
+                    {/* Edit (Pencil Icon) */}
                     <button
                       type="button"
                       onClick={() => handleOpenEditModal(rev)}
                       className="btn btn-outline border-slate-200 text-slate-700 hover:bg-slate-100 btn-sm text-xs flex items-center justify-center gap-1 flex-1 md:flex-initial"
-                      title="Edit review text & details"
+                      title="Edit: Allows you to fix typos or link the review to a specific project"
                     >
                       <Edit3 size={13} className="text-sky-600" />
                       <span>Edit</span>
                     </button>
 
-                    {/* Spam Toggle Button */}
+                    {/* Mark as Spam / Unmark Spam */}
                     {!rev.isSpam ? (
                       <button
                         type="button"
                         onClick={() =>
                           handleUpdateStatus(rev._id, { isSpam: true, isApproved: false })
                         }
-                        className="btn btn-outline border-slate-200 text-rose-600 hover:bg-rose-50 btn-sm text-xs flex items-center justify-center gap-1"
-                        title="Mark as Spam"
+                        className="btn btn-outline border-rose-200 text-rose-600 hover:bg-rose-50 btn-sm text-xs flex items-center justify-center gap-1 px-2.5"
+                        title="Mark as Spam: Moves irrelevant or fake reviews to the Spam tab"
                       >
                         <AlertTriangle size={13} />
+                        <span className="hidden sm:inline">Spam</span>
                       </button>
                     ) : (
                       <button
                         type="button"
                         onClick={() => handleUpdateStatus(rev._id, { isSpam: false })}
                         className="btn btn-outline border-slate-200 text-slate-600 hover:bg-slate-100 btn-sm text-xs"
-                        title="Unmark spam"
+                        title="Un-spam: Moves back to active reviews"
                       >
                         Un-spam
                       </button>
                     )}
 
-                    {/* Delete Button */}
+                    {/* Delete Permanently */}
                     <button
                       type="button"
                       onClick={() => handleDeleteReview(rev._id, rev.customerName)}
                       disabled={deletingId === rev._id}
                       className="btn btn-outline border-rose-200 text-rose-600 hover:bg-rose-600 hover:text-white btn-sm text-xs flex items-center justify-center p-2"
-                      title="Delete review permanently"
+                      title="Delete: Permanently removes the review from the database"
                     >
                       <Trash2
                         size={13}
@@ -1305,44 +1328,52 @@ export default function ReviewsModeration() {
                 ></textarea>
               </div>
 
-              {/* Show on Homepage Radio Control (Max 3) */}
+              {/* Show on Homepage Star Toggle (Max 3) */}
               <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200/80 flex items-center justify-between">
                 <div>
                   <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span>Feature on Homepage (Max 3)</span>
+                    <Star size={14} className="text-amber-500 fill-amber-500" />
+                    <span>Show on Home (Homepage Testimonials, Max 3)</span>
                     <span className="text-[10px] text-amber-800 bg-amber-200/70 px-2 py-0.5 rounded-full font-bold">
                       {reviews.filter((r) => r.showOnHome && (!editingReview || r._id !== editingReview._id)).length}/3 Selected
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    Select to show this review in the 3 featured slots on the public homepage.
+                    Feature this review prominently in the 3 testimonial cards on the public homepage.
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="modalShowOnHomeRadio"
-                    checked={Boolean(formData.showOnHome)}
-                    onClick={() => {
-                      if (!formData.showOnHome) {
-                        const currentHomeCount = reviews.filter(
-                          (r) => r.showOnHome && (!editingReview || r._id !== editingReview._id)
-                        ).length;
-                        if (currentHomeCount >= 3) {
-                          alert(
-                            'Maximum of 3 reviews can be featured on the Homepage. Please deselect another review first.'
-                          );
-                          return;
-                        }
-                        setFormData((prev) => ({ ...prev, showOnHome: true }));
-                      } else {
-                        setFormData((prev) => ({ ...prev, showOnHome: false }));
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!formData.showOnHome) {
+                      const currentHomeCount = reviews.filter(
+                        (r) => r.showOnHome && (!editingReview || r._id !== editingReview._id)
+                      ).length;
+                      if (currentHomeCount >= 3) {
+                        showToast(
+                          'Maximum of 3 reviews can be featured on the Homepage. Please unpin another review first.',
+                          'warning'
+                        );
+                        return;
                       }
-                    }}
-                    onChange={() => {}}
-                    className="w-5 h-5 accent-amber-500 cursor-pointer"
+                      setFormData((prev) => ({ ...prev, showOnHome: true }));
+                    } else {
+                      setFormData((prev) => ({ ...prev, showOnHome: false }));
+                    }
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border cursor-pointer ${
+                    formData.showOnHome
+                      ? 'bg-amber-500 text-white border-amber-600 shadow-2xs hover:bg-amber-600'
+                      : 'bg-white text-slate-700 border-slate-300 hover:border-amber-400 hover:bg-amber-50/70'
+                  }`}
+                >
+                  <Star
+                    size={13}
+                    fill={formData.showOnHome ? 'currentColor' : 'none'}
+                    className={formData.showOnHome ? 'text-white' : 'text-amber-500'}
                   />
-                </label>
+                  <span>{formData.showOnHome ? '★ On Homepage' : 'Pin to Home'}</span>
+                </button>
               </div>
 
               {/* Publication Status Toggle */}

@@ -96,6 +96,17 @@ export default function CustomerReviews() {
         if (res.success && res.data) setCustomerQr(res.data);
       })
       .catch((e) => console.error('Failed to load universal QR:', e));
+
+    const handleReviewsUpdated = () => {
+      fetchApi('/reviews')
+        .then((res) => {
+          if (res.success && res.data) setReviewsData(res.data);
+        })
+        .catch((e) => console.error('Failed to reload reviews:', e));
+    };
+
+    window.addEventListener('sln_reviews_updated', handleReviewsUpdated);
+    return () => window.removeEventListener('sln_reviews_updated', handleReviewsUpdated);
   }, []);
 
   const displayedReviews = useMemo(() => {
@@ -280,40 +291,45 @@ export default function CustomerReviews() {
             </div>
           </div>
 
-          {/* Right Column: Google Business Profile Callout Card */}
-          <div className="w-full max-w-sm shrink-0 scroll-reveal-right delay-300 mt-4 lg:mt-0 mx-auto lg:mx-0">
-            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-lg hover:shadow-2xl hover:border-sky-300 hover:-translate-y-1.5 transition-all duration-300 p-4 sm:p-6 text-left relative overflow-hidden group">
-              {/* Sliding top accent line */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-amber-400 to-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+          {/* Right Column: Scannable QR & Direct Review Cards */}
+          <div className="w-full max-w-sm shrink-0 scroll-reveal-right delay-300 mt-4 lg:mt-0 mx-auto lg:mx-0 space-y-3">
+            {/* Scannable QR Code Card */}
+            <div className="bg-white rounded-2xl border-2 border-sky-300 shadow-xl p-4 sm:p-5 text-center relative overflow-hidden group">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 via-emerald-400 to-sky-600" />
 
-              <div className="flex items-center gap-3 sm:gap-3.5 mb-3">
-                {/* Google "G" Icon Badge */}
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-sm transition-all duration-200">
-                  <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-blue-500 via-red-500 via-yellow-500 to-green-500 bg-clip-text text-transparent">
-                    G
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">
-                    {pageContent.googleCardHeadline || 'Review Us on'}
-                  </h3>
-                  <p className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">
-                    {pageContent.googleCardSubheadline || 'Google Business Profile'}
-                  </p>
-                </div>
+              <div className="flex items-center justify-center gap-1.5 mb-2 text-slate-900 font-extrabold text-xs uppercase tracking-wider">
+                <QrCode size={16} className="text-sky-600 animate-pulse" />
+                <span>Scan with Phone to Review</span>
               </div>
 
-              <p className="text-[11px] text-slate-600 leading-relaxed mb-4">
-                {pageContent.googleCardDescription || 'We believe in total transparency. We invite all clients to share their candid feedback on our public Google Business listing.'}
+              {/* Scannable QR Image */}
+              <Link
+                to="/review"
+                className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl inline-block my-1 shadow-inner group-hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer"
+                title="Scan with phone camera or click to open review form"
+              >
+                {customerQr?.qrCodeDataUrl || customerQr?.qrDataUrl ? (
+                  <img
+                    src={customerQr.qrCodeDataUrl || customerQr.qrDataUrl}
+                    alt="Scan with Camera to Review"
+                    className="w-28 h-28 sm:w-32 sm:h-32 object-contain mx-auto transition-transform group-hover:scale-105"
+                  />
+                ) : (
+                  <QrCode size={112} className="text-slate-800 mx-auto" />
+                )}
+              </Link>
+
+              <p className="text-[11px] font-bold text-slate-700 mt-1">
+                Point your mobile camera at the QR code
               </p>
 
-              <div className="space-y-2">
+              <div className="mt-3 flex flex-col gap-1.5">
                 <Link
                   to="/review"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
+                  className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-sm"
                 >
-                  <Star size={14} className="text-amber-300 fill-amber-300" />
-                  <span>{pageContent.googleCardCtaText || 'Give a Customer Review'}</span>
+                  <Star size={13} className="text-amber-300 fill-amber-300" />
+                  <span>Give a Customer Review</span>
                   <ArrowRight size={13} />
                 </Link>
 
@@ -321,12 +337,13 @@ export default function CustomerReviews() {
                   href={googleReviewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all duration-200"
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all"
                 >
-                  <span className="w-4 h-4 rounded-full bg-white text-sky-700 flex items-center justify-center font-bold text-[9px]">
+                  <span className="w-3.5 h-3.5 rounded-full bg-white text-sky-700 flex items-center justify-center font-bold text-[8px]">
                     G
                   </span>
                   <span>{pageContent.googleCardExternalText || 'Write a Google Review'}</span>
+                  <ExternalLink size={11} className="text-slate-400" />
                 </a>
               </div>
             </div>
@@ -588,9 +605,9 @@ export default function CustomerReviews() {
                     className="p-3 bg-slate-50 border border-slate-200 rounded-lg inline-block my-1 shadow-inner group-hover:border-emerald-500 hover:shadow-md transition-all block cursor-pointer"
                     title="Click or scan to leave a verified customer review"
                   >
-                    {customerQr?.qrCodeDataUrl ? (
+                    {customerQr?.qrCodeDataUrl || customerQr?.qrDataUrl ? (
                       <img
-                        src={customerQr.qrCodeDataUrl}
+                        src={customerQr.qrCodeDataUrl || customerQr.qrDataUrl}
                         alt="Scan to Add Customer Review"
                         className="w-24 h-24 sm:w-28 sm:h-28 mx-auto object-contain transition-transform group-hover:scale-105"
                       />

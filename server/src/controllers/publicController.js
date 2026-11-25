@@ -488,6 +488,7 @@ export const getUniversalQRCode = async (req, res, next) => {
       data: {
         reviewUrl,
         qrCodeDataUrl,
+        qrDataUrl: qrCodeDataUrl,
         companyName: settings?.companyName || 'SLN Engineers Projects Pvt. Ltd.',
         phone: settings?.phone || '+91 8977668776',
         tagline: settings?.tagline || 'Restoration for Three Generations',

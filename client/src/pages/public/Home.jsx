@@ -729,7 +729,7 @@ export default function Home() {
           setAllProjects(sorted);
         }
         if (reviewsRes.success && reviewsRes.data?.reviews) {
-          setReviews(reviewsRes.data.reviews.slice(0, 3));
+          setReviews(reviewsRes.data.reviews);
         }
       })
       .catch((err) => console.error('Error loading homepage data:', err))
@@ -864,6 +864,15 @@ export default function Home() {
           }
         })
         .catch(() => {});
+
+      // 8. Reviews
+      fetchApi('/reviews')
+        .then((res) => {
+          if (res.success && res.data?.reviews) {
+            setReviews(res.data.reviews);
+          }
+        })
+        .catch(() => {});
     };
 
     const handleSettingsUpdate = (e) => {
@@ -882,6 +891,7 @@ export default function Home() {
     window.addEventListener('sln_pillar_cards_updated', syncData);
     window.addEventListener('sln_glimpse_video_updated', syncData);
     window.addEventListener('sln_home_content_updated', syncData);
+    window.addEventListener('sln_reviews_updated', syncData);
     window.addEventListener('sln_settings_updated', handleSettingsUpdate);
     window.addEventListener('focus', syncData);
     window.addEventListener('storage', handleStorage);
@@ -893,6 +903,7 @@ export default function Home() {
       window.removeEventListener('sln_pillar_cards_updated', syncData);
       window.removeEventListener('sln_glimpse_video_updated', syncData);
       window.removeEventListener('sln_home_content_updated', syncData);
+      window.removeEventListener('sln_reviews_updated', syncData);
       window.removeEventListener('sln_settings_updated', handleSettingsUpdate);
       window.removeEventListener('focus', syncData);
       window.removeEventListener('storage', handleStorage);
