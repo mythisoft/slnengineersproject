@@ -163,9 +163,9 @@ router.get('/pillar-cards', protect, authorize('superadmin', 'admin'), getAdminP
 router.post('/pillar-cards', protect, authorize('superadmin', 'admin'), createPillarCard);
 router.put('/pillar-cards/reorder', protect, authorize('superadmin', 'admin'), reorderPillarCards);
 router.put('/pillar-cards/glimpse-settings', protect, authorize('superadmin', 'admin'), updateGlimpseSettings);
-router.post('/pillar-cards/upload-image', protect, authorize('superadmin', 'admin'), imageUpload.single('file'), asyncHandler(async (req, res) => {
+router.post('/pillar-cards/upload-image', protect, authorize('superadmin', 'admin'), upload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ success: false, message: 'Please select an image file.' });
+    return res.status(400).json({ success: false, message: 'Please select an image or GIF file.' });
   }
   const url = await uploadFileToCloudinary(req.file, 'sln_waterproofing/pillar_cards');
   res.status(201).json({ success: true, data: { url } });

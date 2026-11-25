@@ -14,7 +14,10 @@ const fileFilter = (req, file, cb) => {
     'video/quicktime',
   ];
 
-  if (allowedMimeTypes.includes(file.mimetype)) {
+  const ext = (file.originalname || '').toLowerCase();
+  const isAllowedExt = /\.(jpe?g|png|webp|gif|gifv|svg|mp4|webm|mov)$/i.test(ext);
+
+  if (allowedMimeTypes.includes(file.mimetype) || isAllowedExt) {
     cb(null, true);
   } else {
     cb(new Error('Invalid file type! Only JPG, PNG, WEBP, GIF, SVG, and MP4/WEBM files are permitted.'), false);
@@ -23,7 +26,10 @@ const fileFilter = (req, file, cb) => {
 
 const imageFileFilter = (req, file, cb) => {
   const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
-  if (allowedMimeTypes.includes(file.mimetype)) {
+  const ext = (file.originalname || '').toLowerCase();
+  const isAllowedExt = /\.(jpe?g|png|webp|gif|gifv|svg)$/i.test(ext);
+
+  if (allowedMimeTypes.includes(file.mimetype) || isAllowedExt) {
     cb(null, true);
   } else {
     cb(new Error('Invalid file type! Only JPG, PNG, WEBP, GIF, and SVG images are permitted.'), false);

@@ -169,14 +169,24 @@ export default function PillarCardsManager() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const isImageOrGif = file.type.startsWith('image/') || file.name.toLowerCase().endsWith('.gif');
-    if (!isImageOrGif) {
+    const fileName = (file.name || '').toLowerCase();
+    const mimeType = (file.type || '').toLowerCase();
+
+    // Comprehensive validation for all browser formats & systems (including octet-stream)
+    const isImageOrMedia =
+      mimeType.startsWith('image/') ||
+      mimeType.startsWith('video/') ||
+      mimeType === 'application/octet-stream' ||
+      /\.(gif|gifv|jpe?g|png|webp|svg|avif|mp4|webm|mov)$/i.test(fileName) ||
+      fileName.includes('.gif');
+
+    if (!isImageOrMedia) {
       setUploadError('Please select a valid image or GIF file (JPG, PNG, WebP, GIF).');
       return;
     }
 
-    if (file.size > 20 * 1024 * 1024) {
-      setUploadError('File size exceeds 20MB limit.');
+    if (file.size > 50 * 1024 * 1024) {
+      setUploadError('File size exceeds 50MB limit.');
       return;
     }
 
@@ -205,7 +215,7 @@ export default function PillarCardsManager() {
       const uploadedUrl = res?.url || res?.data?.url;
       if (uploadedUrl) {
         setFormData((prev) => ({ ...prev, imageUrl: uploadedUrl }));
-        const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
+        const isGif = mimeType === 'image/gif' || fileName.includes('.gif') || fileName.includes('.gifv');
         showToast(isGif ? 'Animated GIF uploaded successfully!' : 'Image uploaded successfully!', 'success');
       } else {
         throw new Error(res?.message || 'Image/GIF upload failed.');
@@ -895,14 +905,30 @@ export default function PillarCardsManager() {
                     </div>
 
                     <div className="relative aspect-[3/4] bg-slate-100 overflow-hidden">
-                      <img
-                        src={card.imageUrl}
-                        alt={card.pillarName}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
-                      />
+                      {/\.(mp4|webm|mov)(\?.*)?$/i.test(card.imageUrl) ? (
+                        <video
+                          src={card.imageUrl}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
+                        />
+                      ) : (
+                        <img
+                          src={card.imageUrl}
+                          alt={card.pillarName}
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
+                        />
+                      )}
                       {(card.imageUrl?.toLowerCase().includes('.gif') || card.imageUrl?.toLowerCase().endsWith('.gif')) && (
                         <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-white shadow-xs tracking-wider">
                           GIF
+                        </div>
+                      )}
+                      {/\.(mp4|webm|mov)(\?.*)?$/i.test(card.imageUrl) && (
+                        <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[9px] font-black bg-sky-500 text-white shadow-xs tracking-wider">
+                          VIDEO
                         </div>
                       )}
                     </div>
@@ -1015,17 +1041,33 @@ export default function PillarCardsManager() {
 
                   {/* Thumbnail */}
                   <div className="w-16 h-20 sm:w-20 sm:h-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 relative">
-                    <img
-                      src={card.imageUrl}
-                      alt={card.pillarName}
-                      className="w-full h-full object-cover"
-                    />
+                    {/\.(mp4|webm|mov)(\?.*)?$/i.test(card.imageUrl) ? (
+                      <video
+                        src={card.imageUrl}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={card.imageUrl}
+                        alt={card.pillarName}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                     <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-black bg-slate-950/85 text-white">
                       #{card.order || idx + 1}
                     </div>
                     {(card.imageUrl?.toLowerCase().includes('.gif') || card.imageUrl?.toLowerCase().endsWith('.gif')) && (
                       <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-white shadow-xs tracking-wider">
                         GIF
+                      </div>
+                    )}
+                    {/\.(mp4|webm|mov)(\?.*)?$/i.test(card.imageUrl) && (
+                      <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-black bg-sky-500 text-white shadow-xs tracking-wider">
+                        VIDEO
                       </div>
                     )}
                   </div>
@@ -1212,7 +1254,7 @@ export default function PillarCardsManager() {
                       type="file"
                       ref={fileInputRef}
                       onChange={handleFileUpload}
-                      accept="image/*,.gif,image/gif"
+                      accept="image/*,.gif,.mp4,.webm,.gifv,image/gif,video/*"
                       className="hidden"
                     />
                     <button
@@ -1239,18 +1281,34 @@ export default function PillarCardsManager() {
                   {formData.imageUrl && (
                     <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
                       <div className="w-16 h-20 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 relative">
-                        <img
-                          src={formData.imageUrl}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=400&q=80';
-                          }}
-                        />
+                        {/\.(mp4|webm|mov)(\?.*)?$/i.test(formData.imageUrl) ? (
+                          <video
+                            src={formData.imageUrl}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <img
+                            src={formData.imageUrl}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=400&q=80';
+                            }}
+                          />
+                        )}
                         {(formData.imageUrl?.toLowerCase().includes('.gif') || formData.imageUrl?.toLowerCase().endsWith('.gif')) && (
                           <div className="absolute top-1 right-1 px-1 py-0.5 rounded text-[8px] font-black bg-amber-500 text-white shadow-xs">
                             GIF
+                          </div>
+                        )}
+                        {/\.(mp4|webm|mov)(\?.*)?$/i.test(formData.imageUrl) && (
+                          <div className="absolute top-1 right-1 px-1 py-0.5 rounded text-[8px] font-black bg-sky-500 text-white shadow-xs">
+                            VIDEO
                           </div>
                         )}
                       </div>
@@ -1260,6 +1318,11 @@ export default function PillarCardsManager() {
                           {(formData.imageUrl?.toLowerCase().includes('.gif') || formData.imageUrl?.toLowerCase().endsWith('.gif')) && (
                             <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
                               Animated GIF
+                            </span>
+                          )}
+                          {/\.(mp4|webm|mov)(\?.*)?$/i.test(formData.imageUrl) && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-sky-100 text-sky-800 border border-sky-300">
+                              Loop Video
                             </span>
                           )}
                         </div>

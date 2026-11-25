@@ -2362,15 +2362,26 @@ export default function Home() {
                           style={{ backgroundColor: card.accentColor || '#0284c7' }}
                         />
 
-                        {/* Photo with curved wave from mockup — Flush Edge to Edge with 0 gap */}
+                        {/* Photo or Animated Media with curved wave — Flush Edge to Edge with 0 gap */}
                         <div className="relative aspect-[3/4] sm:aspect-[4/5] bg-slate-100 overflow-hidden">
-                          <img
-                            src={card.imageUrl}
-                            alt={card.pillarName}
-                            loading="eager"
-                            fetchPriority="high"
-                            className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
-                          />
+                          {/\.(mp4|webm|mov)(\?.*)?$/i.test(card.imageUrl || '') ? (
+                            <video
+                              src={card.imageUrl}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                            />
+                          ) : (
+                            <img
+                              src={card.imageUrl}
+                              alt={card.pillarName}
+                              loading="eager"
+                              fetchPriority="high"
+                              className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                            />
+                          )}
                         </div>
 
                         {/* Curved Colored Swoosh at Bottom of Photo */}
